@@ -1,0 +1,68 @@
+{% extends "auth/base_auth.html" %}
+{% load static %}
+
+{% block title %}Iniciar Sesión - ARCH MANAGER{% endblock %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% block auth_content %}
+<div class="login-form-wrapper">
+    <h1 class="login-title">¡Bienvenido!</h1>
+
+    {# Mostrar mensaje si la cuenta está bloqueada (parámetro ?locked=1 en URL) #}
+    {% if request.GET.locked %}
+        <div class="alert alert-danger" role="alert">
+            Cuenta bloqueada: demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo más tarde.
+        </div>
+    {# Mostrar mensajes de error generales del formulario (si no está bloqueada) #}
+    {% elif form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {# Añadir esta nueva condición para errores genéricos #}
+    {% elif request.GET.error %}
+        <div class="alert alert-danger" role="alert">
+            Ha ocurrido un error durante el inicio de sesión. Por favor, verifica tus credenciales e intenta nuevamente.
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:login' %}" class="login-form">
+        <!-- El resto de tu formulario se mantiene igual -->
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="id_username">Correo electrónico</label>
+            <div class="input-wrapper">
+                <input type="text" name="username" id="id_username" required>
+                <span class="input-icon mdi mdi-email-outline"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_password">Contraseña</label>
+            <div class="input-wrapper">
+                <input type="password" name="password" id="id_password" required>
+                <span class="input-icon mdi mdi-lock-outline"></span>
+                <button type="button" class="password-toggle" aria-label="Toggle password visibility">
+                    <span class="mdi mdi-eye-outline"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="login-options">
+            <button type="submit" class="sign-in-btn">Iniciar Sesión</button>
+            <a href="{% url 'accounts:password_reset' %}" class="forgot-link">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/auth.js' %}"></script>
+{% endblock %}
