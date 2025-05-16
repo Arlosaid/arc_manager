@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio - Mi Aplicación Django{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h1 class="card-title">Bienvenido a mi aplicación</h1>
+                    <p class="card-text">Esta es una página de ejemplo que usa la plantilla base con navbar y sidebar.</p>
+                    <a href="#" class="btn btn-primary">Ir al Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Módulo 1</h5>
+                    <p class="card-text">Descripción del módulo 1 y sus funcionalidades.</p>
+                    <a href="#" class="btn btn-outline-primary">Explorar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Módulo 2</h5>
+                    <p class="card-text">Descripción del módulo 2 y sus funcionalidades.</p>
+                    <a href="#" class="btn btn-outline-primary">Explorar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Configuración</h5>
+                    <p class="card-text">Ajustes y configuraciones del sistema.</p>
+                    <a href="#" class="btn btn-outline-primary">Configurar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
