@@ -1,20 +1,17 @@
 from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 
-from accounts.views import SecurePasswordResetView
+from accounts.views import CustomLoginView, SecurePasswordResetView, CustomLogoutView
 from .forms import CustomAuthenticationForm
 
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login/', auth_views.LoginView.as_view(
+    path('login/', CustomLoginView.as_view(
             template_name='auth/login.html',
             authentication_form=CustomAuthenticationForm
         ), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(
-            http_method_names=['get', 'post'],
-            next_page='accounts:login'
-        ), name='logout'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('password_reset/', SecurePasswordResetView.as_view(
         template_name='auth/password_reset.html',
         email_template_name='auth/password_reset_email.html',

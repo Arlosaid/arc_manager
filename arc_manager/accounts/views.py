@@ -1,15 +1,74 @@
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import PasswordResetView, LogoutView
 from django.core.cache import cache
 from django.contrib import messages
 import logging
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.views import LoginView
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
+from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 
 # Inicializa el logger
 logger = logging.getLogger('app')
 security_logger = logging.getLogger('django.security')
+
+class CustomLoginView(LoginView):
+    template_name = 'auth/login.html'
+    
+    def form_valid(self, form):
+        """Método llamado cuando el formulario es válido"""
+        # Obtener nombre de usuario (puede ser email o username)
+        username = form.cleaned_data.get('username')
+        
+        # La autenticación la maneja la clase base LoginView
+        response = super().form_valid(form)
+        
+        # Después de que LoginView ha hecho el login, registramos el éxito
+        security_logger.info(f"Inicio de sesión exitoso para el usuario: {username}")
+        logger.info(f"Usuario {username} ha iniciado sesión")
+        
+        return response
+
+    def form_invalid(self, form):
+        """Método llamado cuando el formulario es inválido"""
+        # Intentar obtener el username del formulario (podría no estar si el formulario tiene errores)
+        username = form.cleaned_data.get('username', 'desconocido')
+        
+        # Registrar el intento fallido
+        security_logger.warning(f"Intento de inicio de sesión fallido para el usuario: {username}")
+        logger.warning(f"Intento de inicio de sesión fallido: {username}")
+        logger.warning(f"Formulario de inicio de sesión inválido: {form.errors}")
+        
+        # Añadir mensaje de error
+        messages.error(self.request, "Credenciales inválidas")
+        
+        return super().form_invalid(form)
+    
+class CustomLogoutView(View):
+    """Vista personalizada para el cierre de sesión que funciona con GET y POST"""
+    
+    def get(self, request, *args, **kwargs):
+        return self.logout_user(request)
+        
+    def post(self, request, *args, **kwargs):
+        return self.logout_user(request)
+    
+    def logout_user(self, request):
+        # Capturar el nombre de usuario ANTES de hacer logout
+        username = ""
+        if request.user.is_authenticated:
+            username = request.user.username or request.user.email or str(request.user.id)
+            
+        # Registrar el cierre de sesión con el nombre de usuario capturado
+        security_logger.info(f"Cierre de sesión del usuario: {username}")
+        logger.info(f"Usuario {username} ha cerrado sesión")
+        
+        # Realizar el logout después de capturar la información
+        logout(request)
+        
+        # Redirigir al login
+        return HttpResponseRedirect(reverse_lazy('accounts:login'))
 
 class SecurePasswordResetView(PasswordResetView):
     template_name = 'auth/password_reset.html'
@@ -30,39 +89,3 @@ class SecurePasswordResetView(PasswordResetView):
         cache.set(cache_key, True, timeout=900)
         
         return super().form_valid(form)
-
-class CustomLoginView(LoginView):
-    template_name = 'accounts/login.html'
-    
-    def form_valid(self, form):
-        """Método llamado cuando el formulario es válido"""
-        # Autentica al usuario usando el backend de Django
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password')
-        user = authenticate(username=username, password=password)
-        
-        if user is not None:
-            # Registro de evento exitoso
-            login(self.request, user)
-            security_logger.info(f"Inicio de sesión exitoso para el usuario: {username}")
-            logger.info(f"Usuario {username} ha iniciado sesión")
-            return redirect(self.get_success_url())
-        else:
-            # Registro de evento fallido
-            security_logger.warning(f"Intento de inicio de sesión fallido para el usuario: {username}")
-            logger.warning(f"Intento de inicio de sesión fallido: {username}")
-            messages.error(self.request, "Credenciales inválidas")
-            return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        """Método llamado cuando el formulario es inválido"""
-        logger.warning(f"Formulario de inicio de sesión inválido: {form.errors}")
-        return super().form_invalid(form)
-
-class DashboardView(TemplateView):
-    template_name = 'accounts/dashboard.html'
-    
-    def get(self, request, *args, **kwargs):
-        """Maneja las solicitudes GET"""
-        logger.debug(f"Usuario {request.user} accedió al dashboard")
-        return super().get(request, *args, **kwargs)

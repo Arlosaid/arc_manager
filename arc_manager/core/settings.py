@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'axes',
     'core',
     'accounts',
+    'main',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -42,6 +43,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
+    'accounts.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -169,8 +171,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication URLs
 LOGIN_URL = '/accounts/login/'  # URL a la que se redirige si se necesita iniciar sesión
-LOGIN_REDIRECT_URL = '/'      # URL a la que ir después de iniciar sesión correctamente (al dashboard)
+LOGIN_REDIRECT_URL = '/main/'  # Redirigir al home después del login
 LOGOUT_REDIRECT_URL = '/accounts/login/' # Redirigir a la URL de login correcta
+
+# URLs exentas (usando patrones regex)
+LOGIN_EXEMPT_URLS = [
+    r'^accounts/login/?$',
+    r'^accounts/logout/?$',
+    r'^accounts/password_reset/?$',
+    r'^accounts/password_reset/done/?$',
+    r'^accounts/reset/(.+)/(.+)/?$',  # Para las URLs de reset con token y uid
+    r'^accounts/reset/done/?$',
+    r'^admin/.*$',
+    r'^static/.*$',  # Para los archivos estáticos
+    r'^media/.*$',   # Para los archivos multimedia
+]
 
 # En producción, habilita estas configuraciones:
 # SESSION_COOKIE_SECURE = True  # Requiere HTTPS
@@ -187,7 +202,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # La sesión termina cuando se cierra e
 SESSION_COOKIE_AGE = 1209600  # Tiempo de vida máximo de la sesión (2 semanas en segundos)
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra ataques CSRF
 
-# Configuración de logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -205,11 +219,15 @@ LOGGING = {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
+        'ignore_static_requests': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: 'static' not in record.getMessage(),
+        },
     },
     'handlers': {
         'console': {
             'level': 'INFO',
-            'filters': ['require_debug_true'],
+            'filters': ['require_debug_true', 'ignore_static_requests'],
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
@@ -234,26 +252,32 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
+            'level': 'WARNING',  # Solo mostrar warnings y errores
             'propagate': True,
         },
+        'django.server': {
+            'handlers': ['file'],  # Las solicitudes HTTP solo van al archivo
+            'level': 'INFO',
+            'propagate': False,
+        },
         'django.request': {
-            'handlers': ['mail_admins', 'file'],
+            'handlers': ['mail_admins', 'file', 'console'],
             'level': 'ERROR',
             'propagate': False,
         },
         'django.security': {
-            'handlers': ['security_file', 'mail_admins'],
+            'handlers': ['security_file', 'mail_admins', 'console'],
             'level': 'INFO',
             'propagate': False,
         },
         'axes': {
-            'handlers': ['console', 'file', 'security_file'],
+            'handlers': ['file', 'security_file'],  # Quita 'console'
             'level': 'INFO',
             'propagate': False,
         },
         'app': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'INFO',  # O 'DEBUG' si necesitas más detalle
             'propagate': False,
         },
     },
