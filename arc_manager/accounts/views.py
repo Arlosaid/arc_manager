@@ -41,7 +41,7 @@ class CustomLoginView(LoginView):
         logger.warning(f"Formulario de inicio de sesión inválido: {form.errors}")
         
         # Añadir mensaje de error
-        messages.error(self.request, "Credenciales inválidas")
+        messages.error(self.request, "Credenciales inválidas", extra_tags='login')
         
         return super().form_invalid(form)
     
@@ -82,7 +82,7 @@ class SecurePasswordResetView(PasswordResetView):
         
         # Verificar si ya hay una solicitud reciente
         if cache.get(cache_key):
-            messages.info(self.request, "Ya enviamos instrucciones. Revisa tu correo o espera 15 minutos para solicitar otro.")
+            messages.info(self.request, "Ya enviamos instrucciones. Revisa tu correo o espera 15 minutos para solicitar otro.", extra_tags='password_reset')
             return self.form_invalid(form)
         
         # Guardar en cache por 15 minutos

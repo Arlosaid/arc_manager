@@ -315,21 +315,30 @@
   
   /* Sistema de alertas unificado */
   .alert {
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
+    padding: 12px 18px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+    font-size: 1rem;
+    font-weight: 400;
+    display: block;
   }
   
-  .alert-success {
-    background-color: #d1fae5;
-    border: 1px solid #a7f3d0;
-    color: #065f46;
+  .alert-info {
+    background: #e8f4fd;
+    color: #2176bd;
+    border: 1px solid #b6e0fe;
   }
   
   .alert-danger {
-    background-color: #fee2e2;
-    border: 1px solid #fecaca;
-    color: #991b1b;
+    background: #fdeaea;
+    color: #c0392b;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .alert-success {
+    background: #e6f9ed;
+    color: #218838;
+    border: 1px solid #b7f7d8;
   }
   
   /* Wrapper para iconos y texto en alertas */
