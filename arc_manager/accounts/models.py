@@ -27,6 +27,14 @@ class User(AbstractUser):
     email = models.EmailField("Correo electrónico", unique=True)
     username = models.CharField("Nombre de usuario", max_length=150, unique=False, blank=True, null=True)
     is_org_admin = models.BooleanField("Administrador de organización", default=False)
+    organization = models.ForeignKey(
+        'orgs.Organization', 
+        on_delete=models.CASCADE, 
+        related_name='users',
+        verbose_name="Organización",
+        null=True, 
+        blank=True
+    )
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -49,3 +57,12 @@ class User(AbstractUser):
     
     def can_manage_users(self):
         return self.is_superuser or self.is_org_admin
+    
+    def get_organization_name(self):
+        return self.organization.name if self.organization else "Sin organización"
+    
+    def is_in_organization(self, org_id):
+        return self.organization_id == org_id if self.organization else False
+    
+    def can_manage_organization(self):
+        return self.is_superuser or (self.is_org_admin and self.organization)

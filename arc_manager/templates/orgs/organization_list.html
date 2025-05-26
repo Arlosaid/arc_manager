@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Organizaciones{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Organizaciones</h2>
+    <a href="{% url 'orgs:create' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nueva Organización
+    </a>
+</div>
+
+            {% if organizations %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Identificador</th>
+                                        <th>Usuarios</th>
+                                        <th>Máx. Usuarios</th>
+                                        <th>Estado</th>
+                                        <th>Creada</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for org in organizations %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ org.name }}</strong>
+                                            {% if org.description %}
+                                                <br><small class="text-muted">{{ org.description|truncatechars:50 }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td><code>{{ org.slug }}</code></td>
+                                        <td>
+                                            <span class="badge badge-info">{{ org.get_user_count }}</span>
+                                        </td>
+                                        <td>{{ org.max_users }}</td>
+                                        <td>
+                                            {% if org.is_active %}
+                                                <span class="badge badge-success">Activa</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ org.created_at|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'orgs:detail' org.pk %}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'orgs:edit' org.pk %}" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paginación -->
+                {% if is_paginated %}
+                <nav aria-label="Paginación de organizaciones" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                        <h4>No hay organizaciones registradas</h4>
+                        <p class="text-muted">Crea la primera organización para comenzar.</p>
+                        <a href="{% url 'orgs:create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Primera Organización
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+{% endblock %} 

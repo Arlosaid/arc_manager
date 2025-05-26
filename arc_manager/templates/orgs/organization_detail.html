@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ organization.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-building"></i> {{ organization.name }}
+        {% if not organization.is_active %}
+            <span class="badge badge-secondary ml-2">Inactiva</span>
+        {% endif %}
+    </h2>
+    <div class="btn-group">
+        {% if user.is_superuser or user.can_manage_organization %}
+            <a href="{% url 'orgs:edit' organization.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        {% endif %}
+        {% if user.is_superuser %}
+            <a href="{% url 'orgs:list' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i> Todas las Organizaciones
+            </a>
+        {% else %}
+            <a href="{% url 'main:home' %}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Inicio
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+            <!-- Información principal -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Información General</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <strong>Nombre:</strong>
+                                    <p>{{ organization.name }}</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Identificador:</strong>
+                                    <p><code>{{ organization.slug }}</code></p>
+                                </div>
+                            </div>
+                            
+                            {% if organization.description %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <strong>Descripción:</strong>
+                                    <p>{{ organization.description }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <strong>Estado:</strong>
+                                    <p>
+                                        {% if organization.is_active %}
+                                            <span class="badge badge-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactiva</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Límite de usuarios:</strong>
+                                    <p>{{ organization.max_users }} usuarios</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <strong>Creada:</strong>
+                                    <p>{{ organization.created_at|date:"d/m/Y H:i" }}</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Última actualización:</strong>
+                                    <p>{{ organization.updated_at|date:"d/m/Y H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Estadísticas</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <h2 class="text-primary">{{ organization.get_user_count }}</h2>
+                                <small class="text-muted">Usuarios totales</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h3 class="text-success">{{ organization.get_admins.count }}</h3>
+                                <small class="text-muted">Administradores</small>
+                            </div>
+                            
+                            <div class="progress mb-2">
+                                {% widthratio organization.get_user_count organization.max_users 100 as percentage %}
+                                <div class="progress-bar" role="progressbar" style="width: {{ percentage }}%">
+                                    {{ percentage }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">Capacidad utilizada</small>
+                            
+                            {% if organization.can_add_user %}
+                                <div class="mt-3">
+                                    <span class="badge badge-success">Puede agregar usuarios</span>
+                                </div>
+                            {% else %}
+                                <div class="mt-3">
+                                    <span class="badge badge-warning">Límite alcanzado</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de usuarios -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users"></i> Usuarios ({{ organization.get_user_count }})
+                            </h5>
+                            {% if user.is_superuser %}
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Puedes gestionar usuarios desde el panel de administración
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% if organization.users.all %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Usuario</th>
+                                                <th>Email</th>
+                                                <th>Rol</th>
+                                                <th>Estado</th>
+                                                <th>Último acceso</th>
+                                                <th>Fecha de registro</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for org_user in organization.users.all %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ org_user.username|default:org_user.email }}</strong>
+                                                    {% if org_user == user %}
+                                                        <span class="badge badge-info ml-2">Tú</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ org_user.email }}</td>
+                                                <td>
+                                                    {% if org_user.is_superuser %}
+                                                        <span class="badge badge-danger">Superadmin</span>
+                                                    {% elif org_user.is_org_admin %}
+                                                        <span class="badge badge-warning">Admin</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">Usuario</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if org_user.is_active %}
+                                                        <span class="badge badge-success">Activo</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">Inactivo</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if org_user.last_login %}
+                                                        {{ org_user.last_login|date:"d/m/Y H:i" }}
+                                                    {% else %}
+                                                        <span class="text-muted">Nunca</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ org_user.date_joined|date:"d/m/Y" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <h5>No hay usuarios en esta organización</h5>
+                                    <p class="text-muted">
+                                        {% if user.is_superuser %}
+                                            Puedes asignar usuarios a esta organización desde el panel de administración.
+                                        {% else %}
+                                            Los usuarios aparecerán aquí cuando sean asignados por un administrador.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del sistema (solo para superusuarios) -->
+            {% if user.is_superuser %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-cog"></i> Información del Sistema
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <strong>ID:</strong>
+                                    <p><code>{{ organization.id }}</code></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Slug:</strong>
+                                    <p><code>{{ organization.slug }}</code></p>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Creada:</strong>
+                                    <p>{{ organization.created_at|date:"d/m/Y H:i:s" }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Actualizada:</strong>
+                                    <p>{{ organization.updated_at|date:"d/m/Y H:i:s" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+{% endblock %} 
