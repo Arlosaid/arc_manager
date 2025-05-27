@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Usuario{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user-times text-danger"></i> Eliminar Usuario
+    </h2>
+    <a href="{% url 'users:list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a la Lista
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Información del usuario a eliminar -->
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-warning"></i> ¡ATENCIÓN!</h6>
+                    <p class="mb-0">
+                        Estás a punto de eliminar permanentemente al usuario. 
+                        <strong>Esta acción no se puede deshacer.</strong>
+                    </p>
+                </div>
+
+                <!-- Detalles del usuario -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-user"></i> Información del Usuario a Eliminar
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="avatar-md bg-danger rounded-circle d-flex align-items-center justify-content-center me-3">
+                                        <span class="text-white fw-bold">
+                                            {{ user_to_delete.first_name|first|upper }}{{ user_to_delete.last_name|first|upper }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0">{{ user_to_delete.first_name }} {{ user_to_delete.last_name }}</h5>
+                                        <small class="text-muted">@{{ user_to_delete.username }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <strong>Email:</strong> {{ user_to_delete.email }}
+                                </p>
+                                <p class="mb-1">
+                                    <strong>Organización:</strong> 
+                                    {% if user_to_delete.organization %}
+                                        {{ user_to_delete.organization.name }}
+                                    {% else %}
+                                        Sin organización
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1">
+                                    <strong>Estado:</strong>
+                                    {% if user_to_delete.is_active %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </p>
+                                <p class="mb-0">
+                                    <strong>Rol:</strong>
+                                    {% if user_to_delete.is_superuser %}
+                                        <span class="badge bg-danger">Superusuario</span>
+                                    {% elif user_to_delete.is_org_admin %}
+                                        <span class="badge bg-warning">Admin Org</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Usuario</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consecuencias de la eliminación -->
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-circle"></i> Consecuencias de la Eliminación</h6>
+                    <ul class="mb-0">
+                        <li>Se eliminará permanentemente toda la información del usuario</li>
+                        <li>El usuario no podrá acceder más al sistema</li>
+                        <li>Se liberará un espacio en el límite de usuarios de la organización</li>
+                        <li>Esta acción no se puede revertir</li>
+                    </ul>
+                </div>
+
+                <!-- Formulario de confirmación -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="confirmCheck" required>
+                        <label class="form-check-label" for="confirmCheck">
+                            <strong>Confirmo que entiendo las consecuencias y quiero eliminar este usuario</strong>
+                        </label>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'users:list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" name="confirm_delete" value="yes" class="btn btn-danger" id="deleteBtn" disabled>
+                            <i class="fas fa-trash"></i> Eliminar Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información adicional -->
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6><i class="fas fa-info-circle"></i> Información Importante</h6>
+                <ul class="mb-0 small">
+                    <li><strong>Eliminación permanente:</strong> Una vez eliminado, no se puede recuperar la información</li>
+                    <li><strong>Alternativa:</strong> Considera desactivar el usuario en lugar de eliminarlo si solo quieres suspender el acceso</li>
+                    <li><strong>Límites de organización:</strong> La eliminación liberará un espacio en el límite de usuarios</li>
+                    {% if user.is_org_admin and not user.is_superuser %}
+                        <li><strong>Restricciones:</strong> Como admin de organización, solo puedes eliminar usuarios de tu organización</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// JavaScript para habilitar/deshabilitar el botón de eliminar
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmCheck = document.getElementById('confirmCheck');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    confirmCheck.addEventListener('change', function() {
+        deleteBtn.disabled = !this.checked;
+    });
+});
+</script>
+
+<style>
+.avatar-md {
+    width: 48px;
+    height: 48px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %} 

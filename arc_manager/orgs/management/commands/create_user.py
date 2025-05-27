@@ -71,12 +71,25 @@ class Command(BaseCommand):
             except Organization.DoesNotExist:
                 raise CommandError(f'No existe una organización con ID "{options["org_id"]}"')
 
-        # Verificar límites de la organización
-        if organization and not organization.can_add_user() and not is_superuser:
-            raise CommandError(
-                f'La organización "{organization.name}" ha alcanzado su límite de '
-                f'{organization.max_users} usuarios'
-            )
+        # Verificar límites de la organización solo para usuarios activos
+        if organization and is_active and not is_superuser:
+            limit_info = organization.can_add_user_detailed()
+            
+            if not limit_info['can_add']:
+                if limit_info['has_inactive_users']:
+                    raise CommandError(
+                        f'La organización "{organization.name}" ha alcanzado su límite de '
+                        f'{organization.max_users} usuarios activos. '
+                        f'Actualmente tiene {limit_info["active_users"]} usuarios activos y '
+                        f'{limit_info["inactive_users"]} usuarios inactivos. '
+                        f'Considera reactivar un usuario inactivo o incrementar el límite.'
+                    )
+                else:
+                    raise CommandError(
+                        f'La organización "{organization.name}" ha alcanzado su límite máximo de '
+                        f'{organization.max_users} usuarios activos. '
+                        f'Para crear un nuevo usuario, incrementa el límite de la organización.'
+                    )
 
         try:
             if is_superuser:
@@ -110,8 +123,12 @@ class Command(BaseCommand):
             self.stdout.write(f'🔑 Contraseña: {password}')
             
             if organization:
+                limit_info = organization.can_add_user_detailed()
                 self.stdout.write(f'🏢 Organización: {organization.name}')
-                self.stdout.write(f'👥 Usuarios en la organización: {organization.get_user_count()}/{organization.max_users}')
+                self.stdout.write(f'👥 Usuarios activos: {limit_info["active_users"]}/{organization.max_users}')
+                if limit_info["inactive_users"] > 0:
+                    self.stdout.write(f'😴 Usuarios inactivos: {limit_info["inactive_users"]}')
+                self.stdout.write(f'📊 Total usuarios: {limit_info["total_users"]}')
             else:
                 self.stdout.write(f'🏢 Organización: Sin asignar')
 
@@ -121,6 +138,8 @@ class Command(BaseCommand):
                 self.stdout.write(f'👑 Tipo: Administrador de organización')
             else:
                 self.stdout.write(f'👤 Tipo: Usuario regular')
+            
+            self.stdout.write(f'🔄 Estado: {"Activo" if is_active else "Inactivo"}')
 
         except Exception as e:
             raise CommandError(f'Error al crear el usuario: {str(e)}') 

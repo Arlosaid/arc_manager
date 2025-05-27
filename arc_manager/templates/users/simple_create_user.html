@@ -22,6 +22,11 @@
                 <form method="post">
                     {% csrf_token %}
                     
+                    <!-- Campo oculto para enviar la organización del admin -->
+                    {% if not user.is_superuser and user.is_org_admin and user.organization %}
+                        <input type="hidden" name="organization" value="{{ user.organization.id }}">
+                    {% endif %}
+                    
                     <!-- Información Personal -->
                     <div class="mb-4">
                         <h6 class="border-bottom pb-2 mb-3">
@@ -83,6 +88,9 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> El email es necesario para iniciar sesión
+                            </div>
                         </div>
                         
                         <div class="form-group mb-3">
@@ -101,45 +109,20 @@
                         </div>
                     </div>
                     
-                    <!-- Contraseña -->
+                    <!-- Contraseña y Email Automático -->
                     <div class="mb-4">
                         <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-lock"></i> Contraseña
+                            <i class="fas fa-lock"></i> Contraseña y Notificación
                         </h6>
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.password.id_for_label }}" class="form-label">
-                                        <strong>{{ form.password.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.password }}
-                                    {% if form.password.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.password.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.confirm_password.id_for_label }}" class="form-label">
-                                        <strong>{{ form.confirm_password.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.confirm_password }}
-                                    {% if form.confirm_password.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.confirm_password.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Proceso Automático:</strong> 
+                            <ul class="mb-0 mt-2">
+                                <li>Se generará una contraseña segura automáticamente</li>
+                                <li>Se enviará un email con las credenciales al usuario</li>
+                                <li>El usuario podrá cambiar la contraseña cuando lo desee</li>
+                            </ul>
                         </div>
                     </div>
                     
@@ -149,24 +132,58 @@
                             <i class="fas fa-building"></i> Organización y Permisos
                         </h6>
                         
-                        <div class="form-group mb-3">
-                            <label for="{{ form.organization.id_for_label }}" class="form-label">
-                                <strong>{{ form.organization.label }}</strong>
-                            </label>
-                            {{ form.organization }}
-                            {% if form.organization.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.organization.errors %}
-                                        {{ error }}
-                                    {% endfor %}
+                        <!-- Solo mostrar el campo de organización si es superuser -->
+                        {% if user.is_superuser %}
+                            <div class="form-group mb-3">
+                                <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                    <strong>{{ form.organization.label }}</strong>
+                                    <span class="text-danger" id="org-required-indicator">*</span>
+                                </label>
+                                {{ form.organization }}
+                                {% if form.organization.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.organization.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <span id="org-help-text">
+                                        La organización es obligatoria para usuarios activos (excepto superusuarios).
+                                    </span>
                                 </div>
-                            {% endif %}
-                            {% if not user.is_superuser and user.is_org_admin %}
+                            </div>
+                        {% elif user.is_org_admin and user.organization %}
+                            <!-- Para admins de org, mostrar la organización como información -->
+                            <div class="form-group mb-3">
+                                <label class="form-label">
+                                    <strong>Organización</strong>
+                                </label>
+                                <div class="form-control-plaintext bg-light p-2 rounded">
+                                    <i class="fas fa-building"></i> {{ user.organization.name }}
+                                </div>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle"></i> Como admin de organización, solo puedes crear usuarios en tu organización.
                                 </div>
-                            {% endif %}
-                        </div>
+                                
+                                <!-- Mostrar información específica de la organización del admin -->
+                                {% with limit_info=user.organization.can_add_user_detailed %}
+                                    <div class="mt-2 p-2 rounded {% if limit_info.can_add %}bg-light{% else %}bg-danger bg-opacity-10{% endif %}">
+                                        <small>
+                                            <strong>Estado de tu organización ({{ user.organization.name }}):</strong><br>
+                                            📊 Total de usuarios: {{ limit_info.total_users }}/{{ limit_info.max_users }}<br>
+                                            📈 Activos: {{ limit_info.active_users }} | Inactivos: {{ limit_info.inactive_users }}<br>
+                                            {% if limit_info.can_add %}
+                                                ✅ Puedes crear {{ limit_info.available_slots }} usuario(s) más
+                                            {% else %}
+                                                🚫 Límite máximo alcanzado - elimina un usuario existente o contacta al administrador
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                {% endwith %}
+                            </div>
+                        {% endif %}
                         
                         <div class="row">
                             <div class="col-md-6">
@@ -234,13 +251,26 @@
     <div class="col-md-8">
         <div class="card bg-light">
             <div class="card-body">
-                <h6><i class="fas fa-info-circle"></i> Información</h6>
+                <h6><i class="fas fa-info-circle"></i> Información del Proceso</h6>
                 <ul class="mb-0 small">
-                    <li><strong>Nombre y Apellido:</strong> Se usarán para identificar al usuario</li>
-                    <li><strong>Email:</strong> Debe ser único, se usará para iniciar sesión</li>
-                    <li><strong>Nombre de usuario:</strong> Debe ser único, también se puede usar para iniciar sesión</li>
-                    <li><strong>Contraseña:</strong> El usuario podrá cambiarla después del primer acceso</li>
+                    <li><strong>Email obligatorio:</strong> Se usa como nombre de usuario para iniciar sesión</li>
+                    <li><strong>Contraseña automática:</strong> Se genera una contraseña segura de 12 caracteres</li>
+                    <li><strong>Notificación por email:</strong> Se envía automáticamente con las credenciales</li>
+                    <li><strong>Si falla el email:</strong> Se mostrará la contraseña en pantalla para entrega manual</li>
                     <li><strong>Organización:</strong> Determina a qué organización pertenece el usuario</li>
+                    <li><strong>Organización obligatoria:</strong>
+                        <ul class="mt-1">
+                            <li><em>Usuarios activos normales y admins:</em> Deben pertenecer a una organización</li>
+                            <li><em>Superusuarios:</em> Pueden existir sin organización</li>
+                            <li><em>Usuarios inactivos:</em> No requieren organización</li>
+                        </ul>
+                    </li>
+                    <li><strong>Límites de usuarios:</strong>
+                        <ul class="mt-1">
+                            <li><em>Límite único:</em> Aplica a todos los usuarios (activos e inactivos)</li>
+                            <li><em>Si el límite está alcanzado:</em> Elimina un usuario existente o contacta al administrador</li>
+                        </ul>
+                    </li>
                     <li><strong>Rol del usuario:</strong>
                         <ul class="mt-1">
                             <li><em>Usuario Normal:</em> Acceso básico al sistema</li>
@@ -258,4 +288,58 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<script>
+// JavaScript para mostrar/ocultar el indicador de obligatorio según el rol y estado activo
+document.addEventListener('DOMContentLoaded', function() {
+    const userRoleField = document.getElementById('{{ form.user_role.id_for_label }}');
+    const isActiveField = document.getElementById('{{ form.is_active.id_for_label }}');
+    const orgRequiredIndicator = document.getElementById('org-required-indicator');
+    const orgHelpText = document.getElementById('org-help-text');
+    const organizationField = document.getElementById('{{ form.organization.id_for_label }}');
+    
+    function updateOrgRequirement() {
+        // Solo aplicar para superusuarios (admins de org tienen organización fija)
+        if (!orgRequiredIndicator || !orgHelpText) return;
+        
+        const userRole = userRoleField ? userRoleField.value : '';
+        const isActive = isActiveField ? isActiveField.checked : false;
+        
+        if (userRole === 'superuser' || !isActive) {
+            // Superusuarios o usuarios inactivos no requieren organización
+            orgRequiredIndicator.style.display = 'none';
+            if (userRole === 'superuser') {
+                orgHelpText.textContent = 'Los superusuarios pueden existir sin organización.';
+            } else if (!isActive) {
+                orgHelpText.textContent = 'Los usuarios inactivos no requieren organización.';
+            }
+            
+            // Si el usuario se marca como inactivo, permitir que no tenga organización
+            if (!isActive && organizationField) {
+                organizationField.removeAttribute('required');
+            }
+        } else {
+            // Usuarios activos normales y admins de org requieren organización
+            orgRequiredIndicator.style.display = 'inline';
+            orgHelpText.textContent = 'La organización es obligatoria para usuarios activos (excepto superusuarios).';
+            
+            // Si el usuario se marca como activo, hacer la organización obligatoria
+            if (isActive && organizationField) {
+                organizationField.setAttribute('required', 'required');
+            }
+        }
+    }
+    
+    // Actualizar al cargar la página
+    updateOrgRequirement();
+    
+    // Actualizar cuando cambien los campos
+    if (userRoleField) {
+        userRoleField.addEventListener('change', updateOrgRequirement);
+    }
+    if (isActiveField) {
+        isActiveField.addEventListener('change', updateOrgRequirement);
+    }
+});
+</script>
+{% endblock %}
