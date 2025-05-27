@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'core',
     'accounts',
     'main',
+    'orgs',
+    'users',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -44,6 +46,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
     'accounts.middleware.LoginRequiredMiddleware',
+    'orgs.middleware.OrganizationMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'

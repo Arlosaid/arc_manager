@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user_to_view.first_name }} {{ user_to_view.last_name }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-user"></i> Detalle de Usuario
+    </h2>
+    <div>
+        <a href="{% url 'users:edit' user_to_view.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <a href="{% url 'users:list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a Lista
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Información principal -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-lg bg-white rounded-circle d-flex align-items-center justify-content-center me-3">
+                        <span class="text-primary fw-bold fs-4">
+                            {{ user_to_view.first_name|first|upper }}{{ user_to_view.last_name|first|upper }}
+                        </span>
+                    </div>
+                    <div>
+                        <h4 class="mb-0">{{ user_to_view.first_name }} {{ user_to_view.last_name }}</h4>
+                        <p class="mb-0 opacity-75">@{{ user_to_view.username }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-envelope me-2"></i>Contacto</h6>
+                        <p class="ms-4">
+                            <strong>Email:</strong><br>
+                            <a href="mailto:{{ user_to_view.email }}">{{ user_to_view.email }}</a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar me-2"></i>Registro</h6>
+                        <p class="ms-4">
+                            <strong>Fecha:</strong><br>
+                            {{ user_to_view.date_joined|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información organizacional -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-building"></i> Información Organizacional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Organización:</strong><br>
+                            {% if user_to_view.organization %}
+                                <span class="badge bg-info fs-6">{{ user_to_view.organization.name }}</span>
+                            {% else %}
+                                <span class="text-muted">Sin organización asignada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Rol en la organización:</strong><br>
+                            {% if user_to_view.is_superuser %}
+                                <span class="badge bg-danger fs-6">Superusuario</span>
+                            {% elif user_to_view.is_org_admin %}
+                                <span class="badge bg-warning fs-6">Administrador</span>
+                            {% else %}
+                                <span class="badge bg-secondary fs-6">Usuario</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividad reciente -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> Actividad
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Último acceso:</strong><br>
+                            {% if user_to_view.last_login %}
+                                {{ user_to_view.last_login|date:"d/m/Y H:i" }}
+                            {% else %}
+                                <span class="text-muted">Nunca ha iniciado sesión</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Estado de la cuenta:</strong><br>
+                            {% if user_to_view.is_active %}
+                                <span class="badge bg-success fs-6">Activa</span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6">Inactiva</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel lateral -->
+    <div class="col-md-4">
+        <!-- Acciones rápidas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-tools"></i> Acciones
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:edit' user_to_view.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Editar Usuario
+                    </a>
+                    <a href="mailto:{{ user_to_view.email }}" class="btn btn-outline-info">
+                        <i class="fas fa-envelope"></i> Enviar Email
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Estadísticas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary">
+                                    {% if user_to_view.date_joined %}
+                                        {{ user_to_view.date_joined|timesince }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">En el sistema</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">
+                                {% if user_to_view.last_login %}
+                                    {{ user_to_view.last_login|timesince }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </h4>
+                            <small class="text-muted">Último acceso</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de seguridad -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-shield-alt"></i> Seguridad
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Email verificado
+                    </li>
+                    <li class="mb-2">
+                        {% if user_to_view.is_active %}
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Cuenta activa
+                        {% else %}
+                            <i class="fas fa-times-circle text-danger me-2"></i>
+                            Cuenta inactiva
+                        {% endif %}
+                    </li>
+                    <li class="mb-2">
+                        {% if user_to_view.last_login %}
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Ha iniciado sesión
+                        {% else %}
+                            <i class="fas fa-exclamation-circle text-warning me-2"></i>
+                            Nunca ha iniciado sesión
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-lg {
+    width: 60px;
+    height: 60px;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Organización{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Mi Organización</h2>
+    {% if user.is_org_admin %}
+        <a href="{% url 'orgs:edit' organization.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Editar Organización
+        </a>
+    {% endif %}
+</div>
+
+            <!-- Información de la organización -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-building"></i> {{ organization.name }}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <strong>Identificador:</strong>
+                                    <p><code>{{ organization.slug }}</code></p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Estado:</strong>
+                                    <p>
+                                        {% if organization.is_active %}
+                                            <span class="badge badge-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary">Inactiva</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            {% if organization.description %}
+                            <div class="row">
+                                <div class="col-12">
+                                    <strong>Descripción:</strong>
+                                    <p>{{ organization.description }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <strong>Usuarios actuales:</strong>
+                                    <p>{{ organization.get_user_count }} de {{ organization.max_users }}</p>
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Creada:</strong>
+                                    <p>{{ organization.created_at|date:"d/m/Y H:i" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas rápidas -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Estadísticas</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-3">
+                                <h3 class="text-primary">{{ organization.get_user_count }}</h3>
+                                <small class="text-muted">Usuarios totales</small>
+                            </div>
+                            
+                            <div class="text-center mb-3">
+                                <h3 class="text-success">{{ admins.count }}</h3>
+                                <small class="text-muted">Administradores</small>
+                            </div>
+                            
+                            <div class="progress mb-2">
+                                {% widthratio organization.get_user_count organization.max_users 100 as percentage %}
+                                <div class="progress-bar" role="progressbar" style="width: {{ percentage }}%">
+                                    {{ percentage }}%
+                                </div>
+                            </div>
+                            <small class="text-muted">Capacidad utilizada</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de usuarios -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users"></i> Usuarios de la Organización
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if users %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Usuario</th>
+                                                <th>Email</th>
+                                                <th>Rol</th>
+                                                <th>Estado</th>
+                                                <th>Último acceso</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for org_user in users %}
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ org_user.username|default:org_user.email }}</strong>
+                                                    {% if org_user == user %}
+                                                        <span class="badge badge-info ml-2">Tú</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ org_user.email }}</td>
+                                                <td>
+                                                    {% if org_user.is_superuser %}
+                                                        <span class="badge badge-danger">Superadmin</span>
+                                                    {% elif org_user.is_org_admin %}
+                                                        <span class="badge badge-warning">Admin</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">Usuario</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if org_user.is_active %}
+                                                        <span class="badge badge-success">Activo</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">Inactivo</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if org_user.last_login %}
+                                                        {{ org_user.last_login|date:"d/m/Y H:i" }}
+                                                    {% else %}
+                                                        <span class="text-muted">Nunca</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <h5>No hay usuarios en esta organización</h5>
+                                    <p class="text-muted">Los usuarios aparecerán aquí cuando sean asignados.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+{% endblock %} 

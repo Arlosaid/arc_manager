@@ -13,6 +13,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('main/', include('main.urls')),
+    path('organizaciones/', include('orgs.urls')),
+    path('users/', include('users.urls')),
     path('', root_redirect),  # Redirección de la raíz al final
 ]
 
