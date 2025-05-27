@@ -115,6 +115,23 @@
                                        title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    
+                                    <!-- Botón de eliminar con validaciones de permisos -->
+                                    {% if user.is_superuser and user_item != user %}
+                                        <!-- Superuser puede eliminar cualquier usuario excepto a sí mismo -->
+                                        <a href="{% url 'users:delete' user_item.pk %}" 
+                                           class="btn btn-outline-danger"
+                                           title="Eliminar usuario">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    {% elif user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user and not user_item.is_superuser %}
+                                        <!-- Admin de org puede eliminar usuarios de su organización (excepto superusuarios y a sí mismo) -->
+                                        <a href="{% url 'users:delete' user_item.pk %}" 
+                                           class="btn btn-outline-danger"
+                                           title="Eliminar usuario">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
@@ -190,12 +207,15 @@
                 <h6><i class="fas fa-info-circle"></i> Información de Permisos</h6>
                 <ul class="mb-0 small">
                     {% if user.is_superuser %}
-                        <li><strong>Superusuario:</strong> Puedes ver y editar todos los usuarios del sistema</li>
+                        <li><strong>Superusuario:</strong> Puedes ver, editar y eliminar todos los usuarios del sistema (excepto eliminarte a ti mismo)</li>
                     {% elif user.is_org_admin %}
                         <li><strong>Admin de Organización:</strong> Solo puedes gestionar usuarios de tu organización ({{ user.organization.name }})</li>
+                        <li><strong>Eliminación:</strong> Puedes eliminar usuarios de tu organización, excepto superusuarios y tu propio usuario</li>
                     {% else %}
                         <li><strong>Usuario estándar:</strong> Solo puedes ver y editar tu propio perfil</li>
                     {% endif %}
+                    <li><strong>Eliminación permanente:</strong> Los usuarios eliminados no se pueden recuperar</li>
+                    <li><strong>Alternativa:</strong> Considera desactivar usuarios en lugar de eliminarlos para suspender el acceso temporalmente</li>
                 </ul>
             </div>
         </div>

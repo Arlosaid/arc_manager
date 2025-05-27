@@ -20,8 +20,10 @@
                                     <tr>
                                         <th>Nombre</th>
                                         <th>Identificador</th>
-                                        <th>Usuarios</th>
-                                        <th>Máx. Usuarios</th>
+                                        <th>Usuarios Activos</th>
+                                        <th>Usuarios Inactivos</th>
+                                        <th>Límite</th>
+                                        <th>Estado del Límite</th>
                                         <th>Estado</th>
                                         <th>Creada</th>
                                         <th>Acciones</th>
@@ -38,14 +40,41 @@
                                         </td>
                                         <td><code>{{ org.slug }}</code></td>
                                         <td>
-                                            <span class="badge badge-info">{{ org.get_user_count }}</span>
+                                            <span class="badge bg-primary">{{ org.get_active_user_count }}</span>
+                                        </td>
+                                        <td>
+                                            {% if org.get_inactive_user_count > 0 %}
+                                                <span class="badge bg-warning text-dark">{{ org.get_inactive_user_count }}</span>
+                                            {% else %}
+                                                <span class="text-muted">0</span>
+                                            {% endif %}
                                         </td>
                                         <td>{{ org.max_users }}</td>
                                         <td>
+                                            {% with limit_info=org.can_add_user_detailed %}
+                                                {% if limit_info.can_add %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check"></i> Disponible ({{ limit_info.available_slots }})
+                                                    </span>
+                                                {% else %}
+                                                    {% if limit_info.has_inactive_users %}
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="fas fa-exclamation-triangle"></i> Límite alcanzado
+                                                        </span>
+                                                        <br><small class="text-muted">{{ limit_info.inactive_users }} inactivos disponibles</small>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">
+                                                            <i class="fas fa-ban"></i> Máximo alcanzado
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
                                             {% if org.is_active %}
-                                                <span class="badge badge-success">Activa</span>
+                                                <span class="badge bg-success">Activa</span>
                                             {% else %}
-                                                <span class="badge badge-secondary">Inactiva</span>
+                                                <span class="badge bg-secondary">Inactiva</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ org.created_at|date:"d/m/Y" }}</td>
@@ -63,6 +92,28 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6><i class="fas fa-info-circle"></i> Información sobre Límites de Usuarios</h6>
+                                <ul class="mb-0 small">
+                                    <li><strong>Usuarios Activos:</strong> Solo los usuarios activos cuentan para el límite de la organización</li>
+                                    <li><strong>Usuarios Inactivos:</strong> No ocupan espacio en el límite, pero siguen perteneciendo a la organización</li>
+                                    <li><strong>Estados del Límite:</strong>
+                                        <ul class="mt-1">
+                                            <li><span class="badge bg-success">Disponible</span> - Se pueden crear nuevos usuarios activos</li>
+                                            <li><span class="badge bg-warning text-dark">Límite alcanzado</span> - Hay usuarios inactivos que se pueden reactivar</li>
+                                            <li><span class="badge bg-danger">Máximo alcanzado</span> - Se debe incrementar el límite para agregar más usuarios</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -162,6 +162,35 @@
                                     <i class="fas fa-info-circle"></i> Como admin de organización, solo puedes asignar usuarios a tu organización.
                                 </div>
                             {% endif %}
+                            
+                            <!-- Mostrar información de límites para superusuarios -->
+                            {% if user.is_superuser %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <strong>💡 Información de límites por organización:</strong>
+                                    </small>
+                                    <div class="mt-1" style="max-height: 150px; overflow-y: auto;">
+                                        {% for org in form.organization.queryset %}
+                                            {% with limit_info=org.can_add_user_detailed %}
+                                                <div class="small p-1 mb-1 rounded {% if limit_info.can_add %}bg-light{% elif limit_info.has_inactive_users %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
+                                                    <strong>{{ org.name }}:</strong>
+                                                    {{ limit_info.active_users }}/{{ limit_info.max_users }} activos
+                                                    {% if limit_info.inactive_users > 0 %}
+                                                        ({{ limit_info.inactive_users }} inactivos)
+                                                    {% endif %}
+                                                    {% if limit_info.can_add %}
+                                                        <span class="text-success">✅ Disponible</span>
+                                                    {% elif limit_info.has_inactive_users %}
+                                                        <span class="text-warning">⚠️ Límite alcanzado</span>
+                                                    {% else %}
+                                                        <span class="text-danger">🚫 Máximo alcanzado</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endwith %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="form-group mb-3">
@@ -231,8 +260,15 @@
                 <h6><i class="fas fa-info-circle"></i> Información</h6>
                 <ul class="mb-0 small">
                     <li><strong>Contraseña:</strong> No se puede cambiar desde aquí. El usuario debe usar "Olvidé mi contraseña"</li>
+                    <li><strong>Límites de organización:</strong>
+                        <ul class="mt-1">
+                            <li><em>Cambio de organización:</em> Se valida que la nueva organización tenga espacio para usuarios activos</li>
+                            <li><em>Activar usuario:</em> Se verifica que la organización actual no haya alcanzado su límite</li>
+                            <li><em>Usuarios inactivos:</em> No cuentan para el límite, pero siguen perteneciendo a la organización</li>
+                        </ul>
+                    </li>
                     {% if user.is_superuser %}
-                        <li><strong>Superusuario:</strong> Puedes cambiar cualquier configuración del usuario</li>
+                        <li><strong>Superusuario:</strong> Puedes cambiar cualquier configuración del usuario, pero se respetan los límites de organización</li>
                     {% elif user.is_org_admin %}
                         <li><strong>Admin de Organización:</strong> Solo puedes editar usuarios de tu organización</li>
                     {% else %}
