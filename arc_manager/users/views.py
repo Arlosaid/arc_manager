@@ -5,10 +5,12 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+import logging
 
 from .forms import SimpleUserCreateForm, UserEditForm
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 class UserListView(LoginRequiredMixin, ListView):
     """Vista para listar usuarios"""
@@ -89,7 +91,10 @@ class SimpleCreateUserView(LoginRequiredMixin, View):
                 return redirect('users:list')  # Ir a la lista de usuarios
                 
             except Exception as e:
-                messages.error(request, f"❌ Error al crear el usuario: {str(e)}")
+                # Log del error en la consola
+                logger.error(f"Error al crear usuario: {str(e)}", exc_info=True)
+                # Mensaje genérico para el usuario
+                messages.error(request, "❌ Error al crear el usuario. Por favor, intente nuevamente.")
         
         return render(request, self.template_name, {'form': form})
 
