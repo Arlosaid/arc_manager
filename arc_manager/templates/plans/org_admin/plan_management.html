@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Plan de Organización{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">Gestión de Plan</h1>
+            <p class="text-muted mb-0">Administra el plan de tu organización</p>
+        </div>
+        {% if is_superuser %}
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="orgSelector" data-bs-toggle="dropdown">
+                <i class="fas fa-building me-2"></i>
+                {{ organization.name|default:"Seleccionar Organización" }}
+            </button>
+            <ul class="dropdown-menu">
+                {% for org in all_organizations %}
+                <li><a class="dropdown-item" href="?org_id={{ org.id }}">{{ org.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if organization %}
+    <!-- Current Plan Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Plan Actual: {{ current_plan.display_name|default:"Sin Plan" }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Información del Plan</h6>
+                            {% if current_plan %}
+                            <ul class="list-unstyled">
+                                <li><strong>Precio:</strong> 
+                                    {% if current_plan.price == 0 %}
+                                        <span class="text-success">Gratis</span>
+                                    {% else %}
+                                        ${{ current_plan.price|floatformat:0 }}/mes
+                                    {% endif %}
+                                </li>
+                                <li><strong>Límite de usuarios:</strong> {{ current_plan.max_users }}</li>
+                                <li><strong>Descripción:</strong> {{ current_plan.description|default:"Sin descripción" }}</li>
+                            </ul>
+                            {% else %}
+                            <p class="text-warning">No hay plan asignado a esta organización.</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Uso Actual</h6>
+                            {% if user_stats %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Usuarios: {{ user_stats.current_users }}/{{ user_stats.max_users }}</small>
+                                    <small>{{ user_stats.percentage|floatformat:1 }}%</small>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar {% if user_stats.percentage >= 90 %}bg-danger{% elif user_stats.percentage >= 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                         style="width: {{ user_stats.percentage }}%"></div>
+                                </div>
+                            </div>
+                            {% if user_stats.can_add %}
+                            <p class="text-success small">
+                                <i class="fas fa-check-circle me-1"></i>
+                                Puedes agregar {{ user_stats.remaining }} usuario{{ user_stats.remaining|pluralize }} más
+                            </p>
+                            {% else %}
+                            <p class="text-danger small">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                Has alcanzado el límite de usuarios
+                            </p>
+                            {% endif %}
+                            {% else %}
+                            <p class="text-muted">No hay estadísticas disponibles</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Plans -->
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-3">Planes Disponibles</h4>
+        </div>
+        {% for plan in available_plans %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 {% if current_plan and plan.id == current_plan.id %}border-success{% endif %}">
+                {% if current_plan and plan.id == current_plan.id %}
+                <div class="card-header bg-success text-white text-center">
+                    <small><i class="fas fa-check me-1"></i>Plan Actual</small>
+                </div>
+                {% endif %}
+                
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ plan.display_name }}</h5>
+                    
+                    <div class="mb-3">
+                        {% if plan.price == 0 %}
+                        <h3 class="text-success">Gratis</h3>
+                        {% else %}
+                        <h3 class="text-primary">${{ plan.price|floatformat:0 }}<small class="text-muted">/mes</small></h3>
+                        {% endif %}
+                    </div>
+                    
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            <strong>{{ plan.max_users }}</strong> usuario{{ plan.max_users|pluralize }}
+                        </li>
+                        {% if plan.description %}
+                        <li class="mb-2 text-muted small">{{ plan.description }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="card-footer">
+                    {% if current_plan and plan.id == current_plan.id %}
+                    <button class="btn btn-success w-100" disabled>
+                        <i class="fas fa-check me-1"></i>Plan Actual
+                    </button>
+                    {% else %}
+                    <button class="btn btn-primary w-100 change-plan-btn" 
+                            data-plan-id="{{ plan.id }}" 
+                            data-plan-name="{{ plan.display_name }}"
+                            data-org-id="{{ organization.id }}">
+                        <i class="fas fa-arrow-up me-1"></i>Cambiar a este Plan
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                <h5>No hay planes disponibles</h5>
+                <p class="mb-0">Contacta al administrador del sistema para configurar planes.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Organization Stats (only for superusers) -->
+    {% if is_superuser and organization %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Estadísticas de la Organización
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ organization.get_user_count }}</h4>
+                                <small class="text-muted">Usuarios Totales</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ organization.teams.count }}</h4>
+                                <small class="text-muted">Equipos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">${{ current_plan.price|default:0|floatformat:0 }}</h4>
+                                <small class="text-muted">Costo Mensual</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="{% if user_stats.percentage >= 90 %}text-danger{% elif user_stats.percentage >= 75 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ user_stats.percentage|default:0|floatformat:1 }}%
+                                </h4>
+                                <small class="text-muted">Uso del Plan</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- No Organization Selected -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>Organización no encontrada</h4>
+                <p>{% if is_superuser %}Selecciona una organización para gestionar su plan.{% else %}No tienes una organización asignada.{% endif %}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmChangeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Cambio de Plan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres cambiar al plan <strong id="newPlanName"></strong>?</p>
+                <p class="text-muted small">Este cambio será efectivo inmediatamente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmChangePlan">Confirmar Cambio</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const changePlanBtns = document.querySelectorAll('.change-plan-btn');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmChangeModal'));
+    const confirmBtn = document.getElementById('confirmChangePlan');
+    let selectedPlanId, selectedOrgId, selectedPlanName;
+
+    changePlanBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            selectedPlanId = this.dataset.planId;
+            selectedOrgId = this.dataset.orgId;
+            selectedPlanName = this.dataset.planName;
+            
+            document.getElementById('newPlanName').textContent = selectedPlanName;
+            confirmModal.show();
+        });
+    });
+
+    confirmBtn.addEventListener('click', function() {
+        // Disable button to prevent double clicks
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cambiando...';
+
+        fetch('{% url "plans:change_plan" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `org_id=${selectedOrgId}&plan_id=${selectedPlanId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+                
+                // Reload page after a short delay
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    ${data.error}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            }
+            confirmModal.hide();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error al cambiar el plan. Inténtalo de nuevo.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            confirmModal.hide();
+        })
+        .finally(() => {
+            // Re-enable button
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'Confirmar Cambio';
+        });
+    });
+});
+</script>
+
+{% csrf_token %}
+{% endblock %} 

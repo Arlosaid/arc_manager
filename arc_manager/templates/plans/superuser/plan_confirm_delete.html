@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Plan - {{ object.display_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .delete-card {
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.2);
+        border: 2px solid #dc3545;
+    }
+    .delete-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border-radius: 13px 13px 0 0;
+    }
+    .warning-box {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 10px;
+    }
+    .plan-info {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 10px;
+    }
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+    }
+    .btn-cancel {
+        border-radius: 8px;
+        padding: 0.75rem 2rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="delete-container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'plans:superuser_list' %}">
+                        <i class="fas fa-layer-group me-1"></i>Planes
+                    </a>
+                </li>
+                <li class="breadcrumb-item active">Eliminar Plan</li>
+            </ol>
+        </nav>
+
+        <div class="card delete-card">
+            <!-- Header -->
+            <div class="card-header delete-header text-center py-4">
+                <h2 class="mb-1">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h2>
+                <p class="mb-0 opacity-75">
+                    Esta acción no se puede deshacer
+                </p>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Información del Plan -->
+                <div class="plan-info p-4 mb-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Plan a Eliminar
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Nombre del Plan:</strong>
+                            <div class="mt-1">{{ object.display_name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Identificador:</strong>
+                            <div class="mt-1">{{ object.name }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Precio:</strong>
+                            <div class="mt-1">${{ object.price }}/mes</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Máximo de Usuarios:</strong>
+                            <div class="mt-1">{{ object.max_users }}</div>
+                        </div>
+                        {% if object.description %}
+                        <div class="col-12 mb-3">
+                            <strong>Descripción:</strong>
+                            <div class="mt-1">{{ object.description }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Verificación de Uso -->
+                {% with orgs_count=object.organization_set.count %}
+                {% if orgs_count > 0 %}
+                <div class="alert alert-danger d-flex align-items-center mb-4">
+                    <i class="fas fa-ban fa-2x me-3"></i>
+                    <div>
+                        <h6 class="alert-heading mb-1">No se puede eliminar este plan</h6>
+                        <p class="mb-0">
+                            Actualmente {{ orgs_count }} organización{{ orgs_count|pluralize:"es" }} 
+                            está{{ orgs_count|pluralize:"n" }} usando este plan. 
+                            Debes cambiar el plan de estas organizaciones antes de eliminarlo.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="mb-3">Organizaciones usando este plan:</h6>
+                    <div class="list-group">
+                        {% for org in object.organization_set.all %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ org.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ org.get_user_count }} usuarios</small>
+                            </div>
+                            <a href="{% url 'plans:org_management' %}?org_id={{ org.id }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                Cambiar Plan
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="warning-box p-4 mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+                        <div>
+                            <h6 class="mb-1">¿Estás seguro de que quieres eliminar este plan?</h6>
+                            <p class="mb-0">
+                                Esta acción eliminará permanentemente el plan "{{ object.display_name }}" 
+                                y no se puede deshacer. Asegúrate de que realmente quieres hacer esto.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-between pt-4 border-top">
+                    <a href="{% url 'plans:superuser_list' %}" class="btn btn-outline-secondary btn-cancel">
+                        <i class="fas fa-arrow-left me-2"></i>Cancelar
+                    </a>
+                    
+                    {% if object.organization_set.count == 0 %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-delete" 
+                                onclick="return confirm('¿Estás completamente seguro? Esta acción no se puede deshacer.')">
+                            <i class="fas fa-trash me-2"></i>
+                            Sí, Eliminar Plan
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-lock me-2"></i>
+                        No se puede eliminar
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="text-center mt-4">
+            <p class="text-muted small">
+                <i class="fas fa-lightbulb me-1"></i>
+                Consejo: En lugar de eliminar, considera desactivar el plan para mantener el historial.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

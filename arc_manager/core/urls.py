@@ -11,10 +11,11 @@ def root_redirect(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),
-    path('main/', include('main.urls')),
-    path('organizaciones/', include('orgs.urls')),
-    path('users/', include('users.urls')),
+    path('accounts/', include('apps.accounts.urls')),
+    path('main/', include('apps.main.urls')),
+    path('organizaciones/', include('apps.orgs.urls')),
+    path('users/', include('apps.users.urls')),
+    path('planes/', include('apps.plans.urls')),
     path('', root_redirect),  # Redirección de la raíz al final
 ]
 

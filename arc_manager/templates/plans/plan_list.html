@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Planes Disponibles{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Planes Disponibles</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for plan in plans %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 {% if plan.name == 'gratuito' %}border-success{% else %}border-primary{% endif %}">
+                <div class="card-header text-center {% if plan.name == 'gratuito' %}bg-success text-white{% else %}bg-primary text-white{% endif %}">
+                    <h4 class="card-title mb-0">{{ plan.display_name }}</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <h2 class="text-primary">${{ plan.price|floatformat:2 }}</h2>
+                        <small class="text-muted">por mes</small>
+                    </div>
+                    
+                    {% if plan.description %}
+                    <p class="card-text text-muted">{{ plan.description }}</p>
+                    {% endif %}
+                    
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-users text-success me-2"></i>
+                            Hasta <strong>{{ plan.max_users }}</strong> usuario{{ plan.max_users|pluralize }}
+                        </li>
+                        {% if plan.name == 'gratuito' %}
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Funciones básicas
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Soporte por email
+                        </li>
+                        {% else %}
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Todas las funciones
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Soporte prioritario
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Gestión de equipos
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    {% if plan.name == 'gratuito' %}
+                    <span class="badge bg-success fs-6">Plan Gratuito</span>
+                    {% else %}
+                    <span class="badge bg-primary fs-6">Más Popular</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>No hay planes disponibles</h4>
+                <p>Actualmente no hay planes configurados.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
