@@ -28,10 +28,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'axes',
     'core',
-    'accounts',
-    'main',
-    'orgs',
-    'users',
+    'apps.accounts',
+    'apps.main',
+    'apps.orgs',
+    'apps.users',
+    'apps.plans',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -45,8 +46,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
-    'accounts.middleware.LoginRequiredMiddleware',
-    'orgs.middleware.OrganizationMiddleware',
+    'apps.accounts.middleware.LoginRequiredMiddleware',
+    'apps.orgs.middleware.OrganizationMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -255,36 +256,35 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'WARNING',  # Solo mostrar warnings y errores
+            'level': 'INFO',
             'propagate': True,
         },
-        'django.server': {
-            'handlers': ['file'],  # Las solicitudes HTTP solo van al archivo
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django.request': {
-            'handlers': ['mail_admins', 'file', 'console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
         'django.security': {
-            'handlers': ['security_file', 'mail_admins', 'console'],
+            'handlers': ['security_file', 'mail_admins'],
             'level': 'INFO',
-            'propagate': False,
-        },
-        'axes': {
-            'handlers': ['file', 'security_file'],  # Quita 'console'
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'app': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',  # O 'DEBUG' si necesitas más detalle
             'propagate': False,
         },
     },
 }
+
+# Configuración del sitio
+SITE_NAME = 'ARC Manager'
+SITE_DOMAIN = 'localhost:8000'  # Cambiar en producción
+
+# Configuración de correo electrónico
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desarrollo
+# Configuración para producción (descomentar y configurar cuando sea necesario)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'tu_correo@gmail.com'
+# EMAIL_HOST_PASSWORD = 'tu_contraseña_de_aplicación'
+
+# Configuración de correo para el sistema
+DEFAULT_FROM_EMAIL = f'{SITE_NAME} <noreply@{SITE_DOMAIN}>'
+SERVER_EMAIL = f'admin@{SITE_DOMAIN}'
+ADMINS = [('Admin', 'admin@example.com')]  # Cambiar en producción
 
 if DEBUG:
     # Para desarrollo: mostrar emails en la consola

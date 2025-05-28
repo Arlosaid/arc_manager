@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Inicio - Mi Aplicación Django{% endblock %}
+{% block title %}Inicio - ARC Manager{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -8,39 +8,129 @@
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h1 class="card-title">Bienvenido a mi aplicación</h1>
-                    <p class="card-text">Esta es una página de ejemplo que usa la plantilla base con navbar y sidebar.</p>
-                    <a href="#" class="btn btn-primary">Ir al Dashboard</a>
+                    <h1 class="card-title">Bienvenido a ARC Manager</h1>
+                    {% if user.is_authenticated %}
+                        <p class="card-text">Hola {{ user.get_full_name|default:user.username }}, aquí puedes gestionar tu organización y equipos de trabajo.</p>
+                        {% if user.organization %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-building me-2"></i>
+                                Organización: <strong>{{ user.organization.name }}</strong>
+                                {% if user.organization.plan %}
+                                    | Plan: <strong>{{ user.organization.plan.display_name }}</strong>
+                                    <span class="badge {% if user.organization.plan.name == 'gratuito' %}bg-success{% else %}bg-primary{% endif %} ms-2">
+                                        {{ user.organization.plan.max_users }} usuarios máx.
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="card-text">Sistema de gestión de organizaciones y equipos de trabajo.</p>
+                    {% endif %}
+                    <a href="{% url 'plans:pricing' %}" class="btn btn-primary">Ver Planes</a>
                 </div>
             </div>
         </div>
     </div>
     
+    {% if user.is_authenticated and user.organization %}
+    <!-- Información del plan actual -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Estado de tu Organización
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-primary">{{ user.organization.get_user_count }}</h3>
+                                <small class="text-muted">Usuarios Actuales</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-success">{{ user.organization.get_max_users }}</h3>
+                                <small class="text-muted">Usuarios Máximos</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 class="text-info">{{ user.organization.can_add_user_detailed.available_slots }}</h3>
+                                <small class="text-muted">Espacios Disponibles</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                {% if user.organization.plan %}
+                                    <h3 class="{% if user.organization.plan.price == 0 %}text-success{% else %}text-primary{% endif %}">
+                                        {% if user.organization.plan.price == 0 %}Gratis{% else %} ${{ user.organization.plan.price|floatformat:0 }}{% endif %}
+                                    </h3>
+                                    <small class="text-muted">Plan Actual</small>
+                                {% else %}
+                                    <h3 class="text-warning">-</h3>
+                                    <small class="text-muted">Sin Plan</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user.organization.can_add_user_detailed.is_at_limit %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Has alcanzado el límite de usuarios de tu plan. 
+                            <a href="{% url 'plans:pricing' %}" class="alert-link">Considera actualizar tu plan</a>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="row">
+        {% if user.is_superuser or user.is_org_admin %}
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Módulo 1</h5>
-                    <p class="card-text">Descripción del módulo 1 y sus funcionalidades.</p>
-                    <a href="#" class="btn btn-outline-primary">Explorar</a>
+                    <h5 class="card-title">
+                        <i class="fas fa-users me-2"></i>Gestión de Usuarios
+                    </h5>
+                    <p class="card-text">Administra los usuarios de tu organización, roles y permisos.</p>
+                    <a href="{% url 'users:list' %}" class="btn btn-outline-primary">Gestionar Usuarios</a>
                 </div>
             </div>
         </div>
+        {% endif %}
+        
+        {% if user.organization %}
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Módulo 2</h5>
-                    <p class="card-text">Descripción del módulo 2 y sus funcionalidades.</p>
-                    <a href="#" class="btn btn-outline-primary">Explorar</a>
+                    <h5 class="card-title">
+                        <i class="fas fa-building me-2"></i>Mi Organización
+                    </h5>
+                    <p class="card-text">Ve los detalles de tu organización y configuración actual.</p>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'orgs:detail' user.organization.pk %}" class="btn btn-outline-primary">Ver Detalles</a>
+                    {% else %}
+                        <a href="{% url 'orgs:my_organization' %}" class="btn btn-outline-primary">Ver Detalles</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
+        {% endif %}
+        
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Configuración</h5>
-                    <p class="card-text">Ajustes y configuraciones del sistema.</p>
-                    <a href="#" class="btn btn-outline-primary">Configurar</a>
+                    <h5 class="card-title">
+                        <i class="fas fa-tags me-2"></i>Planes y Precios
+                    </h5>
+                    <p class="card-text">Explora los diferentes planes disponibles y sus características.</p>
+                    <a href="{% url 'plans:pricing' %}" class="btn btn-outline-primary">Ver Planes</a>
                 </div>
             </div>
         </div>

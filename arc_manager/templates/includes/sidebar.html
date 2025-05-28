@@ -3,13 +3,13 @@
     <div class="position-sticky pt-3">
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="#">>
+                <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="#">
                     <i class="bi bi-house-door me-2"></i>
                     Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link {% if 'pedidos' in request.path %}active{% endif %}" href="#">>
+                <a class="nav-link {% if 'pedidos' in request.path %}active{% endif %}" href="#">
                     <i class="bi bi-cart me-2"></i>
                     Pedidos
                 </a>
@@ -30,6 +30,25 @@
                 <a class="nav-link {% if 'reportes' in request.path %}active{% endif %}" href="#">
                     <i class="bi bi-file-earmark-bar-graph me-2"></i>
                     Reportes
+                </a>
+            </li>
+        </ul>
+
+        <!-- Sección de Planes -->
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Planes</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link {% if '/planes/pricing/' in request.path %}active{% endif %}" href="{% url 'plans:pricing' %}">
+                    <i class="fas fa-tags me-2"></i>
+                    Precios y Planes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if '/planes/' in request.path and '/pricing/' not in request.path %}active{% endif %}" href="{% url 'plans:list' %}">
+                    <i class="fas fa-list me-2"></i>
+                    Ver Todos los Planes
                 </a>
             </li>
         </ul>
@@ -58,14 +77,14 @@
                 {% endcomment %}
                 {% if user.is_superuser %}
                     <li class="nav-item">
-                        <a class="nav-link {% if 'organizations' in request.path %}active{% endif %}" href="{% url 'orgs:list' %}">
+                        <a class="nav-link {% if 'organizaciones' in request.path %}active{% endif %}" href="{% url 'orgs:list' %}">
                             <i class="bi bi-building me-2"></i>
                             Organizaciones
                         </a>
                     </li>
                 {% elif user.is_org_admin and user.organization %}
                     <li class="nav-item">
-                        <a class="nav-link {% if 'organizations' in request.path %}active{% endif %}" href="{% url 'orgs:detail' user.organization.pk %}">
+                        <a class="nav-link {% if 'organizaciones' in request.path %}active{% endif %}" href="{% url 'orgs:detail' user.organization.pk %}">
                             <i class="bi bi-building me-2"></i>
                             Mi Organización
                         </a>
