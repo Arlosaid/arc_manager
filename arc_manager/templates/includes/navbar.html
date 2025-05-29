@@ -1,84 +1,57 @@
 <!-- templates/includes/navbar.html -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'main:home' %}">
-            ARC Manager
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" aria-current="page" href="{% url 'main:home' %}">Inicio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="#">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'planes' in request.path %}active{% endif %}" href="{% url 'plans:pricing' %}">Planes</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Administración
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        {% if user.is_superuser or user.is_org_admin %}
-                            <li><a class="dropdown-item" href="{% url 'users:list' %}">
-                                <i class="fas fa-users me-2"></i>Usuarios
-                            </a></li>
-                            {% if user.is_superuser %}
-                                <li><a class="dropdown-item" href="{% url 'orgs:list' %}">
-                                    <i class="fas fa-building me-2"></i>Organizaciones
-                                </a></li>
-                            {% elif user.organization %}
-                                <li><a class="dropdown-item" href="{% url 'orgs:detail' user.organization.pk %}">
-                                    <i class="fas fa-building me-2"></i>Mi Organización
-                                </a></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                        {% endif %}
-                        <li><a class="dropdown-item" href="{% url 'plans:list' %}">
-                            <i class="fas fa-list me-2"></i>Ver Planes
-                        </a></li>
-                        <li><a class="dropdown-item" href="{% url 'plans:pricing' %}">
-                            <i class="fas fa-tags me-2"></i>Precios
-                        </a></li>
-                    </ul>
-                </li>
-            </ul>
+<nav class="main-navbar" id="mainNavbar">
+    <!-- Logo/Marca a la izquierda -->
+    <!--
+    <a href="#" class="navbar-brand">
+        <div class="brand-logo">
+            {% if user.organization.logo %}
+                <img src="{{ user.organization.logo.url }}" alt="{{ user.organization.name }}">
+            {% else %}
+                {{ user.organization.name|default:"A"|slice:":1"|upper }}
+            {% endif %}
+        </div>
+        <span class="brand-text">{{ user.organization.name|default:"Acme Inc." }}</span>
+    </a>
+    -->
+
+    <!-- Sección derecha solo con usuario -->
+    <div class="navbar-right">        
+        <!-- Menú de usuario minimalista -->
+        <div class="navbar-user dropdown">
+            <button class="user-menu-toggle-minimal" aria-expanded="false" id="userDropdownToggle" type="button">
+                <div class="user-avatar-minimal">
+                    <!-- Mostrar solo iniciales, sin imágenes -->
+                    <div class="avatar-placeholder-minimal">
+                        {{ user.organization.name|default:"A"|slice:":1"|upper }}
+                    </div>
+                </div>
+                <span class="company-name">{{ user.organization.name|default:"Acme Inc." }}</span>
+                <i class="fas fa-chevron-down dropdown-arrow-minimal"></i>
+            </button>
             
-            <!-- Usuario logueado -->
-            <ul class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user me-1"></i>
-                            {{ user.get_full_name|default:user.username }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="#">
-                                <i class="fas fa-user-cog me-2"></i>Mi Perfil
-                            </a></li>
-                            {% if user.organization %}
-                                <li><a class="dropdown-item" href="{% url 'orgs:my_organization' %}">
-                                    <i class="fas fa-building me-2"></i>{{ user.organization.name }}
-                                </a></li>
-                            {% endif %}
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-                            </a></li>
-                        </ul>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
+            <div class="dropdown-menu dropdown-menu-end user-dropdown">
+                <!-- Avatar y información básica -->
+                <div class="dropdown-user-info">
+                    <div class="dropdown-user-details">
+                        <div class="dropdown-org-name">{{ user.organization.name|default:"Acme Inc." }}</div>
+                        <div class="dropdown-user-role">Administrador</div>
+                    </div>
+                </div>
+                
+                <!-- Opciones del menú con iconos y textos en español -->
+                <a class="dropdown-item" href="#">
+                    <i class="fas fa-cog"></i>
+                    Configuración
+                </a>
+                <a class="dropdown-item" href="#">
+                    <i class="fas fa-user"></i>
+                    Mi Perfil
+                </a>
+                <a class="dropdown-item logout-item" href="{% url 'accounts:logout' %}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                </a>
+            </div>
         </div>
     </div>
 </nav>
