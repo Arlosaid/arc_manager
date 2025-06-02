@@ -8,8 +8,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Header Section -->
+<!-- Usar el container estándar de base.css -->
+<div class="page-container">
+    <!-- Header Section (viene de base.css) -->
     <div class="header-section">
         <div class="header-content">
             <div class="header-title">
@@ -25,11 +26,11 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
+    <!-- Main Content Grid (viene de base.css) -->
     <div class="main-content-grid">
         <!-- Left Content -->
         <div class="left-content">
-            <!-- Stats Cards Mini -->
+            <!-- Stats Cards Mini (específicas de user_management.css) -->
             <div class="stats-grid-mini">
                 <div class="stat-card-mini">
                     <div class="stat-icon-mini users">
@@ -72,7 +73,7 @@
                 </div>
             </div>
 
-            <!-- Users Table -->
+            <!-- Users Table (usa estilos de base.css + user_management.css) -->
             <div class="table-container">
                 <div class="table-header">
                     <h3>Lista de Usuarios</h3>
@@ -192,7 +193,7 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
+                    <!-- Pagination (usa estilos de base.css) -->
                     {% if is_paginated %}
                         <div class="pagination-container">
                             <div class="pagination-info">
@@ -239,8 +240,8 @@
                     
                 {% else %}
                     <div class="table-wrapper" style="text-align: center; padding: 60px 20px;">
-                        <i class="fas fa-users fa-3x" style="color: var(--text-muted); margin-bottom: 20px;"></i>
-                        <h3 style="color: var(--text-muted); margin-bottom: 10px;">
+                        <i class="fas fa-users fa-3x" style="color: #94a3b8; margin-bottom: 20px;"></i>
+                        <h3 style="color: #94a3b8; margin-bottom: 10px;">
                             {% if search %}
                                 No se encontraron usuarios que coincidan con "{{ search }}"
                             {% else %}
@@ -258,7 +259,7 @@
             </div>
         </div>
 
-        <!-- Right Sidebar -->
+        <!-- Right Sidebar (usa estilos de base.css) -->
         <div class="right-sidebar">
             <!-- Permission Info Card -->
             <div class="info-card-sidebar">
@@ -286,7 +287,7 @@
                         <p>Solo puedes ver y editar tu propio perfil. No tienes permisos de administración.</p>
                     {% endif %}
                     
-                    <hr style="margin: var(--spacing-md) 0; border: none; border-top: 1px solid var(--border-color);">
+                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;">
                     
                     <p><strong>⚠️ Eliminación permanente:</strong> Los usuarios eliminados no se pueden recuperar.</p>
                     <p><strong>💡 Alternativa:</strong> Considera desactivar usuarios en lugar de eliminarlos para suspender el acceso temporalmente.</p>
@@ -298,7 +299,6 @@
 
 <!-- Tooltip Container -->
 <div id="tooltip-container"></div>
-
 {% endblock %}
 
 {% block extra_js %}
