@@ -1,56 +1,483 @@
 /* static/css/navbar.css */
-.navbar {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+/* Variables para navbar moderno */
+:root {
+    --navbar-height: 64px;
+    --sidebar-width: 280px;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --accent-color: #6366f1;
+    --hover-bg: rgba(0, 0, 0, 0.05);
+    --border-color: #e5e7eb;
+    --border-radius: 8px;
+    --transition: all 0.2s ease;
+    --notification-color: #ef4444;
+    --white: #ffffff;
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Navbar principal - Ajustado para no llegar al sidebar */
+.main-navbar {
+    position: fixed;
+    top: 0;
+    left: 0; /* Comienza desde el borde izquierdo para evitar espacios blancos */
+    right: 0; /* Llega hasta el borde derecho */
+    width: 100%;
     height: var(--navbar-height);
-    z-index: 1030;
+    background: rgba(255, 255, 255, 0.85); /* Color blanco con transparencia */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: none;
+    border: none !important;
+    border-radius: 0;
+    z-index: 999; /* Reducido para que quede por debajo del sidebar */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 32px 0 var(--sidebar-width); /* Padding izquierdo igual al ancho del sidebar */
+    transition: var(--transition);
 }
 
+.main-navbar::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--sidebar-width) + 32px); /* Empieza con margen desde el sidebar */
+    right: 32px;  /* Termina con padding desde el borde derecho */
+    bottom: 0;
+    height: 1px;  /* Línea más delgada - cambio de 2px a 1px */
+    background: #d1d5db; /* Línea más oscura para el fondo claro */
+    z-index: 1;
+    border-radius: 0;
+    pointer-events: none;
+}
+
+/* Logo y marca a la izquierda */
 .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.navbar-brand:hover {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.brand-logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
     font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
 }
 
-.navbar-dark .navbar-nav .nav-link {
-    color: rgba(255, 255, 255, 0.85);
-    transition: color 0.2s;
+.brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.navbar-dark .navbar-nav .nav-link:hover {
-    color: #ffffff;
+.brand-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
-.navbar-dark .navbar-nav .nav-link.active {
-    color: #ffffff;
-    font-weight: 500;
+/* Sección derecha del navbar - Solo usuario */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.dropdown-menu {
-    border-radius: 0.25rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+/* Usuario */
+.navbar-user {
+    position: relative;
+    margin-left: 8px;
+}
+
+/* Botón de usuario minimalista */
+.user-menu-toggle-minimal {
+    background: transparent;
     border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 40px;
+    min-width: auto;
+    justify-content: flex-start;
+    box-shadow: none;
+    position: relative;
 }
 
-.dropdown-item:active {
-    background-color: #0d6efd;
+.user-menu-toggle-minimal:hover {
+    background: rgba(0, 0, 0, 0.05); /* Hover para fondo claro */
 }
 
-/* Ajustes responsive */
-@media (max-width: 991.98px) {
-    .navbar-collapse {
-        padding: 1rem 0;
+.user-menu-toggle-minimal:focus {
+    outline: none;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.user-avatar-minimal {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.user-avatar-minimal img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-minimal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.company-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151; /* Color oscuro para el fondo claro */
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.dropdown-arrow-minimal {
+    font-size: 12px;
+    color: #6b7280; /* Color oscuro para el fondo claro */
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.user-menu-toggle-minimal[aria-expanded="true"] {
+    background: rgba(0, 0, 0, 0.05); /* Hover para fondo claro */
+}
+
+.user-menu-toggle-minimal[aria-expanded="true"] .dropdown-arrow-minimal {
+    transform: rotate(180deg);
+    color: #374151;
+}
+
+/* Mantener los estilos originales ocultos para compatibilidad */
+.user-menu-toggle {
+    display: none;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    background: #ffffff; /* Fondo blanco */
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 8px;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    z-index: 1002; /* Aumentado para que aparezca por encima del sidebar */
+    min-width: 180px; /* Más pequeño */
+    max-width: 200px; /* Más pequeño */
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-menu.show {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.dropdown.show .dropdown-menu {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/* Información del usuario en el dropdown */
+.dropdown-user-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 8px;
+}
+
+.dropdown-user-details {
+    width: 100%;
+}
+
+.dropdown-org-name {
+    font-size: 14px; /* Más pequeño */
+    font-weight: 600;
+    color: #1f2937; /* Color oscuro para fondo blanco */
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.dropdown-user-role {
+    font-size: 12px; /* Más pequeño */
+    color: #6b7280; /* Color gris para fondo blanco */
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.dropdown-item {
+    padding: 8px 12px; /* Más compacto */
+    font-size: 13px; /* Más pequeño */
+    color: #374151; /* Color oscuro para fondo blanco */
+    font-weight: 400;
+    transition: all 0.15s ease;
+    display: flex; /* Para alinear iconos */
+    align-items: center;
+    gap: 8px; /* Espacio entre icono y texto */
+    border-radius: 6px;
+    margin-bottom: 2px;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f3f4f6; /* Hover para fondo blanco */
+    color: #111827;
+    text-decoration: none;
+}
+
+.dropdown-item i {
+    font-size: 14px;
+    color: #6b7280;
+    transition: color 0.15s ease;
+}
+
+.dropdown-item:hover i {
+    color: #374151;
+}
+
+.dropdown-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Estilos específicos para el logout - texto rojo */
+.logout-item {
+    color: #dc2626; /* Color rojo para "Cerrar Sesión" */
+    font-weight: 400;
+}
+
+.logout-item:hover {
+    background: #fef2f2; /* Fondo rojo muy claro al hover */
+    color: #dc2626; /* Mantener el color rojo */
+}
+
+.logout-item i {
+    color: #dc2626; /* Icono también en rojo */
+}
+
+.logout-item:hover i {
+    color: #dc2626; /* Mantener el icono rojo al hover */
+}
+
+/* Eliminar estilos del logout específico para que sea igual a los demás */
+.dropdown-header,
+.user-profile-preview,
+.user-avatar-large,
+.avatar-placeholder-large,
+.user-details .user-name,
+.user-details .user-email,
+.user-details .user-org,
+.dropdown-section-title,
+.dropdown-divider {
+    display: none;
+}
+
+/* Efectos de scroll */
+.main-navbar.scrolled {
+    /* Mantener el fondo blanco con transparencia */
+    background: rgba(255, 255, 255, 0.9) !important; /* Menos transparencia al hacer scroll */
+    box-shadow: none !important; /* Eliminar la sombra/contorno */
+    border: none !important; /* Asegurar que no haya bordes */
+}
+
+/* Responsive - Ajustar para dispositivos móviles */
+@media (max-width: 768px) {
+    .main-navbar {
+        left: 0; /* En móvil ocupa todo el ancho */
+        right: 0; /* En móvil va hasta el borde */
+        width: 100%; /* Asegurar que ocupe todo el ancho */
+        padding: 0 16px; /* Padding normal en móvil */
+        height: 56px;
     }
     
-    .navbar-nav .dropdown-menu {
-        background-color: rgba(0, 0, 0, 0.15);
-        border: none;
-        box-shadow: none;
+    .main-navbar::after {
+        left: 16px;
+        right: 16px;
     }
     
-    .navbar-dark .navbar-nav .dropdown-item {
-        color: rgba(255, 255, 255, 0.75);
+    .brand-text {
+        display: none;
     }
     
-    .navbar-dark .navbar-nav .dropdown-item:hover {
-        color: #ffffff;
-        background-color: rgba(255, 255, 255, 0.1);
+    .navbar-right {
+        gap: 4px;
     }
+    
+    .user-menu-toggle-minimal {
+        padding: 6px 8px;
+        height: 36px;
+        gap: 8px;
+    }
+    
+    .user-avatar-minimal {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    
+    .company-name {
+        font-size: 13px;
+        max-width: 100px;
+    }
+    
+    .dropdown-arrow-minimal {
+        font-size: 10px;
+    }
+    
+    .user-dropdown {
+        width: calc(100vw - 32px);
+        left: 16px !important;
+        right: 16px !important;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-navbar {
+        padding: 0 12px;
+        height: 52px;
+    }
+    
+    .navbar-right {
+        gap: 2px;
+    }
+    
+    .brand-logo {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}
+
+/* Modo oscuro */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-primary: #f9fafb;
+        --text-secondary: #d1d5db;
+        --text-muted: #9ca3af;
+        --hover-bg: rgba(255, 255, 255, 0.05);
+        --border-color: #374151;
+        --white: #1f2937;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    .main-navbar.scrolled {
+        background: rgba(31, 41, 55, 0.95) !important;
+        box-shadow: none !important; /* Sin contorno en modo oscuro también */
+        border: none !important;
+    }
+    
+    /* Estilos de modo oscuro para el botón minimalista */
+    .user-menu-toggle-minimal:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .user-menu-toggle-minimal:focus {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .user-menu-toggle-minimal[aria-expanded="true"] {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .company-name {
+        color: #f9fafb !important;
+    }
+    
+    .dropdown-arrow-minimal {
+        color: #d1d5db !important;
+    }
+    
+    .user-menu-toggle-minimal[aria-expanded="true"] .dropdown-arrow-minimal {
+        color: #f9fafb !important;
+    }
+    
+    /* Mejorar contraste en modo oscuro */
+    .dropdown-item {
+        color: #f9fafb !important;
+    }
+    
+    .dropdown-item:hover {
+        background: #374151 !important;
+        color: #ffffff !important;
+    }
+    
+    .dropdown-item i {
+        color: #d1d5db !important;
+    }
+    
+    .user-details .user-name {
+        color: #f9fafb !important;
+    }
+    
+    .user-details .user-email {
+        color: #d1d5db !important;
+    }
+    
+    .dropdown-section-title {
+        color: #9ca3af !important;
+    }
+}
+
+/* Dropdown del usuario */
+.user-dropdown {
+    width: 200px;
 }

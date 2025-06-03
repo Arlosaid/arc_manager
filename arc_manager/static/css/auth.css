@@ -13,8 +13,9 @@
     --transition: all 0.3s ease;
   }
   
-  /* Reset básico para asegurar consistencia */
-  * {
+  /* Reset básico para asegurar consistencia - Solo para contenido de autenticación */
+  .auth-wrapper *,
+  .auth-body * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;

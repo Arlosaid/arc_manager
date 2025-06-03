@@ -1,163 +1,247 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Organizaciones{% endblock %}
+{% block title %}Gestión de Organizaciones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/organization_management.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Gestión de Organizaciones</h2>
-    <a href="{% url 'orgs:create' %}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Nueva Organización
-    </a>
-</div>
+<!-- Usar el container estándar de base.css -->
+<div class="page-container">
+    <!-- Header Section (viene de base.css) -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="header-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h1>Gestión de Organizaciones</h1>
+            </div>
+            <a href="{% url 'orgs:create' %}" class="btn-primary">
+                <i class="fas fa-plus"></i>
+                Nueva Organización
+            </a>
+        </div>
+    </div>
 
-            {% if organizations %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Identificador</th>
-                                        <th>Usuarios Activos</th>
-                                        <th>Usuarios Inactivos</th>
-                                        <th>Límite</th>
-                                        <th>Estado del Límite</th>
-                                        <th>Estado</th>
-                                        <th>Creada</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for org in organizations %}
-                                    <tr>
-                                        <td>
-                                            <strong>{{ org.name }}</strong>
-                                            {% if org.description %}
-                                                <br><small class="text-muted">{{ org.description|truncatechars:50 }}</small>
-                                            {% endif %}
-                                        </td>
-                                        <td><code>{{ org.slug }}</code></td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ org.get_active_user_count }}</span>
-                                        </td>
-                                        <td>
-                                            {% if org.get_inactive_user_count > 0 %}
-                                                <span class="badge bg-warning text-dark">{{ org.get_inactive_user_count }}</span>
-                                            {% else %}
-                                                <span class="text-muted">0</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ org.max_users }}</td>
-                                        <td>
+    <!-- Main Content Grid (viene de base.css) -->
+    <div class="main-content-grid">
+        <!-- Left Content -->
+        <div class="left-content">
+            <!-- Organizations Table (usa estilos de base.css) -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Organizaciones Registradas</h3>
+                    <span class="result-count">
+                        {% if organizations %}
+                            {{ organizations|length }} organización{{ organizations|length|pluralize:"es" }} registrada{{ organizations|length|pluralize:"s" }}
+                        {% else %}
+                            No hay organizaciones registradas
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if organizations %}
+                    <div class="table-wrapper">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Organización</th>
+                                    <th>Usuarios Activos</th>
+                                    <th>Usuarios Inactivos</th>
+                                    <th>Límite</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Creación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for org in organizations %}
+                                <tr>
+                                    <td>
+                                        <div class="org-info">
+                                            <div class="org-icon">
+                                                <i class="fas fa-building"></i>
+                                            </div>
+                                            <div class="org-details">
+                                                <div class="org-name">{{ org.name }}</div>
+                                                <div class="org-slug">{{ org.slug }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-count-badge active">
+                                            <i class="fas fa-user-check"></i>
+                                            <span>{{ org.get_active_user_count }} activos</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if org.get_inactive_user_count > 0 %}
+                                            <div class="user-count-badge inactive">
+                                                <i class="fas fa-user-times"></i>
+                                                <span>{{ org.get_inactive_user_count }} inactivos</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="user-count-badge inactive" style="opacity: 0.6;">
+                                                <i class="fas fa-user-slash"></i>
+                                                <span>0 inactivos</span>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="limit-info">
+                                            <div class="user-count-badge total">
+                                                <i class="fas fa-users"></i>
+                                                <span>{{ org.max_users }} max</span>
+                                            </div>
                                             {% with limit_info=org.can_add_user_detailed %}
                                                 {% if limit_info.can_add %}
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check"></i> Disponible ({{ limit_info.available_slots }})
-                                                    </span>
+                                                    <div class="limit-status available">
+                                                        <i class="fas fa-check-circle"></i>
+                                                        <span>{{ limit_info.available_slots }} disponibles</span>
+                                                    </div>
                                                 {% else %}
                                                     {% if limit_info.has_inactive_users %}
-                                                        <span class="badge bg-warning text-dark">
-                                                            <i class="fas fa-exclamation-triangle"></i> Límite alcanzado
-                                                        </span>
-                                                        <br><small class="text-muted">{{ limit_info.inactive_users }} inactivos disponibles</small>
+                                                        <div class="limit-status warning">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            <span>Máximo alcanzado</span>
+                                                        </div>
                                                     {% else %}
-                                                        <span class="badge bg-danger">
-                                                            <i class="fas fa-ban"></i> Máximo alcanzado
-                                                        </span>
+                                                        <div class="limit-status danger">
+                                                            <i class="fas fa-ban"></i>
+                                                            <span>Límite completo</span>
+                                                        </div>
                                                     {% endif %}
                                                 {% endif %}
                                             {% endwith %}
-                                        </td>
-                                        <td>
-                                            {% if org.is_active %}
-                                                <span class="badge bg-success">Activa</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Inactiva</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ org.created_at|date:"d/m/Y" }}</td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="{% url 'orgs:detail' org.pk %}" class="btn btn-outline-primary">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{% url 'orgs:edit' org.pk %}" class="btn btn-outline-secondary">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if org.is_active %}
+                                            <span class="status-badge active">
+                                                <i class="fas fa-check-circle"></i>
+                                                Activa
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge inactive">
+                                                <i class="fas fa-times-circle"></i>
+                                                Inactiva
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="date-info">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span class="date-text">{{ org.created_at|date:"d/m/Y" }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{% url 'orgs:detail' org.pk %}" 
+                                               class="action-btn view"
+                                               data-tooltip="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'orgs:edit' org.pk %}" 
+                                               class="action-btn edit"
+                                               data-tooltip="Editar organización">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
 
-                <!-- Información adicional -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6><i class="fas fa-info-circle"></i> Información sobre Límites de Usuarios</h6>
-                                <ul class="mb-0 small">
-                                    <li><strong>Usuarios Activos:</strong> Solo los usuarios activos cuentan para el límite de la organización</li>
-                                    <li><strong>Usuarios Inactivos:</strong> No ocupan espacio en el límite, pero siguen perteneciendo a la organización</li>
-                                    <li><strong>Estados del Límite:</strong>
-                                        <ul class="mt-1">
-                                            <li><span class="badge bg-success">Disponible</span> - Se pueden crear nuevos usuarios activos</li>
-                                            <li><span class="badge bg-warning text-dark">Límite alcanzado</span> - Hay usuarios inactivos que se pueden reactivar</li>
-                                            <li><span class="badge bg-danger">Máximo alcanzado</span> - Se debe incrementar el límite para agregar más usuarios</li>
-                                        </ul>
-                                    </li>
-                                </ul>
+                    <!-- Pagination (usa estilos de base.css) -->
+                    {% if is_paginated %}
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                <span>Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} resultados</span>
+                            </div>
+                            <div class="pagination">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page={{ page_obj.previous_page_number }}" 
+                                       class="pagination-btn">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </a>
+                                {% else %}
+                                    <button class="pagination-btn disabled">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Anterior
+                                    </button>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <button class="pagination-number active">{{ num }}</button>
+                                    {% else %}
+                                        <a href="?page={{ num }}" 
+                                           class="pagination-number">{{ num }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}" 
+                                       class="pagination-btn">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                {% else %}
+                                    <button class="pagination-btn disabled">
+                                        Siguiente
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Paginación -->
-                {% if is_paginated %}
-                <nav aria-label="Paginación de organizaciones" class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1">Primera</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
-                            </li>
-                        {% endif %}
-
-                        <li class="page-item active">
-                            <span class="page-link">
-                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                            </span>
-                        </li>
-
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-            {% else %}
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
-                        <h4>No hay organizaciones registradas</h4>
-                        <p class="text-muted">Crea la primera organización para comenzar.</p>
-                        <a href="{% url 'orgs:create' %}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Crear Primera Organización
+                    {% endif %}
+                    
+                {% else %}
+                    <div class="table-wrapper" style="text-align: center; padding: 60px 20px;">
+                        <i class="fas fa-building fa-3x" style="color: #94a3b8; margin-bottom: 20px;"></i>
+                        <h3 style="color: #94a3b8; margin-bottom: 10px;">No hay organizaciones registradas</h3>
+                        <p style="color: #94a3b8; margin-bottom: 20px;">Crea la primera organización para comenzar.</p>
+                        <a href="{% url 'orgs:create' %}" class="btn-primary">
+                            <i class="fas fa-plus"></i> 
+                            Crear Primera Organización
                         </a>
                     </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Sidebar (usa estilos de base.css) -->
+        <div class="right-sidebar">
+            <!-- Límites Info Card -->
+            <div class="info-card-sidebar">
+                <div class="info-header-sidebar">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>Información sobre Límites</h4>
                 </div>
-            {% endif %}
+                <div class="info-content-sidebar">
+                    <p><strong>Usuarios Activos:</strong> Solo los usuarios activos cuentan para el límite de la organización.</p>
+                    
+                    <p><strong>Usuarios Inactivos:</strong> No ocupan espacio en el límite, pero siguen perteneciendo a la organización.</p>
+                    
+                    <p><strong>Estados del Límite:</strong></p>
+                    <ul style="font-size: 0.8rem; margin-left: 1rem;">
+                        <li><strong>Disponible:</strong> Se pueden crear nuevos usuarios activos</li>
+                        <li><strong>Límite alcanzado:</strong> Hay usuarios inactivos que se pueden reactivar</li>
+                        <li><strong>Máximo alcanzado:</strong> Se debe incrementar el límite para agregar más usuarios</li>
+                    </ul>
+                    
+                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;">
+                    
+                    <p><strong>💡 Consejo:</strong> Reactiva usuarios inactivos antes de crear nuevos para optimizar el uso del límite.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %} 

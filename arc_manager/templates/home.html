@@ -1,139 +1,518 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Inicio - ARC Manager{% endblock %}
+{% block title %}Dashboard - Arc Manager{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Panel de control principal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--gray-200);
+        transition: var(--transition);
+    }
+    
+    .stat-card:hover {
+        box-shadow: var(--box-shadow-lg);
+        border-color: var(--gray-300);
+    }
+    
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--border-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 16px;
+    }
+    
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--gray-900);
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    
+    .stat-label {
+        font-size: 14px;
+        color: var(--gray-600);
+        margin-bottom: 8px;
+    }
+    
+    .stat-change {
+        font-size: 12px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .stat-change.positive {
+        color: var(--success);
+    }
+    
+    .stat-change.negative {
+        color: var(--danger);
+    }
+    
+    .recent-activity {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .activity-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .activity-list {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    
+    .activity-item {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-title {
+        font-weight: 500;
+        color: var(--gray-900);
+        margin-bottom: 2px;
+    }
+    
+    .activity-time {
+        font-size: 12px;
+        color: var(--gray-500);
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        margin-bottom: 32px;
+    }
+    
+    .activity-card, .quick-actions-card {
+        background: #ffffff;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--box-shadow);
+    }
+    
+    .card-header-custom {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--gray-200);
+        background: var(--gray-50);
+    }
+    
+    .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card-title i {
+        margin-right: 8px;
+        color: var(--primary-blue);
+    }
+    
+    .quick-actions-grid {
+        display: grid;
+        gap: 12px;
+        padding: 24px;
+    }
+    
+    .action-btn {
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--border-radius);
+        color: var(--gray-700);
+        text-decoration: none;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .action-btn:hover {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: #ffffff;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .action-btn i {
+        margin-right: 12px;
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+    
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+        color: #ffffff;
+        padding: 32px;
+        border-radius: var(--border-radius);
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        transform: rotate(-30deg);
+    }
+    
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .welcome-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        line-height: 1.2;
+    }
+    
+    .welcome-subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+        font-weight: 400;
+    }
+    
+    @media (max-width: 768px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        
+        .dashboard-stats {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .stat-card {
+            padding: 20px;
+        }
+        
+        .welcome-section {
+            padding: 24px;
+        }
+        
+        .welcome-title {
+            font-size: 24px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .dashboard-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h1 class="card-title">Bienvenido a ARC Manager</h1>
-                    {% if user.is_authenticated %}
-                        <p class="card-text">Hola {{ user.get_full_name|default:user.username }}, aquí puedes gestionar tu organización y equipos de trabajo.</p>
-                        {% if user.organization %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-building me-2"></i>
-                                Organización: <strong>{{ user.organization.name }}</strong>
-                                {% if user.organization.plan %}
-                                    | Plan: <strong>{{ user.organization.plan.display_name }}</strong>
-                                    <span class="badge {% if user.organization.plan.name == 'gratuito' %}bg-success{% else %}bg-primary{% endif %} ms-2">
-                                        {{ user.organization.plan.max_users }} usuarios máx.
-                                    </span>
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <p class="card-text">Sistema de gestión de organizaciones y equipos de trabajo.</p>
-                    {% endif %}
-                    <a href="{% url 'plans:pricing' %}" class="btn btn-primary">Ver Planes</a>
-                </div>
+<div class="container-fluid">
+    <!-- Dashboard Stats -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value">1,234</div>
+            <div class="stat-label">Usuarios Totales</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +12% este mes
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                <i class="fas fa-building"></i>
+            </div>
+            <div class="stat-value">56</div>
+            <div class="stat-label">Organizaciones</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +8% este mes
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="stat-value">89</div>
+            <div class="stat-label">Planes Activos</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +5% este mes
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-value">$45K</div>
+            <div class="stat-label">Ingresos Mensuales</div>
+            <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +15% este mes
             </div>
         </div>
     </div>
     
-    {% if user.is_authenticated and user.organization %}
-    <!-- Información del plan actual -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-line me-2"></i>Estado de tu Organización
-                    </h5>
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <div class="activity-header">
+            <h3 class="mb-0">Actividad Reciente</h3>
+            <a href="#" class="btn btn-outline-primary btn-sm">Ver todas</a>
+        </div>
+        <ul class="activity-list">
+            <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                    <i class="fas fa-user-plus"></i>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h3 class="text-primary">{{ user.organization.get_user_count }}</h3>
-                                <small class="text-muted">Usuarios Actuales</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h3 class="text-success">{{ user.organization.get_max_users }}</h3>
-                                <small class="text-muted">Usuarios Máximos</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h3 class="text-info">{{ user.organization.can_add_user_detailed.available_slots }}</h3>
-                                <small class="text-muted">Espacios Disponibles</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                {% if user.organization.plan %}
-                                    <h3 class="{% if user.organization.plan.price == 0 %}text-success{% else %}text-primary{% endif %}">
-                                        {% if user.organization.plan.price == 0 %}Gratis{% else %} ${{ user.organization.plan.price|floatformat:0 }}{% endif %}
-                                    </h3>
-                                    <small class="text-muted">Plan Actual</small>
-                                {% else %}
-                                    <h3 class="text-warning">-</h3>
-                                    <small class="text-muted">Sin Plan</small>
-                                {% endif %}
-                            </div>
-                        </div>
+                <div class="activity-content">
+                    <div class="activity-title">Nuevo usuario registrado</div>
+                    <div class="activity-time">Juan Pérez se unió a Organización ABC</div>
+                </div>
+                <div class="activity-time">hace 5 min</div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Pago procesado</div>
+                    <div class="activity-time">Plan Premium renovado para Empresa XYZ</div>
+                </div>
+                <div class="activity-time">hace 1 hora</div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Nueva organización creada</div>
+                    <div class="activity-time">Startup Tech Solutions se registró</div>
+                </div>
+                <div class="activity-time">hace 3 horas</div>
+            </li>
+            <li class="activity-item">
+                <div class="activity-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">Reporte generado</div>
+                    <div class="activity-time">Informe mensual de usuarios completado</div>
+                </div>
+                <div class="activity-time">hace 6 horas</div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <div class="welcome-content">
+            <h1 class="welcome-title">Bienvenido, {{ user.get_full_name|default:user.username }}</h1>
+            <p class="welcome-subtitle">Gestiona tus proyectos arquitectónicos con eficiencia y precisión</p>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+        <!-- Recent Activity -->
+        <div class="activity-card">
+            <div class="card-header-custom">
+                <h3 class="card-title">
+                    <i class="fas fa-history"></i>
+                    Actividad Reciente
+                </h3>
+            </div>
+            <ul class="activity-list">
+                <li class="activity-item">
+                    <div class="activity-icon project">
+                        <i class="fas fa-building"></i>
                     </div>
-                    
-                    {% if user.organization.can_add_user_detailed.is_at_limit %}
-                        <div class="alert alert-warning mt-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Has alcanzado el límite de usuarios de tu plan. 
-                            <a href="{% url 'plans:pricing' %}" class="alert-link">Considera actualizar tu plan</a>.
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Nuevo proyecto "Torre Residencial Norte" creado</div>
+                        <div class="activity-time">Hace 2 horas</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon user">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Juan Pérez se unió al equipo</div>
+                        <div class="activity-time">Hace 4 horas</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon plan">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Plano estructural actualizado</div>
+                        <div class="activity-time">Hace 6 horas</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon project">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Proyecto "Centro Comercial Sur" completado</div>
+                        <div class="activity-time">Hace 1 día</div>
+                    </div>
+                </li>
+                <li class="activity-item">
+                    <div class="activity-icon user">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">Nuevo comentario en revisión de planos</div>
+                        <div class="activity-time">Hace 2 días</div>
+                    </div>
+                </li>
+            </ul>
         </div>
-    </div>
-    {% endif %}
-    
-    <div class="row">
-        {% if user.is_superuser or user.is_org_admin %}
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-users me-2"></i>Gestión de Usuarios
-                    </h5>
-                    <p class="card-text">Administra los usuarios de tu organización, roles y permisos.</p>
-                    <a href="{% url 'users:list' %}" class="btn btn-outline-primary">Gestionar Usuarios</a>
-                </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions-card">
+            <div class="card-header-custom">
+                <h3 class="card-title">
+                    <i class="fas fa-bolt"></i>
+                    Acciones Rápidas
+                </h3>
             </div>
-        </div>
-        {% endif %}
-        
-        {% if user.organization %}
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-building me-2"></i>Mi Organización
-                    </h5>
-                    <p class="card-text">Ve los detalles de tu organización y configuración actual.</p>
-                    {% if user.is_superuser %}
-                        <a href="{% url 'orgs:detail' user.organization.pk %}" class="btn btn-outline-primary">Ver Detalles</a>
-                    {% else %}
-                        <a href="{% url 'orgs:my_organization' %}" class="btn btn-outline-primary">Ver Detalles</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="fas fa-tags me-2"></i>Planes y Precios
-                    </h5>
-                    <p class="card-text">Explora los diferentes planes disponibles y sus características.</p>
-                    <a href="{% url 'plans:pricing' %}" class="btn btn-outline-primary">Ver Planes</a>
-                </div>
+            <div class="quick-actions-grid">
+                <a href="{% url 'plans:list' %}" class="action-btn">
+                    <i class="fas fa-drafting-compass"></i>
+                    Ver Planos
+                </a>
+                <a href="{% url 'plans:pricing' %}" class="action-btn">
+                    <i class="fas fa-tags"></i>
+                    Precios y Planes
+                </a>
+                {% if user.is_superuser or user.is_org_admin %}
+                <a href="{% url 'users:list' %}" class="action-btn">
+                    <i class="fas fa-users"></i>
+                    Gestionar Usuarios
+                </a>
+                {% endif %}
+                {% if user.is_superuser %}
+                <a href="{% url 'orgs:list' %}" class="action-btn">
+                    <i class="fas fa-building"></i>
+                    Organizaciones
+                </a>
+                {% elif user.is_org_admin and user.organization %}
+                <a href="{% url 'orgs:detail' user.organization.pk %}" class="action-btn">
+                    <i class="fas fa-building"></i>
+                    Mi Organización
+                </a>
+                {% endif %}
+                <a href="#" class="action-btn">
+                    <i class="fas fa-chart-bar"></i>
+                    Reportes
+                </a>
+                <a href="#" class="action-btn">
+                    <i class="fas fa-cog"></i>
+                    Configuración
+                </a>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ejemplo de cómo actualizar el título dinámicamente
+    if (window.navbarManager) {
+        window.navbarManager.updatePageTitle('Dashboard', 'Bienvenido de vuelta, todo se ve excelente');
+    }
+    
+    // Agregar efectos suaves a las tarjetas
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fade-in');
+    });
+});
+</script>
 {% endblock %}
