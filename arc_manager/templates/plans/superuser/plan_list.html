@@ -253,7 +253,7 @@
                             </div>
                             <div class="col-6">
                                 <div class="h6 mb-0 text-success">
-                                    ${% widthratio plan.price 1 plan.organization_set.count %}
+                                    ${% if plan.organization_set.count > 0 %}{{ plan.total_monthly_revenue }}{% else %}0{% endif %}
                                 </div>
                                 <small class="text-muted">Ingresos/mes</small>
                             </div>
@@ -262,10 +262,10 @@
                         {% if plan.organization_set.count > 0 %}
                         <div class="mt-2">
                             <div class="progress" style="height: 4px;">
-                                <div class="progress-bar bg-info" style="width: {% widthratio plan.organization_set.count organizations_count 100 %}%"></div>
+                                <div class="progress-bar bg-info" style="width: {{ plan.usage_percentage }}%"></div>
                             </div>
                             <small class="text-muted">
-                                {% widthratio plan.organization_set.count organizations_count 100 %}% del total de organizaciones
+                                {{ plan.usage_percentage }}% del total de organizaciones
                             </small>
                         </div>
                         {% endif %}

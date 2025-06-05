@@ -5,9 +5,22 @@ from apps.plans.models import Plan
 class OrganizationForm(forms.ModelForm):
     """Formulario para crear y editar organizaciones"""
     
+    # Campo adicional para seleccionar el plan inicial
+    initial_plan = forms.ModelChoiceField(
+        queryset=Plan.objects.filter(is_active=True).order_by('price', 'max_users'),
+        required=True,
+        empty_label=None,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'data-toggle': 'tooltip',
+            'title': 'El plan determina automáticamente el límite de usuarios y características disponibles'
+        }),
+        help_text="Selecciona el plan inicial para la organización. Se creará automáticamente una suscripción."
+    )
+    
     class Meta:
         model = Organization
-        fields = ['name', 'slug', 'description', 'plan', 'is_active']
+        fields = ['name', 'slug', 'description', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -22,11 +35,6 @@ class OrganizationForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Descripción opcional de la organización'
             }),
-            'plan': forms.Select(attrs={
-                'class': 'form-control',
-                'data-toggle': 'tooltip',
-                'title': 'El plan determina automáticamente el límite de usuarios y características disponibles'
-            }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             })
@@ -34,23 +42,23 @@ class OrganizationForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Solo mostrar planes activos
-        self.fields['plan'].queryset = Plan.objects.filter(is_active=True).order_by('price', 'max_users')
-        # Hacer que el plan sea obligatorio
-        self.fields['plan'].required = True
-        self.fields['plan'].empty_label = None  # No permitir opción vacía
         
-        # Si es una nueva organización, establecer plan gratuito por defecto
+        # Si es una nueva organización, establecer plan de prueba por defecto
         if not self.instance.pk:
             try:
-                plan_gratuito = Plan.objects.get(name='gratuito')
-                self.fields['plan'].initial = plan_gratuito.pk
-                # Agregar texto de ayuda específico para nueva organización
-                self.fields['plan'].help_text = "El plan seleccionado determinará automáticamente el número máximo de usuarios permitidos. Puedes cambiar el plan más tarde."
+                trial_plan = Plan.objects.get(name='trial', is_active=True)
+                self.fields['initial_plan'].initial = trial_plan.pk
+                self.fields['initial_plan'].help_text = "Se creará automáticamente una suscripción de prueba gratuita de 30 días."
             except Plan.DoesNotExist:
-                self.fields['plan'].help_text = "Selecciona un plan para determinar los límites y características de la organización."
+                try:
+                    basic_plan = Plan.objects.get(name='basic', is_active=True)
+                    self.fields['initial_plan'].initial = basic_plan.pk
+                except Plan.DoesNotExist:
+                    pass
         else:
-            self.fields['plan'].help_text = "Cambiar el plan modificará automáticamente los límites de usuarios y características disponibles."
+            # Si es edición, no mostrar el campo de plan inicial
+            if 'initial_plan' in self.fields:
+                del self.fields['initial_plan']
     
     def clean_slug(self):
         slug = self.cleaned_data.get('slug')
@@ -63,31 +71,31 @@ class OrganizationForm(forms.ModelForm):
                 raise forms.ValidationError("Este identificador ya está en uso.")
         return slug
     
-    def clean_plan(self):
-        plan = self.cleaned_data.get('plan')
-        if not plan:
-            raise forms.ValidationError("Debes seleccionar un plan.")
-        
-        # Si estamos editando una organización, verificar que el nuevo plan permita los usuarios actuales
-        if self.instance.pk:
-            current_user_count = self.instance.get_user_count()
-            if current_user_count > plan.max_users:
-                raise forms.ValidationError(
-                    f"No puedes cambiar a este plan porque tu organización tiene {current_user_count} usuarios "
-                    f"y el plan seleccionado solo permite {plan.max_users}. "
-                    f"Reduce el número de usuarios primero o selecciona un plan con mayor capacidad."
-                )
-        
-        return plan
+    def clean_initial_plan(self):
+        # Solo validar si es una nueva organización
+        if not self.instance.pk:
+            plan = self.cleaned_data.get('initial_plan')
+            if not plan:
+                raise forms.ValidationError("Debes seleccionar un plan inicial.")
+            return plan
+        return None
     
     def save(self, commit=True):
-        """Sobrescribir save para asegurar que el plan se asigne correctamente"""
-        instance = super().save(commit=False)
+        """Sobrescribir save para crear la suscripción automáticamente"""
+        from apps.plans.models import Subscription
         
-        # Asegurar que el plan esté asignado
-        if not instance.plan and self.cleaned_data.get('plan'):
-            instance.plan = self.cleaned_data['plan']
+        instance = super().save(commit=False)
         
         if commit:
             instance.save()
+            
+            # Si es una nueva organización, crear la suscripción
+            if not hasattr(instance, 'subscription'):
+                initial_plan = self.cleaned_data.get('initial_plan')
+                if initial_plan:
+                    Subscription.objects.create(
+                        organization=instance,
+                        plan=initial_plan
+                    )
+        
         return instance 
