@@ -147,8 +147,11 @@ class SidebarManager {
     handleLinkClick(e) {
         const link = e.currentTarget;
         
-        // Agregar efecto de click
-        this.addClickEffect(link);
+        // Efecto de click simplificado
+        link.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            link.style.transform = '';
+        }, 150);
         
         // En móvil, cerrar sidebar después del click
         if (this.isMobile && this.isOpen) {
@@ -248,7 +251,6 @@ const additionalStyles = `
     
     .nav-section.collapsed .nav-list {
         max-height: 0 !important;
-        opacity: 0 !important;
     }
     
     .sidebar-collapsed {

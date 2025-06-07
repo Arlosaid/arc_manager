@@ -356,7 +356,7 @@ def plan_pricing_redirect(request):
     if user.is_superuser:
         return redirect('/admin/')
     elif hasattr(user, 'organization') and user.organization and user.is_org_admin:
-        return redirect('plans:subscription_dashboard')
+        return redirect('main:dashboard')
     else:
         return redirect('plans:pricing')
 

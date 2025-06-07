@@ -117,17 +117,22 @@ class UserManagement {
     }
 
     animateOnLoad() {
-        // Animación de aparición de elementos - actualizada para el nuevo layout
-        const elements = document.querySelectorAll('.stat-card-mini, .table-container, .info-card-sidebar');
-        elements.forEach((element, index) => {
-            element.style.opacity = '0';
-            element.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                element.style.opacity = '1';
-                element.style.transform = 'translateY(0)';
-            }, index * 100);
+        // Usar la clase base para animaciones
+        BaseAnimation.animateElements('.stat-card-mini, .table-container, .info-card-sidebar', {
+            stagger: 30,
+            distance: 8
+        });
+
+        // Animar filas de la tabla
+        const tableRows = document.querySelectorAll('.modern-table tbody tr');
+        tableRows.forEach(row => {
+            BaseAnimation.animateTableRow(row);
+        });
+
+        // Animar botones de acción
+        const actionButtons = document.querySelectorAll('.action-btn');
+        actionButtons.forEach(button => {
+            BaseAnimation.animateButton(button);
         });
     }
 

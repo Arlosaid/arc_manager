@@ -22,7 +22,9 @@
     <link href="{% static 'css/sidebar.css' %}" rel="stylesheet">
     
     <!-- Estilos adicionales específicos por página -->
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/common_components.css' %}">
+    {% endblock %}
 </head>
 <body>
     <!-- Incluir Sidebar -->

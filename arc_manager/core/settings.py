@@ -176,7 +176,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication URLs
 LOGIN_URL = '/accounts/login/'  # URL a la que se redirige si se necesita iniciar sesión
-LOGIN_REDIRECT_URL = '/main/'  # Redirigir al home después del login
+LOGIN_REDIRECT_URL = '/main/'  # Redirigir al dashboard después del login
 LOGOUT_REDIRECT_URL = '/accounts/login/' # Redirigir a la URL de login correcta
 
 # URLs exentas (usando patrones regex)

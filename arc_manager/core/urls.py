@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 def root_redirect(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
-    return redirect('main:home')
+    return redirect('main:dashboard')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

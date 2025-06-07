@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Arc Manager{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<style>
+.dashboard-mosaic {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-rows: 220px 120px 120px;
+    gap: 1.5rem;
+    grid-template-areas:
+        "main main kpi1 kpi2"
+        "main main kpi3 action"
+        "illu promo promo promo";
+}
+@media (max-width: 1200px) {
+    .dashboard-mosaic {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+            "main main"
+            "kpi1 kpi2"
+            "kpi3 action"
+            "illu promo";
+    }
+}
+.dashboard-card-lg { grid-area: main; }
+.dashboard-card-md.kpi1 { grid-area: kpi1; }
+.dashboard-card-md.kpi2 { grid-area: kpi2; }
+.dashboard-card-md.kpi3 { grid-area: kpi3; }
+.dashboard-card-md.action { grid-area: action; }
+.dashboard-card-md.illu { grid-area: illu; }
+.dashboard-card-md.promo { grid-area: promo; }
+.dashboard-card-lg, .dashboard-card-md, .dashboard-card-sm {
+    border-radius: 18px;
+    box-shadow: 0 4px 24px 0 rgba(60,72,88,0.10);
+    background: #fff;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+}
+.dashboard-card-md {
+    min-height: 120px;
+    justify-content: center;
+}
+.kpi-card {
+    color: #fff;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 1.5rem 1.2rem;
+}
+.kpi-card.bg-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.kpi-card.bg-success { background: linear-gradient(135deg, #10b981, #059669); }
+.kpi-card.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.kpi-value { font-size: 2.2rem; font-weight: 700; }
+.kpi-label { font-size: 1.1rem; opacity: 0.85; }
+.action-card { background: #1e293b; color: #fff; align-items: flex-start; }
+.action-card .btn { margin-top: 1rem; }
+.illu-card { background: linear-gradient(135deg, #f1f5f9 60%, #a5b4fc 100%); display: flex; align-items: center; }
+.illu-card img { width: 80px; height: 80px; margin-right: 1.5rem; }
+.promo-card { background: linear-gradient(135deg, #fef9c3 60%, #fbbf24 100%); color: #92400e; display: flex; align-items: center; }
+.promo-card .promo-img { width: 60px; height: 60px; margin-right: 1.2rem; }
+.dashboard-card-sm { border-radius: 14px; box-shadow: 0 2px 8px 0 rgba(60,72,88,0.10); background: #fff; padding: 1.2rem 1rem; margin-bottom: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <nav style="font-size:0.95rem; color:#64748b;">
+                <span><i class="fas fa-home"></i> &nbsp;Account &gt; Overview</span>
+            </nav>
+            <h1 class="dashboard-title mb-1">Dashboard</h1>
+        </div>
+        <a href="#" class="btn btn-light" style="font-weight:600;">Create New</a>
+    </div>
+    <div class="dashboard-mosaic">
+        <!-- Tarjeta grande con gráfico -->
+        <div class="dashboard-card-lg">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 style="font-weight:700;">Weekly Sales Stats</h4>
+                    <div style="color:#64748b; font-size:1.05rem;">890,344 Sales</div>
+                </div>
+                <i class="fas fa-ellipsis-v" style="color:#64748b;"></i>
+            </div>
+            <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" width="32" height="32" style="margin-right:0.7rem;" />
+                    <div>
+                        <div style="font-weight:600;">Top Authors</div>
+                        <div style="color:#64748b; font-size:0.97rem;">Mark, Rowling, Esther</div>
+                    </div>
+                    <div style="margin-left:auto; font-weight:600; color:#10b981;">+82$</div>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="32" height="32" style="margin-right:0.7rem;" />
+                    <div>
+                        <div style="font-weight:600;">Popular Authors</div>
+                        <div style="color:#64748b; font-size:0.97rem;">Randy, Steve, Mike</div>
+                    </div>
+                    <div style="margin-left:auto; font-weight:600; color:#3b82f6;">+280$</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111624.png" width="32" height="32" style="margin-right:0.7rem;" />
+                    <div>
+                        <div style="font-weight:600;">New Users</div>
+                        <div style="color:#64748b; font-size:0.97rem;">John, Pat, Jimmy</div>
+                    </div>
+                    <div style="margin-left:auto; font-weight:600; color:#6366f1;">+4500$</div>
+                </div>
+            </div>
+            <div style="height:60px;">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+        <!-- KPI Cards -->
+        <div class="dashboard-card-md kpi-card bg-primary kpi1">
+            <div class="kpi-value">3,900</div>
+            <div class="kpi-label">Author Sales</div>
+        </div>
+        <div class="dashboard-card-md kpi-card bg-success kpi2">
+            <div class="kpi-value">4.9M</div>
+            <div class="kpi-label">Author Stats</div>
+            <div style="width:100%; background:#fff3; border-radius:6px; height:7px; margin-top:0.7rem;">
+                <div style="width:70%; height:100%; background:#fff; border-radius:6px;"></div>
+            </div>
+        </div>
+        <div class="dashboard-card-md kpi-card bg-warning kpi3">
+            <div class="kpi-value">75%</div>
+            <div class="kpi-label">Success Rate</div>
+            <i class="fas fa-chart-pie" style="font-size:1.3rem; opacity:0.7;"></i>
+        </div>
+        <!-- Acción destacada -->
+        <div class="dashboard-card-md action-card action">
+            <h4 style="font-weight:700;">Create CRM Reports</h4>
+            <p style="font-size:1.05rem; opacity:0.85;">Cause marketing is marketing done by a for-profit business that seeks to increase profits to better society</p>
+            <button class="btn btn-danger">Create Campaign</button>
+        </div>
+        <!-- Ilustración -->
+        <div class="dashboard-card-md illu-card illu">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Ilustración" />
+            <div>
+                <div style="font-weight:600; font-size:1.1rem;">Company</div>
+                <div style="color:#64748b; font-size:0.97rem;">Crecimiento de usuarios y ventas</div>
+            </div>
+        </div>
+        <!-- Promo -->
+        <div class="dashboard-card-md promo-card promo">
+            <img class="promo-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" alt="Promo" />
+            <div>
+                <div style="font-weight:600; font-size:1.1rem;">30% Off Themes</div>
+                <div style="font-size:0.97rem;">Get your discounted themes of the month<br>Instant rewards, everyday</div>
+            </div>
+        </div>
+    </div>
+    <!-- Fila inferior: tarjetas pequeñas -->
+    <div class="d-flex flex-wrap mt-4" style="gap:1.5rem;">
+        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
+            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
+            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">3:30PM - 4:20PM</div>
+            <div style="font-size:1.05rem;">Create a headline that is informative and will capture readers</div>
+        </div>
+        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
+            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
+            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">03 May 2020</div>
+            <div style="font-size:1.05rem;">Great blog posts don't just happen. Even the best bloggers need it</div>
+        </div>
+        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
+            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">UI Conference</div>
+            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">10AM Jan, 2021</div>
+            <div style="font-size:1.05rem;">AirWays - A Front-end solution for airlines build with ReactJS</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Gráfico de línea de ejemplo
+var ctx = document.getElementById('mainChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Ventas',
+                data: [120, 190, 300, 250, 220, 320, 400],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.08)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+</script>
+{% endblock %} 
