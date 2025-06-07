@@ -1,22 +1,41 @@
+from django.shortcuts import redirect
 from django.urls import path
 from . import views
 
 app_name = 'plans'
 
 urlpatterns = [
-    # Vistas públicas/informativas
-    path('pricing/', views.plan_pricing, name='pricing'),
+    # URLs públicas
+    path('pricing/', views.PublicPricingView.as_view(), name='pricing'),
     
-    # Vistas para Superusuarios
-    path('admin/', views.SuperuserPlanListView.as_view(), name='superuser_list'),
-    path('admin/create/', views.SuperuserPlanCreateView.as_view(), name='superuser_create'),
-    path('admin/<int:pk>/edit/', views.SuperuserPlanUpdateView.as_view(), name='superuser_edit'),
-    path('admin/<int:pk>/delete/', views.SuperuserPlanDeleteView.as_view(), name='superuser_delete'),
+    # URLs para usuarios autenticados
+    path('dashboard/', views.SubscriptionDashboardView.as_view(), name='subscription_dashboard'),
     
-    # Vistas para Admin de Organización
-    path('manage/', views.OrgPlanManagementView.as_view(), name='org_management'),
-    path('change-plan/', views.change_organization_plan, name='change_plan'),
+    # URLs para sistema de upgrade (solo para usuarios)
+    path('request-upgrade/', views.RequestUpgradeView.as_view(), name='request_upgrade'),
     
-    # Redirección por defecto
-    path('', views.plan_pricing, name='list'),
-] 
+    # URLs para Staff (procesamiento manual de pagos)
+    path('payments/', views.ProcessPaymentView.as_view(), name='process_payment'),
+    
+    # API endpoints
+    path('api/check-limits/', views.check_subscription_limits, name='check_limits'),
+    
+    # Redirección por defecto basada en permisos del usuario
+    path('', views.plan_pricing_redirect, name='list'),
+]
+
+# Función de redirección inteligente
+def plan_pricing_redirect(request):
+    """Redirige según el tipo de usuario"""
+    user = request.user
+    
+    if not user.is_authenticated:
+        return redirect('plans:pricing')
+    
+    # Los superusers son redirigidos al admin de Django - toda la gestión se hace ahí
+    if user.is_superuser:
+        return redirect('/admin/plans/upgraderequest/')
+    elif user.is_org_admin:
+        return redirect('plans:subscription_dashboard')
+    else:
+        return redirect('plans:pricing')

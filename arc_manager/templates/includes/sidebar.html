@@ -32,7 +32,7 @@
                 </ul>
             </div>
 
-            <!-- Plans Section -->
+            <!-- Plans Section - Simplificado -->
             <div class="nav-section">
                 <div class="section-header">
                     <h6 class="section-title">
@@ -41,23 +41,28 @@
                     </h6>
                 </div>
                 <ul class="nav-list">
+                    <!-- Para usuarios autenticados -->
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/plans/dashboard/' in request.path %}active{% endif %}" 
+                               href="{% url 'plans:subscription_dashboard' %}" data-tooltip="Mi Suscripción">
+                                <div class="nav-icon">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                                <span class="nav-text">Mi Suscripción</span>
+                                <div class="nav-indicator"></div>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- Para todos - Solo mostrar precios -->
                     <li class="nav-item">
-                        <a class="nav-link {% if '/planes/pricing/' in request.path %}active{% endif %}" 
-                           href="{% url 'plans:pricing' %}" data-tooltip="Precios y Planes">
+                        <a class="nav-link {% if '/plans/pricing/' in request.path %}active{% endif %}" 
+                           href="{% url 'plans:pricing' %}" data-tooltip="Precios">
                             <div class="nav-icon">
                                 <i class="fas fa-tags"></i>
                             </div>
-                            <span class="nav-text">Precios y Planes</span>
-                            <div class="nav-indicator"></div>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if '/planes/' in request.path and '/pricing/' not in request.path %}active{% endif %}" 
-                           href="{% url 'plans:list' %}" data-tooltip="Ver Todos los Planes">
-                            <div class="nav-icon">
-                                <i class="fas fa-list-ul"></i>
-                            </div>
-                            <span class="nav-text">Ver Todos los Planes</span>
+                            <span class="nav-text">Precios</span>
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
@@ -65,7 +70,7 @@
             </div>
 
             <!-- Administration Section -->
-            {% if user.is_superuser or user.is_org_admin %}
+            {% if user.is_org_admin %}
                 <div class="nav-section">
                     <div class="section-header">
                         <h6 class="section-title">
@@ -76,7 +81,7 @@
                     <ul class="nav-list">
                         <li class="nav-item">
                             <a class="nav-link {% if 'users' in request.path %}active{% endif %}" 
-                               href="{% url 'users:list' %}" data-tooltip="Usuarios">
+                               href="{% url 'users:user_list' %}" data-tooltip="Usuarios">
                                 <div class="nav-icon">
                                     <i class="fas fa-users"></i>
                                 </div>
@@ -85,18 +90,7 @@
                             </a>
                         </li>
                         
-                        {% if user.is_superuser %}
-                            <li class="nav-item">
-                                <a class="nav-link {% if 'organizaciones' in request.path %}active{% endif %}" 
-                                   href="{% url 'orgs:list' %}" data-tooltip="Organizaciones">
-                                    <div class="nav-icon">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <span class="nav-text">Organizaciones</span>
-                                    <div class="nav-indicator"></div>
-                                </a>
-                            </li>
-                        {% elif user.is_org_admin and user.organization %}
+                        {% if user.organization %}
                             <li class="nav-item">
                                 <a class="nav-link {% if 'organizaciones' in request.path %}active{% endif %}" 
                                    href="{% url 'orgs:detail' user.organization.pk %}" data-tooltip="Mi Organización">
@@ -111,6 +105,8 @@
                     </ul>
                 </div>
             {% endif %}
+
+
         </nav>
     </div>
     

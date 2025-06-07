@@ -1,27 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Document loaded');
-    
-    // Verificar si el botón existe
-    const btn = document.querySelector('.sign-in-btn');
-    if (btn) {
-        console.log('Botón encontrado:', btn);
-        console.log('Texto inicial del botón:', btn.textContent);
-        
-        // Verificar clases
-        console.log('Clases del botón:', btn.className);
-        
-        // Verificar estilos computados
-        const styles = window.getComputedStyle(btn);
-        console.log('Color de fondo:', styles.backgroundColor);
-    } else {
-        console.log('No se encontró el botón');
-    }
-    
-    // El resto de tu código...
-    animateLoginForm();
-    // ...
-});
-document.addEventListener('DOMContentLoaded', function() {
     // Animación de entrada
     animateLoginForm();
     

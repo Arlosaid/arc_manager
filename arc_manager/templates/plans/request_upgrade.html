@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load plan_extras %}
+
+{% block title %}Solicitar Upgrade de Plan{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-arrow-up mr-2"></i>
+                        Solicitar Upgrade de Plan
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'plans:subscription_dashboard' %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if no_organization %}
+                        <div class="alert alert-warning">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Sin Organización</h5>
+                            <p>No tienes una organización asignada. Para solicitar un upgrade de plan, necesitas estar asociado a una organización.</p>
+                            <p>Contacta con tu administrador o soporte para asignarte a una organización.</p>
+                            <a href="{% url 'plans:subscription_dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+                            </a>
+                        </div>
+                    {% elif has_pending_request %}
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-clock"></i> Solicitud Pendiente</h5>
+                            <p>Ya tienes una solicitud de upgrade en proceso:</p>
+                            <ul>
+                                <li><strong>Plan solicitado:</strong> {{ pending_request.requested_plan.display_name }}</li>
+                                <li><strong>Estado:</strong> {{ pending_request.get_status_display }}</li>
+                                <li><strong>Fecha de solicitud:</strong> {{ pending_request.requested_date|date:"d/m/Y H:i" }}</li>
+                                <li><strong>Monto:</strong> ${{ pending_request.amount_due|floatformat:0 }} MXN</li>
+                            </ul>
+                            
+                            {% if pending_request.status == 'approved' %}
+                                <div class="alert alert-success mt-3">
+                                    <h6><i class="fas fa-check-circle"></i> Solicitud Aprobada</h6>
+                                    <p>Tu solicitud ha sido aprobada. Recibirás las instrucciones de pago por correo electrónico.</p>
+                                    <p><strong>Información de contacto para dudas:</strong></p>
+                                    <ul>
+                                        <li>Email: soporte@arcmanager.com</li>
+                                        <li>WhatsApp: +52 55 1234 5678</li>
+                                    </ul>
+                                </div>
+                            {% elif pending_request.status == 'payment_pending' %}
+                                <div class="alert alert-warning mt-3">
+                                    <h6><i class="fas fa-credit-card"></i> Verificando Pago</h6>
+                                    <p>Hemos recibido tu comprobante de pago y lo estamos verificando. Te notificaremos una vez que sea confirmado.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <!-- Plan Actual -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-star text-warning"></i>
+                                            Plan Actual
+                                        </h5>
+                                        <h4>{{ current_plan.display_name }}</h4>
+                                        <p class="text-muted">{{ current_plan.price_display }} {{ current_plan.billing_display }}</p>
+                                        <ul class="list-unstyled">
+                                            {% for feature in current_plan.get_feature_list %}
+                                                <li><i class="fas fa-check text-success mr-2"></i>{{ feature }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Solicitud -->
+                        {% if available_plans %}
+                            <form method="post">
+                                {% csrf_token %}
+                                
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="mb-3">Selecciona el plan al que deseas hacer upgrade:</h5>
+                                        
+                                        <div class="row">
+                                            {% for plan in available_plans %}
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="card h-100">
+                                                        <div class="card-body">
+                                                            <div class="custom-control custom-radio">
+                                                                <input type="radio" 
+                                                                       id="plan_{{ plan.id }}" 
+                                                                       name="requested_plan" 
+                                                                       value="{{ plan.id }}" 
+                                                                       class="custom-control-input" 
+                                                                       required>
+                                                                <label class="custom-control-label" for="plan_{{ plan.id }}">
+                                                                    <h5>{{ plan.display_name }}</h5>
+                                                                </label>
+                                                            </div>
+                                                            
+                                                            <div class="mt-2">
+                                                                <h4 class="text-primary">
+                                                                    {{ plan.price_display }} {{ plan.billing_display }}
+                                                                </h4>
+                                                                <p class="text-success">
+                                                                    <strong>Diferencia: +${{ plan.price|sub:current_plan.price|floatformat:0 }} MXN</strong>
+                                                                </p>
+                                                            </div>
+                                                            
+                                                            <ul class="list-unstyled mt-3">
+                                                                {% for feature in plan.get_feature_list %}
+                                                                    <li class="mb-1">
+                                                                        <i class="fas fa-check text-success mr-2"></i>
+                                                                        {{ feature }}
+                                                                    </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        
+                                        <!-- Información de contacto -->
+                                        <div class="form-group mt-4">
+                                            <label for="phone">Teléfono de contacto (opcional)</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   placeholder="Ej: +52 55 1234 5678">
+                                            <small class="form-text text-muted">
+                                                Para enviarte las instrucciones de pago por WhatsApp
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="preferred_contact">Método de contacto preferido</label>
+                                            <select class="form-control" id="preferred_contact" name="preferred_contact">
+                                                <option value="email">Correo electrónico</option>
+                                                <option value="whatsapp">WhatsApp</option>
+                                                <option value="both">Ambos</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <!-- Notas adicionales -->
+                                        <div class="form-group">
+                                            <label for="notes">Notas adicionales (opcional)</label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                                      placeholder="Cualquier información adicional que quieras agregar..."></textarea>
+                                        </div>
+                                        
+                                        <!-- Botones -->
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-paper-plane mr-2"></i>
+                                                Enviar Solicitud de Upgrade
+                                            </button>
+                                            <a href="{% url 'plans:subscription_dashboard' %}" class="btn btn-secondary ml-2">
+                                                Cancelar
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Panel de información -->
+                                    <div class="col-md-4">
+                                        <div class="card bg-info text-white">
+                                            <div class="card-body">
+                                                <h5><i class="fas fa-info-circle"></i> ¿Cómo funciona?</h5>
+                                                <ol class="mb-0">
+                                                    <li class="mb-2">Selecciona el plan al que quieres hacer upgrade</li>
+                                                    <li class="mb-2">Envía tu solicitud</li>
+                                                    <li class="mb-2">Nuestro equipo la revisará y te enviará las instrucciones de pago</li>
+                                                    <li class="mb-2">Realiza el pago y envía el comprobante</li>
+                                                    <li>¡Listo! Tu plan será actualizado</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card bg-success text-white mt-3">
+                                            <div class="card-body">
+                                                <h6><i class="fas fa-shield-alt"></i> Garantía</h6>
+                                                <p class="mb-0">
+                                                    Si no estás satisfecho con tu nuevo plan, 
+                                                    puedes solicitar un downgrade en los primeros 7 días.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="card bg-warning text-dark mt-3">
+                                            <div class="card-body">
+                                                <h6><i class="fas fa-headset"></i> ¿Necesitas ayuda?</h6>
+                                                <p class="mb-1">
+                                                    <strong>Email:</strong> soporte@arcmanager.com
+                                                </p>
+                                                <p class="mb-0">
+                                                    <strong>WhatsApp:</strong> +52 55 1234 5678
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <h5><i class="fas fa-star"></i> ¡Ya tienes el mejor plan!</h5>
+                                <p class="mb-0">
+                                    Actualmente tienes el plan más alto disponible. 
+                                    Si necesitas características adicionales, contáctanos.
+                                </p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight selected plan
+    const radioButtons = document.querySelectorAll('input[name="requested_plan"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove highlight from all cards
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('border-primary');
+            });
+            
+            // Add highlight to selected card
+            if (this.checked) {
+                this.closest('.card').classList.add('border-primary');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

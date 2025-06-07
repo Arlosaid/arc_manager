@@ -20,8 +20,6 @@ class SidebarManager {
         this.handleResize();
         this.setActiveLink();
         this.updateLayout();
-        
-        console.log('🎨 Sidebar Manager inicializado');
     }
     
     bindEvents() {
@@ -120,7 +118,7 @@ class SidebarManager {
     updateLayout() {
         if (!this.isMobile && this.mainContent) {
             // En desktop, asegurar margen correcto
-            this.mainContent.style.marginLeft = 'var(--sidebar-width)';
+            this.mainContent.style.marginLeft = 'var(--side-layout-width)';
         } else if (this.mainContent) {
             this.mainContent.style.marginLeft = '0';
         }

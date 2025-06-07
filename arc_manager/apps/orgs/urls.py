@@ -4,12 +4,6 @@ from . import views
 app_name = 'orgs'
 
 urlpatterns = [
-    # Lista de organizaciones (solo superusuarios)
-    path('', views.OrganizationListView.as_view(), name='list'),
-    
-    # Crear organización (solo superusuarios)
-    path('crear/', views.OrganizationCreateView.as_view(), name='create'),
-    
     # Ver detalles de organización
     path('<int:pk>/', views.OrganizationDetailView.as_view(), name='detail'),
     

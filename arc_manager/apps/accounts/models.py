@@ -44,19 +44,14 @@ class User(AbstractUser):
     def __str__(self):
         return self.username or self.email
     
-    def is_superadmin(self):
-        return self.is_superuser
-    
     def role_display(self):
-        if self.is_superuser:
-            return "Superadministrador"
-        elif self.is_org_admin:
+        if self.is_org_admin:
             return "Administrador"
         else:
             return "Usuario"
     
     def can_manage_users(self):
-        return self.is_superuser or self.is_org_admin
+        return self.is_org_admin
     
     def get_organization_name(self):
         return self.organization.name if self.organization else "Sin organización"
@@ -65,4 +60,4 @@ class User(AbstractUser):
         return self.organization_id == org_id if self.organization else False
     
     def can_manage_organization(self):
-        return self.is_superuser or (self.is_org_admin and self.organization)
+        return self.is_org_admin and self.organization

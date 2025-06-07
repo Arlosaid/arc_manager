@@ -16,7 +16,17 @@ class CustomLoginView(LoginView):
     
     def form_valid(self, form):
         user = form.get_user()
-        # Obtener información antes del login
+        
+        # Si es superuser, redirigir al admin de Django
+        if user.is_superuser:
+            messages.info(
+                self.request, 
+                "Los superusuarios deben gestionar el sistema desde el panel administrativo."
+            )
+            logger.info(f"Superuser {user.email} intentó acceder a la app - redirigido a admin")
+            return redirect('/admin/')
+        
+        # Para usuarios normales y org_admin, proceder con el login normal
         user_info = {
             'username': user.username or user.email,
             'role': user.role_display(),
