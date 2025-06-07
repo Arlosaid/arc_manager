@@ -277,6 +277,19 @@ class Subscription(models.Model):
             self.status = 'trial'
             self.trial_end_date = now + timedelta(days=self.plan.trial_days)
             self.end_date = self.trial_end_date
+        elif self.plan.name in ['gratuito', 'trial'] or self.plan.price == 0:
+            # Para planes gratuitos (sin vencimiento) o trial cuando se usa como gratuito
+            if self.plan.name == 'trial' and self.pk is None:
+                # Nuevo trial - usar configuración normal de trial
+                self.status = 'trial'
+                self.trial_end_date = now + timedelta(days=self.plan.trial_days)
+                self.end_date = self.trial_end_date
+            else:
+                # Plan gratuito o trial usado como plan gratuito (cambio de plan)
+                self.status = 'active'
+                self.payment_status = 'paid'
+                self.end_date = now + timedelta(days=3650)  # 10 años (prácticamente sin vencimiento)
+                self.next_billing_date = None  # No hay facturación para planes gratuitos
         else:
             # Para planes de pago
             if self.plan.billing_cycle == 'monthly':
@@ -522,8 +535,13 @@ class UpgradeRequest(models.Model):
     
     def complete_upgrade(self, completed_by_user):
         """Completar el upgrade aplicando el nuevo plan"""
-        if self.status != 'payment_pending':
-            raise ValueError("Solo se pueden completar upgrades con pago pendiente")
+        # Validar que se puede completar (más flexible)
+        if self.status in ['completed']:
+            raise ValueError("Esta solicitud ya está completada")
+        
+        if self.status not in ['payment_pending', 'approved', 'completed']:
+            # Permitir completar desde diferentes estados para flexibilidad
+            pass
         
         # Actualizar la suscripción
         subscription = self.organization.subscription
@@ -545,7 +563,7 @@ class UpgradeRequest(models.Model):
             'date': timezone.now().isoformat(),
             'amount': float(self.amount_due),
             'method': self.payment_method or 'transferencia',
-            'reference': self.payment_reference,
+            'reference': self.payment_reference or f'Admin-{timezone.now().strftime("%Y%m%d_%H%M")}',
             'status': 'paid',
             'upgrade_request_id': self.id,
             'old_plan': old_plan.display_name,
@@ -555,10 +573,11 @@ class UpgradeRequest(models.Model):
         subscription.metadata['payment_history'] = payment_history
         subscription.save()
         
-        # Marcar como completado
-        self.status = 'completed'
-        self.completed_date = timezone.now()
-        self.save()
+        # Marcar como completado (solo si no está ya completado)
+        if self.status != 'completed':
+            self.status = 'completed'
+            self.completed_date = timezone.now()
+            self.save()
         
         # Enviar confirmación
         self._send_completion_email()

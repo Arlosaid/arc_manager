@@ -10,10 +10,10 @@ class OrganizationPlanChangeForm(forms.ModelForm):
     """Formulario personalizado para cambiar plan desde el admin de organizaciones"""
     
     current_plan = forms.ModelChoiceField(
-        queryset=Plan.objects.filter(is_active=True),
+        queryset=Plan.objects.filter(is_active=True, price=0),  # Solo planes gratuitos
         required=False,
-        label="Plan Actual",
-        help_text="Cambiar este plan actualizará automáticamente la suscripción"
+        label="Plan Actual (Solo Gratuitos/Trial)",
+        help_text="Solo puedes cambiar a planes gratuitos o de prueba desde aquí. Para planes de pago, usa el sistema de solicitudes de upgrade."
     )
     
     class Meta:
@@ -32,6 +32,19 @@ class OrganizationPlanChangeForm(forms.ModelForm):
                 trial_plan = Plan.objects.filter(name='trial', is_active=True).first()
                 if trial_plan:
                     self.fields['current_plan'].initial = trial_plan
+                    
+        # Mensaje de advertencia en el formulario
+        self.fields['current_plan'].help_text += "\n⚠️ IMPORTANTE: Para cambiar a planes de pago, los usuarios deben usar el sistema de solicitudes de upgrade."
+    
+    def clean_current_plan(self):
+        """Validar que solo se asignen planes gratuitos"""
+        plan = self.cleaned_data.get('current_plan')
+        if plan and plan.price > 0:
+            raise forms.ValidationError(
+                f"No puedes asignar directamente el plan '{plan.display_name}' (${plan.price}) desde el admin. "
+                "Los planes de pago deben ser asignados a través del sistema de solicitudes de upgrade."
+            )
+        return plan
     
     def save(self, commit=True):
         instance = super().save(commit)
@@ -46,13 +59,31 @@ class OrganizationPlanChangeForm(forms.ModelForm):
                 )
                 
                 if not created and subscription.plan != new_plan:
-                    # Cambiar plan existente
+                    # Solo permitir cambio si el nuevo plan es gratuito
+                    if new_plan.price > 0:
+                        raise forms.ValidationError(
+                            f"No se puede cambiar automáticamente a un plan de pago (${new_plan.price})"
+                        )
+                    
+                    # Cambiar plan existente solo para planes gratuitos
                     old_plan = subscription.plan
                     subscription.plan = new_plan
+                    
+                    # Actualizar el status según el tipo de plan
+                    if new_plan.name in ['gratuito', 'trial'] or new_plan.price == 0:
+                        if new_plan.name == 'trial':
+                            subscription.status = 'trial'
+                            subscription.payment_status = 'pending'
+                        else:
+                            subscription.status = 'active'
+                            subscription.payment_status = 'paid'  # Plan gratuito no requiere pago
+                    
+                    # Actualizar fechas si es necesario
+                    subscription.setup_subscription_dates()
                     subscription.save()
                     
                     # Log del cambio
-                    print(f"Plan cambiado para {instance.name}: {old_plan.display_name} → {new_plan.display_name}")
+                    print(f"Plan cambiado para {instance.name}: {old_plan.display_name} → {new_plan.display_name} (Status: {subscription.status})")
         
         return instance
 
@@ -72,9 +103,9 @@ class OrganizationAdmin(admin.ModelAdmin):
         ('Información básica', {
             'fields': ('name', 'slug', 'description', 'is_active')
         }),
-        ('Gestión de Plan', {
+        ('Gestión de Plan (Solo Gratuitos)', {
             'fields': ('current_plan',),
-            'description': 'Cambiar el plan actualizará automáticamente la suscripción de la organización'
+            'description': '⚠️ IMPORTANTE: Aquí solo puedes asignar planes gratuitos o de prueba. Para planes de pago, los usuarios deben usar el sistema de "Solicitudes de Upgrade" donde se aprueban manualmente y se envían instrucciones de pago por correo.'
         }),
         ('Información de Suscripción (Solo Lectura)', {
             'fields': ('get_subscription_info', 'get_current_plan_info'),

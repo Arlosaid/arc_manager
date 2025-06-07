@@ -14,24 +14,17 @@ class NavbarManager {
         this.bindEvents();
         this.handleResize();
         this.initScrollEffects();
-        
-        console.log('🎨 Navbar Manager inicializado (diseño moderno)');
     }
     
     initDropdowns() {
-        console.log('🔍 Inicializando dropdowns...');
-        
         // Configurar dropdown del usuario
         this.userDropdownToggle = document.getElementById('userDropdownToggle');
         
         if (this.userDropdownToggle) {
-            console.log('✅ Toggle del dropdown encontrado');
-            
             // Buscar el dropdown menu
             const dropdownContainer = this.userDropdownToggle.closest('.dropdown');
             if (dropdownContainer) {
                 this.userDropdown = dropdownContainer.querySelector('.dropdown-menu');
-                console.log('✅ Dropdown menu encontrado:', this.userDropdown);
             }
             
             if (this.userDropdown) {
@@ -43,14 +36,12 @@ class NavbarManager {
                 this.userDropdownToggle.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('🖱️ Click en dropdown toggle');
                     this.toggleUserDropdown();
                 });
                 
                 // Cerrar dropdown al hacer click fuera
                 document.addEventListener('click', (e) => {
                     if (!dropdownContainer.contains(e.target)) {
-                        console.log('🖱️ Click fuera del dropdown, cerrando...');
                         this.closeUserDropdown();
                     }
                 });
@@ -58,17 +49,10 @@ class NavbarManager {
                 // Cerrar dropdown con Escape
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && this.userDropdown.classList.contains('show')) {
-                        console.log('⌨️ Escape presionado, cerrando dropdown');
                         this.closeUserDropdown();
                     }
                 });
-                
-                console.log('✅ Dropdown configurado correctamente');
-            } else {
-                console.error('❌ No se encontró el dropdown menu del usuario');
             }
-        } else {
-            console.error('❌ No se encontró el toggle del dropdown');
         }
     }
     
@@ -106,12 +90,10 @@ class NavbarManager {
     // === Dropdown del usuario ===
     toggleUserDropdown() {
         if (!this.userDropdown) {
-            console.warn('⚠️ No se puede toggle el dropdown - no existe');
             return;
         }
         
         const isOpen = this.userDropdown.classList.contains('show');
-        console.log('📊 Estado actual del dropdown:', isOpen ? 'abierto' : 'cerrado');
         
         if (isOpen) {
             this.closeUserDropdown();
@@ -122,8 +104,6 @@ class NavbarManager {
     
     openUserDropdown() {
         if (!this.userDropdown) return;
-        
-        console.log('📖 Abriendo dropdown del usuario');
         
         // Cerrar otros dropdowns abiertos
         document.querySelectorAll('.dropdown-menu.show').forEach(dropdown => {
@@ -146,14 +126,10 @@ class NavbarManager {
         
         // Posicionamiento
         this.positionDropdown();
-        
-        console.log('✅ Dropdown abierto exitosamente');
     }
     
     closeUserDropdown() {
         if (!this.userDropdown) return;
-        
-        console.log('📕 Cerrando dropdown del usuario');
         
         this.userDropdown.classList.remove('show');
         this.userDropdownToggle.setAttribute('aria-expanded', 'false');
@@ -170,8 +146,6 @@ class NavbarManager {
                 this.userDropdown.style.display = 'none';
             }
         }, 200);
-        
-        console.log('✅ Dropdown cerrado exitosamente');
     }
     
     positionDropdown() {
@@ -224,7 +198,6 @@ class NavbarManager {
     updateNotificationCount(count) {
         // Esta función se mantiene por compatibilidad pero no hace nada
         // ya que removimos los iconos de notificación
-        console.log(`📢 Notificaciones: ${count} (iconos removidos)`);
     }
     
     showToast(message, type = 'info') {
@@ -265,8 +238,6 @@ class NavbarManager {
                 }
             }, 300);
         }, 3000);
-        
-        console.log(`📢 Toast (${type}): ${message}`);
     }
     
     // === Métodos de utilidad ===

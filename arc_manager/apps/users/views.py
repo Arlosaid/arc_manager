@@ -23,11 +23,8 @@ class UserListView(LoginRequiredMixin, ListView):
         user = self.request.user
         queryset = User.objects.select_related('organization')
         
-        # Filtrar según permisos
-        if user.is_superuser:
-            # Superuser ve todos los usuarios
-            queryset = queryset.all()
-        elif user.is_org_admin and user.organization:
+        # Solo los org_admin pueden ver usuarios de su organización
+        if user.is_org_admin and user.organization:
             # Admin de org solo ve usuarios de su organización
             queryset = queryset.filter(organization=user.organization)
         else:
@@ -51,12 +48,13 @@ class UserListView(LoginRequiredMixin, ListView):
         context['search'] = self.request.GET.get('search', '')
         return context
 
-class SimpleCreateUserView(LoginRequiredMixin, View):
-    """Vista simple para crear usuarios con contraseña automática y email obligatorio"""
+class SimpleUserCreateView(LoginRequiredMixin, View):
+    """Vista para crear usuarios de forma simple"""
     template_name = 'users/simple_create_user.html'
     
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_superuser or request.user.is_org_admin):
+        # Solo org_admin pueden crear usuarios
+        if not request.user.is_org_admin:
             raise PermissionDenied("No tienes permisos para crear usuarios")
         return super().dispatch(request, *args, **kwargs)
     
@@ -66,35 +64,29 @@ class SimpleCreateUserView(LoginRequiredMixin, View):
     
     def post(self, request):
         form = SimpleUserCreateForm(request.POST, user=request.user)
-        
         if form.is_valid():
             try:
-                # Crear usuario y obtener la contraseña temporal y estado del email
-                user, temp_password, email_sent = form.save(request=request)
+                user, temp_password, email_sent = form.save(request)
                 
-                # Mensaje principal de éxito
                 if email_sent:
                     messages.success(
-                        request, 
-                        f"✅ Usuario '{user.username or user.email}' ({user.first_name} {user.last_name}) "
-                        f"creado exitosamente. Se ha enviado un email con las credenciales a {user.email}."
+                        request,
+                        f'Usuario {user.username or user.email} creado exitosamente. '
+                        f'Se han enviado las credenciales por correo electrónico.'
                     )
                 else:
-                    # Si falló el envío del email, es crítico porque necesitan las credenciales
-                    messages.error(
-                        request, 
-                        f"⚠️ Usuario creado pero FALLÓ el envío del email a {user.email}. "
-                        f"IMPORTANTE: La contraseña temporal es: {temp_password} "
-                        f"(comunícasela al usuario manualmente)"
+                    messages.warning(
+                        request,
+                        f'Usuario {user.username or user.email} creado exitosamente, '
+                        f'pero no se pudo enviar el correo electrónico. '
+                        f'Credenciales: {user.email} / {temp_password}'
                     )
                 
-                return redirect('users:list')  # Ir a la lista de usuarios
+                return redirect('users:user_list')
                 
             except Exception as e:
-                # Log del error en la consola
-                logger.error(f"Error al crear usuario: {str(e)}", exc_info=True)
-                # Mensaje genérico para el usuario
-                messages.error(request, "❌ Error al crear el usuario. Por favor, intente nuevamente.")
+                logger.error(f"Error al crear usuario: {str(e)}")
+                messages.error(request, f"Error al crear el usuario: {str(e)}")
         
         return render(request, self.template_name, {'form': form})
 
@@ -106,11 +98,8 @@ class UserEditView(LoginRequiredMixin, View):
         user_to_edit = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
         
-        # Verificar permisos
-        if current_user.is_superuser:
-            # Superuser puede editar cualquier usuario
-            pass
-        elif current_user.is_org_admin and current_user.organization:
+        # Verificar permisos - solo org_admin de la misma organización o el propio usuario
+        if current_user.is_org_admin and current_user.organization:
             # Admin de org solo puede editar usuarios de su organización
             if user_to_edit.organization != current_user.organization:
                 raise PermissionDenied("No tienes permisos para editar este usuario")
@@ -134,16 +123,9 @@ class UserEditView(LoginRequiredMixin, View):
         form = UserEditForm(request.POST, instance=user_to_edit, user=request.user)
         
         if form.is_valid():
-            try:
-                form.save()
-                messages.success(
-                    request, 
-                    f"Usuario '{user_to_edit.username}' actualizado exitosamente"
-                )
-                return redirect('users:list')
-                
-            except Exception as e:
-                messages.error(request, f"Error al actualizar el usuario: {str(e)}")
+            form.save()
+            messages.success(request, f"Usuario {user_to_edit.username or user_to_edit.email} actualizado exitosamente.")
+            return redirect('users:user_list')
         
         return render(request, self.template_name, {
             'form': form, 
@@ -158,11 +140,8 @@ class UserDetailView(LoginRequiredMixin, View):
         user_to_view = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
         
-        # Verificar permisos
-        if current_user.is_superuser:
-            # Superuser puede ver cualquier usuario
-            pass
-        elif current_user.is_org_admin and current_user.organization:
+        # Verificar permisos - solo org_admin de la misma organización o el propio usuario
+        if current_user.is_org_admin and current_user.organization:
             # Admin de org solo puede ver usuarios de su organización
             if user_to_view.organization != current_user.organization:
                 raise PermissionDenied("No tienes permisos para ver este usuario")
@@ -178,31 +157,21 @@ class UserDetailView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'user_to_view': user_to_view})
 
 class UserDeleteView(LoginRequiredMixin, View):
-    """Vista para eliminar usuarios con confirmación"""
+    """Vista para eliminar usuarios"""
     template_name = 'users/user_delete.html'
     
     def dispatch(self, request, *args, **kwargs):
         user_to_delete = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
         
-        # Verificar permisos
-        if current_user.is_superuser:
-            # Superuser puede eliminar cualquier usuario excepto a sí mismo
-            if user_to_delete == current_user:
-                raise PermissionDenied("No puedes eliminarte a ti mismo")
-        elif current_user.is_org_admin and current_user.organization:
-            # Admin de org solo puede eliminar usuarios de su organización
-            if user_to_delete.organization != current_user.organization:
-                raise PermissionDenied("No tienes permisos para eliminar este usuario")
-            # No puede eliminarse a sí mismo
-            if user_to_delete == current_user:
-                raise PermissionDenied("No puedes eliminarte a ti mismo")
-            # No puede eliminar superusuarios
-            if user_to_delete.is_superuser:
-                raise PermissionDenied("No puedes eliminar superusuarios")
-        else:
-            # Usuarios normales no pueden eliminar a nadie
-            raise PermissionDenied("No tienes permisos para eliminar usuarios")
+        # Solo org_admin puede eliminar usuarios de su organización
+        if not (current_user.is_org_admin and current_user.organization and 
+                user_to_delete.organization == current_user.organization):
+            raise PermissionDenied("No tienes permisos para eliminar este usuario")
+        
+        # No se puede eliminar a si mismo
+        if user_to_delete == current_user:
+            raise PermissionDenied("No puedes eliminarte a ti mismo")
         
         return super().dispatch(request, *args, **kwargs)
     
@@ -213,25 +182,12 @@ class UserDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         user_to_delete = get_object_or_404(User, pk=pk)
         
-        # Confirmar que se quiere eliminar
-        if request.POST.get('confirm_delete') == 'yes':
-            try:
-                user_name = f"{user_to_delete.first_name} {user_to_delete.last_name}"
-                user_email = user_to_delete.email
-                
-                # Eliminar el usuario
-                user_to_delete.delete()
-                
-                messages.success(
-                    request, 
-                    f"✅ Usuario '{user_name}' ({user_email}) eliminado exitosamente."
-                )
-                return redirect('users:list')
-                
-            except Exception as e:
-                messages.error(request, f"❌ Error al eliminar el usuario: {str(e)}")
-        else:
-            messages.info(request, "Eliminación cancelada.")
-            return redirect('users:list')
+        try:
+            username = user_to_delete.username or user_to_delete.email
+            user_to_delete.delete()
+            messages.success(request, f"Usuario {username} eliminado exitosamente.")
+        except Exception as e:
+            logger.error(f"Error al eliminar usuario: {str(e)}")
+            messages.error(request, f"Error al eliminar el usuario: {str(e)}")
         
-        return render(request, self.template_name, {'user_to_delete': user_to_delete})
+        return redirect('users:user_list')

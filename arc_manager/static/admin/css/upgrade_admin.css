@@ -1,0 +1,92 @@
+/* CSS personalizado para admin de Upgrade Requests */
+
+/* Hacer el campo de estado más visible */
+.field-status select {
+    font-size: 16px !important;
+    padding: 10px !important;
+    border: 3px solid #417690 !important;
+    border-radius: 5px !important;
+    background-color: #f0f8ff !important;
+}
+
+/* Resaltar la sección principal */
+.fieldset.wide {
+    background: linear-gradient(145deg, #f0f8ff, #e6f3ff) !important;
+    border: 2px solid #417690 !important;
+    border-radius: 8px !important;
+    padding: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Hacer más visible el botón de guardar */
+.submit-row input[type="submit"] {
+    background: #417690 !important;
+    font-size: 16px !important;
+    padding: 12px 24px !important;
+    border-radius: 5px !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+.submit-row input[type="submit"]:hover {
+    background: #2e5a73 !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Mejorar la tabla de lista */
+.result_list tr:hover {
+    background-color: #f0f8ff !important;
+}
+
+/* Hacer más visibles los botones de editar */
+.field-edit_button a {
+    font-weight: bold !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.field-edit_button a:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* Mejorar la visualización de ayuda */
+.field-status_help_text {
+    background: #fff3cd !important;
+    border: 1px solid #ffc107 !important;
+    border-radius: 5px !important;
+    padding: 15px !important;
+    margin-top: 10px !important;
+}
+
+/* Agregar iconos y colores a los estados */
+.field-status select option[value="pending"] {
+    background-color: #fff3cd !important;
+}
+
+.field-status select option[value="approved"] {
+    background-color: #cce5ff !important;
+}
+
+.field-status select option[value="payment_pending"] {
+    background-color: #e6ccff !important;
+}
+
+.field-status select option[value="completed"] {
+    background-color: #ccffcc !important;
+}
+
+/* Mensaje de ayuda más visible */
+.help {
+    font-size: 14px !important;
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+/* Título de sección más visible */
+.fieldset h2 {
+    background: #417690 !important;
+    color: white !important;
+    padding: 10px 15px !important;
+    margin: -20px -20px 20px -20px !important;
+    border-radius: 5px 5px 0 0 !important;
+} 

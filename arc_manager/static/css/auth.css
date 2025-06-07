@@ -1,494 +1,498 @@
 :root {
-    --primary-color: #0D6EFD;
-    --dark-color: #212529;
-    --gray-dark: #343a40;
-    --gray: #6c757d;
-    --gray-light: #e9ecef;
-    --gray-lighter: #f8f9fa;
-    --danger: #dc3545;
-    --warning-bg: #fff3cd;
-    --warning-border: #ffecb5;
-    --warning-text: #664d03;
-    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    --transition: all 0.3s ease;
-  }
-  
-  /* Reset básico para asegurar consistencia - Solo para contenido de autenticación */
-  .auth-wrapper *,
-  .auth-body * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  /* Base styles */
-  .auth-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', sans-serif;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    background-color: #fff;
-    color: var(--dark-color);
-  }
-  
-  .auth-wrapper {
-    display: flex;
-    height: 100vh;
-    width: 100%;
-    flex-direction: row;
-  }
-  
-  .auth-image-container {
-    width: 40% !important; /* Forzamos el 30% */
-    flex: 0 0 40%; /* Hacemos que sea fijo en 30% */
-    background-image: url('../images/auth/planos.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    box-shadow: inset -10px 0 15px -10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .auth-form-container {
-    width: 60% !important; /* Forzamos el 70% */
-    flex: 0 0 60%; /* Hacemos que sea fijo en 70% */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background-color: #fff;
-  }
-  
-  .auth-form-inner {
-    width: 100%;
-    max-width: 450px;
-    padding: 0 30px;
-  }
-  
-  .auth-header {
-    margin-bottom: 2.5rem;
-  }
-  
-  .app-logo {
-    display: inline-block;
-    transition: var(--transition);
-  }
-  
-  .app-logo:hover {
-    transform: scale(1.05);
-  }
-  
-  /* Login form styles */
-  .login-form-wrapper {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-  
-  .login-title {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--dark-color);
-    margin-bottom: 2rem;
-    animation: slideIn 0.5s ease-out;
-    text-align: center;
-  }
-  
-  .login-form .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  .login-form .form-group:nth-child(1) {
-    animation: fadeIn 0.4s ease-out 0.1s;
-    animation-fill-mode: both;
-  }
-  
-  .login-form .form-group:nth-child(2) {
-    animation: fadeIn 0.4s ease-out 0.2s;
-    animation-fill-mode: both;
-  }
-  
-  .login-form .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 14px;
-    color: var(--gray-dark);
-    font-weight: 500;
-  }
-  
-  .input-wrapper {
-    position: relative;
-  }
-  
-  .input-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--gray);
-    transition: var(--transition);
-  }
-  
-  .password-toggle {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--gray);
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-  }
-  
-  .password-toggle:hover {
-    color: var(--dark-color);
-  }
-  
-  /* Inputs */
- .login-form input[type="text"],
- .login-form input[type="password"],
- .login-form input[type="email"] {
+    /* Colores específicos para autenticación */
+    --auth-color-primary: #0D6EFD;
+    --auth-color-dark: #212529;
+    --auth-color-gray-dark: #343a40;
+    --auth-color-gray: #6c757d;
+    --auth-color-gray-light: #e9ecef;
+    --auth-color-gray-lighter: #f8f9fa;
+    --auth-color-danger: #dc3545;
+    
+    /* Colores de alertas */
+    --auth-warning-bg: #fff3cd;
+    --auth-warning-border: #ffecb5;
+    --auth-warning-text: #664d03;
+    
+    /* Efectos */
+    --auth-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --auth-transition: all 0.3s ease;
+}
+
+/* Reset básico para asegurar consistencia - Solo para contenido de autenticación */
+.auth-wrapper *,
+.auth-body * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base styles */
+.auth-body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #fff;
+  color: var(--auth-color-dark);
+}
+
+.auth-wrapper {
+  display: flex;
+  height: 100vh;
   width: 100%;
-  padding: 0.7rem 1rem 0.7rem 2.5rem; /* Reducido de 0.9rem a 0.7rem */
-  border: 1px solid var(--gray-light);
+  flex-direction: row;
+}
+
+.auth-image-container {
+  width: 40% !important; /* Forzamos el 30% */
+  flex: 0 0 40%; /* Hacemos que sea fijo en 30% */
+  background-image: url('../images/auth/planos.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: inset -10px 0 15px -10px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form-container {
+  width: 60% !important; /* Forzamos el 70% */
+  flex: 0 0 60%; /* Hacemos que sea fijo en 70% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #fff;
+}
+
+.auth-form-inner {
+  width: 100%;
+  max-width: 450px;
+  padding: 0 30px;
+}
+
+.auth-header {
+  margin-bottom: 2.5rem;
+}
+
+.app-logo {
+  display: inline-block;
+  transition: var(--auth-transition);
+}
+
+.app-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Login form styles */
+.login-form-wrapper {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--auth-color-dark);
+  margin-bottom: 2rem;
+  animation: slideIn 0.5s ease-out;
+  text-align: center;
+}
+
+.login-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.login-form .form-group:nth-child(1) {
+  animation: fadeIn 0.4s ease-out 0.1s;
+  animation-fill-mode: both;
+}
+
+.login-form .form-group:nth-child(2) {
+  animation: fadeIn 0.4s ease-out 0.2s;
+  animation-fill-mode: both;
+}
+
+.login-form .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+  color: var(--auth-color-gray-dark);
+  font-weight: 500;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--auth-color-gray);
+  transition: var(--auth-transition);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--auth-color-gray);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--auth-transition);
+}
+
+.password-toggle:hover {
+  color: var(--auth-color-dark);
+}
+
+/* Inputs */
+.login-form input[type="text"],
+.login-form input[type="password"],
+.login-form input[type="email"] {
+  width: 100%;
+  padding: 0.7rem 1rem 0.7rem 2.5rem;
+  border: 1px solid var(--auth-color-gray-light);
   border-radius: 6px;
   font-size: 15px;
   box-sizing: border-box;
-  transition: var(--transition);
+  transition: var(--auth-transition);
 }
 
-  
-  .login-form input[type="password"] {
-    padding-right: 2.5rem;
-  }
-  
-  .login-form input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-    outline: none;
-  }
-  
-  .login-form input.error {
-    border-color: var(--danger);
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
-  }
-  
-  .login-options {
-    display: flex;
-    flex-direction: column; /* Cambiamos a columna para apilar elementos */
-    align-items: center; /* Centramos el contenido */
-    margin-top: 1.8rem;
-    animation: fadeIn 0.4s ease-out 0.3s;
-    animation-fill-mode: both;
-    width: 100%; /* Asegurar que ocupe todo el ancho */
-  }
-  
-  .forgot-link {
-    color: var(--gray);
-    text-decoration: none;
-    font-size: 14px;
-    transition: var(--transition);
-    text-align: center;
-    display: block;
-    margin-top: 1rem;
-  }
-  
-  .forgot-link:hover {
-    color: var(--dark-color);
-    text-decoration: underline;
-  }
-  
-  /* Estilo único para botones de sign-in */
-  .sign-in-btn {
-    background-color: var(--primary-color);
-    color: white !important;
-    border: none;
-    border-radius: 6px;
-    padding: 0.7rem 0;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--transition);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    margin-bottom: 1rem;
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-    text-decoration: none !important;
-    display: inline-block;
-  }
+.login-form input[type="password"] {
+  padding-right: 2.5rem;
+}
 
-  .sign-in-btn:hover {
-    background-color: #212529 !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
-  }
-  
-  .sign-in-btn:disabled {
-    background-color: #6c757d !important;
-    cursor: not-allowed;
-  }
+.login-form input:focus {
+  border-color: var(--auth-color-primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+  outline: none;
+}
 
-  /* Efecto ripple para botones */
-  .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.4);
-    width: 100px;
-    height: 100px;
-    margin-top: -50px;
-    margin-left: -50px;
-    animation: ripple-effect 0.6s linear;
+.login-form input.error {
+  border-color: var(--auth-color-danger);
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.login-options {
+  display: flex;
+  flex-direction: column; /* Cambiamos a columna para apilar elementos */
+  align-items: center; /* Centramos el contenido */
+  margin-top: 1.8rem;
+  animation: fadeIn 0.4s ease-out 0.3s;
+  animation-fill-mode: both;
+  width: 100%; /* Asegurar que ocupe todo el ancho */
+}
+
+.forgot-link {
+  color: var(--auth-color-gray);
+  text-decoration: none;
+  font-size: 14px;
+  transition: var(--auth-transition);
+  text-align: center;
+  display: block;
+  margin-top: 1rem;
+}
+
+.forgot-link:hover {
+  color: var(--auth-color-dark);
+  text-decoration: underline;
+}
+
+/* Estilo único para botones de sign-in */
+.sign-in-btn {
+  background-color: var(--auth-color-primary);
+  color: white !important;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 0;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--auth-transition);
+  box-shadow: var(--auth-box-shadow);
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  text-decoration: none !important;
+  display: inline-block;
+}
+
+.sign-in-btn:hover {
+  background-color: var(--auth-color-dark) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.sign-in-btn:disabled {
+  background-color: var(--auth-color-gray) !important;
+  cursor: not-allowed;
+}
+
+/* Efecto ripple para botones */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.4);
+  width: 100px;
+  height: 100px;
+  margin-top: -50px;
+  margin-left: -50px;
+  animation: ripple-effect 0.6s linear;
+  transform: scale(0);
+  opacity: 1;
+}
+
+@keyframes ripple-effect {
+  0% {
     transform: scale(0);
     opacity: 1;
   }
-  
-  @keyframes ripple-effect {
-    0% {
-      transform: scale(0);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(2.5);
-      opacity: 0;
-    }
-  }
-  
-  .sign-in-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.5);
+  100% {
+    transform: scale(2.5);
     opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%, -50%);
-    transform-origin: 50% 50%;
   }
+}
 
-  .sign-in-btn:focus:not(:active)::after {
-    animation: ripple 1s ease-out;
+.sign-in-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.sign-in-btn:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+.signup-section {
+  margin-top: 2rem;
+  text-align: left;
+  font-size: 14px;
+  color: var(--auth-color-gray);
+  animation: fadeIn 0.4s ease-out 0.4s;
+  animation-fill-mode: both;
+}
+
+.signup-section a {
+  color: var(--auth-color-primary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--auth-transition);
+}
+
+.signup-section a:hover {
+  text-decoration: underline;
+}
+
+/* Sistema de alertas unificado */
+.alert {
+  padding: 12px 18px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+  font-size: 1rem;
+  font-weight: 400;
+  display: block;
+}
+
+.alert-info {
+  background: #e8f4fd;
+  color: #2176bd;
+  border: 1px solid #b6e0fe;
+}
+
+.alert-danger {
+  background: #fdeaea;
+  color: #c0392b;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+  background: #e6f9ed;
+  color: #218838;
+  border: 1px solid #b7f7d8;
+}
+
+/* Wrapper para iconos y texto en alertas */
+.icon-text-wrapper {
+  text-align: center;
+}
+
+.icon-text-wrapper .mdi {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.icon-text-wrapper p {
+  margin-bottom: 0.25rem;
+}
+
+/* Cuadro de notificación */
+.notification-box {
+  background-color: var(--auth-warning-bg);
+  border: 1px solid var(--auth-warning-border);
+  color: var(--auth-warning-text);
+  padding: 0.9rem 1.2rem;
+  margin-top: 2rem;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: var(--auth-box-shadow);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.notification-box p {
+  margin: 0;
+  position: relative;
+}
+
+/* Mensajes de error */
+.error-message {
+  color: var(--auth-color-danger);
+  font-size: 12px;
+  margin-top: 5px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Estilos para textos */
+.text-gray-600 {
+  color: #4B5563;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.reset-message {
+  color: #4B5563;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  font-weight: 400;
+}
+
+/* Cuadro de información para password reset */
+.reset-info-box {
+  background-color: #e0f7fa;
+  border: 1px solid #26c6da;
+  color: #006064;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.reset-info-box.info-style-2 {
+  background-color: #0dcaf0;
+  border: 1px solid #0dcaf0;
+  color: white;
+}
+
+/* Utilidades de margen */
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Media Queries */
+@media (max-width: 992px) {
+  .auth-wrapper {
+    flex-direction: column-reverse;
   }
   
-  @keyframes ripple {
-    0% {
-      transform: scale(0, 0);
-      opacity: 0.5;
-    }
-    20% {
-      transform: scale(25, 25);
-      opacity: 0.3;
-    }
-    100% {
-      opacity: 0;
-      transform: scale(40, 40);
-    }
+  .auth-image-container {
+    display: none;
   }
   
-  .signup-section {
-    margin-top: 2rem;
-    text-align: left;
-    font-size: 14px;
-    color: var(--gray);
-    animation: fadeIn 0.4s ease-out 0.4s;
-    animation-fill-mode: both;
+  .auth-form-container {
+    width: 100% !important;
+    flex: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
   }
   
-  .signup-section a {
-    color: var(--primary-color);
-    font-weight: 500;
-    text-decoration: none;
-    transition: var(--transition);
+  .sign-in-btn {
+    margin-top: 1rem;
+    width: 100%;
   }
   
-  .signup-section a:hover {
-    text-decoration: underline;
+  .auth-form-inner {
+    padding: 0 15px;
   }
   
-  /* Sistema de alertas unificado */
-  .alert {
-    padding: 12px 18px;
-    border-radius: 6px;
-    margin-bottom: 18px;
-    font-size: 1rem;
-    font-weight: 400;
-    display: block;
+  .login-title {
+    font-size: 24px;
   }
-  
-  .alert-info {
-    background: #e8f4fd;
-    color: #2176bd;
-    border: 1px solid #b6e0fe;
-  }
-  
-  .alert-danger {
-    background: #fdeaea;
-    color: #c0392b;
-    border: 1px solid #f5c6cb;
-  }
-  
-  .alert-success {
-    background: #e6f9ed;
-    color: #218838;
-    border: 1px solid #b7f7d8;
-  }
-  
-  /* Wrapper para iconos y texto en alertas */
-  .icon-text-wrapper {
-    text-align: center;
-  }
-  
-  .icon-text-wrapper .mdi {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 1rem;
-  }
-  
-  .icon-text-wrapper p {
-    margin-bottom: 0.25rem;
-  }
-  
-  /* Cuadro de notificación */
-  .notification-box {
-    background-color: var(--warning-bg);
-    border: 1px solid var(--warning-border);
-    color: var(--warning-text);
-    padding: 0.9rem 1.2rem;
-    margin-top: 2rem;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.4;
-    box-shadow: var(--box-shadow);
-    animation: fadeIn 0.5s ease-out;
-  }
-  
-  .notification-box p {
-    margin: 0;
-    position: relative;
-  }
-  
-  /* Mensajes de error */
-  .error-message {
-    color: var(--danger);
-    font-size: 12px;
-    margin-top: 5px;
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  /* Estilos para textos */
-  .text-gray-600 {
-    color: #4B5563;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    text-align: left;
-  }
-  
-  .reset-message {
-    color: #4B5563;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    text-align: left;
-    font-weight: 400;
-  }
-  
-  /* Cuadro de información para password reset */
-  .reset-info-box {
-    background-color: #e0f7fa;
-    border: 1px solid #26c6da;
-    color: #006064;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
-    font-size: 14px;
-    line-height: 1.5;
-    text-align: left;
-  }
-  
-  .reset-info-box.info-style-2 {
-    background-color: #0dcaf0;
-    border: 1px solid #0dcaf0;
-    color: white;
-  }
-  
-  /* Utilidades de margen */
-  .mb-4 {
-    margin-bottom: 1.5rem;
-  }
-  
-  .mb-0 {
-    margin-bottom: 0;
-  }
-  
-  .mb-6 {
-    margin-bottom: 1.5rem;
-  }
-  
-  /* Animation keyframes */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  /* Media Queries */
-  @media (max-width: 992px) {
-    .auth-wrapper {
-      flex-direction: column-reverse;
-    }
-    
-    .auth-image-container {
-      display: none;
-    }
-    
-    .auth-form-container {
-      width: 100% !important;
-      flex: 1;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .login-options {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .sign-in-btn {
-      margin-top: 1rem;
-      width: 100%;
-    }
-    
-    .auth-form-inner {
-      padding: 0 15px;
-    }
-    
-    .login-title {
-      font-size: 24px;
-    }
-  }
+}

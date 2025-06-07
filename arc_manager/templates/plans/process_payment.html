@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Procesar Pagos Manuales{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-0">Procesar Pagos Manuales</h1>
+            <p class="text-muted mb-0">Gestión de pagos pendientes</p>
+        </div>
+    </div>
+
+    <!-- Pending Payments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>
+                        Pagos Pendientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_subscriptions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Organización</th>
+                                    <th>Plan</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in pending_subscriptions %}
+                                <tr>
+                                    <td>{{ subscription.organization.name }}</td>
+                                    <td>{{ subscription.plan.display_name }}</td>
+                                    <td>${{ subscription.plan.price|floatformat:0 }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ subscription.get_payment_status_display }}</span>
+                                    </td>
+                                    <td>
+                                        <form method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="subscription_id" value="{{ subscription.id }}">
+                                            <input type="hidden" name="amount" value="{{ subscription.plan.price }}">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" name="payment_reference" class="form-control" 
+                                                       placeholder="Referencia" required>
+                                                <button type="submit" class="btn btn-success btn-sm">
+                                                    <i class="fas fa-check me-1"></i>Marcar Pagado
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <h5>No hay pagos pendientes</h5>
+                        <p class="mb-0">Todas las suscripciones están al día con sus pagos.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

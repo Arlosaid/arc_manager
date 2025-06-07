@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',
     'apps.accounts.middleware.LoginRequiredMiddleware',
+    'apps.accounts.middleware.SuperuserRestrictMiddleware',
     'apps.orgs.middleware.OrganizationMiddleware',
 ]
 
@@ -296,5 +297,18 @@ else:
     EMAIL_BACKEND = 'django_ses.SESBackend'
     AWS_ACCESS_KEY_ID = 'your-access-key'
     AWS_SECRET_ACCESS_KEY = 'your-secret-key'
-    AWS_SES_REGION_NAME = 'us-east-1'
-    AWS_SES_REGION_ENDPOINT = 'email.us-east-1.amazonaws.com'
+
+# Configuración para el sistema de pagos
+PAYMENT_BANK_INFO = {
+    'bank_name': 'Banco BBVA',
+    'account_holder': 'TU EMPRESA SA DE CV',
+    'account_number': '0123456789',
+    'clabe': '012345678901234567',
+    'concept_prefix': 'Upgrade-Plan'
+}
+
+# Email del administrador para notificaciones de pagos
+ADMIN_EMAIL = 'admin@tudominio.com'
+
+# URL del sitio para enlaces en emails
+SITE_URL = 'http://localhost:8000' if DEBUG else 'https://tudominio.com'

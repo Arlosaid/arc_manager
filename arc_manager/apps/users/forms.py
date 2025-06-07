@@ -63,15 +63,7 @@ class SimpleUserCreateForm(forms.Form):
         
         # Configurar opciones según permisos del usuario que crea
         if user:
-            if user.is_superuser:
-                # Superuser puede elegir cualquier organización y crear cualquier rol
-                self.fields['organization'].queryset = Organization.objects.all()
-                self.fields['user_role'].choices = [
-                    ('normal', 'Usuario Normal'),
-                    ('org_admin', 'Administrador de Organización'),
-                    ('superuser', 'Superusuario'),
-                ]
-            elif user.is_org_admin and user.organization:
+            if user.is_org_admin and user.organization:
                 # Admin de org solo puede crear en su organización y roles limitados
                 self.fields['organization'].queryset = Organization.objects.filter(
                     id=user.organization.id
@@ -91,7 +83,7 @@ class SimpleUserCreateForm(forms.Form):
                     'style': 'pointer-events: none; background-color: #e9ecef;'  # Apariencia de deshabilitado
                 })
                 
-                # Solo puede crear admin de org y usuarios normales
+                # Solo puede crear usuarios normales y admins de org
                 self.fields['user_role'].choices = [
                     ('normal', 'Usuario Normal'),
                     ('org_admin', 'Administrador de Organización'),
@@ -101,7 +93,7 @@ class SimpleUserCreateForm(forms.Form):
             else:
                 # Usuario sin permisos
                 self.fields['organization'].queryset = Organization.objects.none()
-                self.fields['user_role'].choices = []
+                self.fields['user_role'].choices = [('normal', 'Usuario Normal')]
 
         # NUEVO: Preservar valores en caso de errores de validación
         self._preserve_form_values()
@@ -213,7 +205,7 @@ class SimpleUserCreateForm(forms.Form):
         user_role = cleaned_data.get('user_role')
         
         # Los superusuarios pueden existir sin organización (activos o inactivos)
-        if user_role == 'superuser':
+        if user_role == 'org_admin':
             return cleaned_data
         
         # IMPORTANTE: Manejar error de límite de organización para admins de org
@@ -273,21 +265,14 @@ class SimpleUserCreateForm(forms.Form):
         # Generar contraseña aleatoria
         temp_password = generate_random_password()
         
-        # Configurar permisos según el rol seleccionado
-        is_superuser = False
+        # Configurar permisos según el rol seleccionado (sin superuser)
         is_staff = False
         is_org_admin = False
         
-        if role == 'superuser':
-            is_superuser = True
-            is_staff = True
-            is_org_admin = False
-        elif role == 'org_admin':
-            is_superuser = False
+        if role == 'org_admin':
             is_staff = False
             is_org_admin = True
         else:  # normal
-            is_superuser = False
             is_staff = False
             is_org_admin = False
         
@@ -299,7 +284,7 @@ class SimpleUserCreateForm(forms.Form):
             last_name=cleaned_data['last_name'],
             organization=cleaned_data.get('organization'),
             is_active=cleaned_data.get('is_active', True),
-            is_superuser=is_superuser,
+            is_superuser=False,  # Nunca crear superusers desde la app
             is_staff=is_staff,
             is_org_admin=is_org_admin
         )
@@ -347,24 +332,14 @@ class UserEditForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Configurar rol actual
-        if self.instance.is_superuser:
-            current_role = 'superuser'
-        elif self.instance.is_org_admin:
+        if self.instance.is_org_admin:
             current_role = 'org_admin'
         else:
             current_role = 'normal'
         
         # Filtrar organizaciones y roles según permisos
         if user:
-            if user.is_superuser:
-                # Superuser puede cambiar a cualquier organización y rol
-                self.fields['organization'].queryset = Organization.objects.all()
-                self.fields['user_role'].choices = [
-                    ('normal', 'Usuario Normal'),
-                    ('org_admin', 'Administrador de Organización'),
-                    ('superuser', 'Superusuario'),
-                ]
-            elif user.is_org_admin and user.organization:
+            if user.is_org_admin and user.organization:
                 # Admin de org solo puede asignar a su organización y roles limitados
                 self.fields['organization'].queryset = Organization.objects.filter(
                     id=user.organization.id
@@ -471,7 +446,7 @@ class UserEditForm(forms.ModelForm):
                     )
         
         # Los superusuarios pueden existir sin organización
-        if user_role == 'superuser':
+        if user_role == 'org_admin':
             return cleaned_data
         
         # Para usuarios activos que no son superusuarios, la organización es obligatoria
@@ -484,24 +459,23 @@ class UserEditForm(forms.ModelForm):
         return cleaned_data
     
     def save(self, commit=True):
+        """Guardar los cambios del usuario"""
         user = super().save(commit=False)
         
-        # Aplicar el rol seleccionado
+        # Aplicar el rol seleccionado (sin superuser)
         role = self.cleaned_data.get('user_role')
         
-        if role == 'superuser':
-            user.is_superuser = True
-            user.is_staff = True
-            user.is_org_admin = False
-        elif role == 'org_admin':
-            user.is_superuser = False
-            user.is_staff = False
+        if role == 'org_admin':
             user.is_org_admin = True
-        else:  # normal
-            user.is_superuser = False
             user.is_staff = False
+        else:  # normal
             user.is_org_admin = False
+            user.is_staff = False
+        
+        # Los superusers solo se gestionan desde el admin de Django
+        user.is_superuser = False
         
         if commit:
             user.save()
+        
         return user

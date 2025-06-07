@@ -8,19 +8,6 @@ from .models import Organization
 from .mixins import OrganizationAdminMixin
 from .forms import OrganizationForm
 
-class OrganizationListView(LoginRequiredMixin, ListView):
-    """Vista para listar organizaciones (solo para superusuarios)"""
-    model = Organization
-    template_name = 'orgs/organization_list.html'
-    context_object_name = 'organizations'
-    paginate_by = 20
-    
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            messages.error(request, "No tienes permisos para ver esta página.")
-            return redirect('main:home')
-        return super().dispatch(request, *args, **kwargs)
-
 class OrganizationDetailView(LoginRequiredMixin, DetailView):
     """Vista para ver detalles de una organización"""
     model = Organization
@@ -29,36 +16,11 @@ class OrganizationDetailView(LoginRequiredMixin, DetailView):
     
     def dispatch(self, request, *args, **kwargs):
         org = self.get_object()
-        # Solo superusuarios o usuarios de la organización pueden verla
-        if not (request.user.is_superuser or request.user.organization == org):
+        # Solo usuarios de la organización pueden verla
+        if request.user.organization != org:
             messages.error(request, "No tienes permisos para ver esta organización.")
             return redirect('main:home')
         return super().dispatch(request, *args, **kwargs)
-
-class OrganizationCreateView(LoginRequiredMixin, CreateView):
-    """Vista para crear organizaciones (solo superusuarios)"""
-    model = Organization
-    form_class = OrganizationForm
-    template_name = 'orgs/organization_form.html'
-    success_url = reverse_lazy('orgs:list')
-    
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            messages.error(request, "No tienes permisos para crear organizaciones.")
-            return redirect('main:home')
-        return super().dispatch(request, *args, **kwargs)
-    
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        plan_name = self.object.plan.display_name if self.object.plan else "Sin plan"
-        max_users = self.object.get_max_users()
-        
-        messages.success(
-            self.request, 
-            f"Organización '{self.object.name}' creada exitosamente con el {plan_name}. "
-            f"Podrá tener hasta {max_users} usuario{'s' if max_users != 1 else ''}."
-        )
-        return response
 
 class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
     """Vista para editar organizaciones"""
@@ -68,9 +30,8 @@ class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
     
     def dispatch(self, request, *args, **kwargs):
         org = self.get_object()
-        # Solo superusuarios o admins de la organización pueden editarla
-        if not (request.user.is_superuser or 
-                (request.user.organization == org and request.user.is_org_admin)):
+        # Solo admins de la organización pueden editarla
+        if not (request.user.organization == org and request.user.is_org_admin):
             messages.error(request, "No tienes permisos para editar esta organización.")
             return redirect('main:home')
         return super().dispatch(request, *args, **kwargs)

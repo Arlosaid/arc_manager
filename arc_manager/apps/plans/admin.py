@@ -438,9 +438,15 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(UpgradeRequest)
 class UpgradeRequestAdmin(admin.ModelAdmin):
+    
+    class Media:
+        css = {
+            'all': ('admin/css/upgrade_admin.css',)
+        }
+        js = ('admin/js/upgrade_admin.js',)
     list_display = [
-        'organization_link', 'current_plan_link', 'requested_plan_link', 
-        'status_display', 'amount_due', 'requested_date', 'requested_by_link'
+        'edit_button', 'organization_name', 'current_plan_name', 'requested_plan_name', 
+        'status_display', 'amount_due', 'requested_date', 'action_buttons'
     ]
     list_filter = [
         'status', 'requested_date', 'approved_date', 'completed_date',
@@ -453,7 +459,8 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
     ]
     readonly_fields = [
         'requested_date', 'price_difference_display', 'organization_link',
-        'requested_by_link', 'current_plan_link', 'requested_plan_link'
+        'requested_by_link', 'current_plan_link', 'requested_plan_link',
+        'status_help_text'
     ]
     date_hierarchy = 'requested_date'
     ordering = ['-requested_date']
@@ -464,9 +471,16 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
     ]
     
     fieldsets = (
-        ('Información Principal', {
+        ('🚨 CAMBIAR ESTADO AQUÍ', {
             'fields': (
-                'organization_link', 'status', 'requested_by_link',
+                'status', 'status_help_text'
+            ),
+            'description': '⬇️ ESTE ES EL CAMPO PRINCIPAL: Cambia el estado y guarda para ejecutar acciones automáticas (emails, actualización de planes, etc.)',
+            'classes': ('wide',)
+        }),
+        ('📋 Información de la Solicitud', {
+            'fields': (
+                'organization_link', 'requested_by_link',
                 'requested_date', 'approved_date', 'completed_date'
             ),
             'description': 'Información básica de la solicitud'
@@ -500,11 +514,74 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         }),
     )
     
+    def edit_button(self, obj):
+        """Botón claro para editar"""
+        url = reverse('admin:plans_upgraderequest_change', args=[obj.pk])
+        return format_html(
+            '<a href="{}" class="button" style="background: #417690; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">✏️ EDITAR</a>',
+            url
+        )
+    edit_button.short_description = 'Acciones'
+    edit_button.allow_tags = True
+
+    def organization_name(self, obj):
+        """Nombre de la organización sin enlace confuso"""
+        return obj.organization.name
+    organization_name.short_description = 'Organización'
+    
+    def current_plan_name(self, obj):
+        """Nombre del plan actual sin enlace"""
+        return obj.current_plan.display_name
+    current_plan_name.short_description = 'Plan Actual'
+    
+    def requested_plan_name(self, obj):
+        """Nombre del plan solicitado sin enlace"""
+        return format_html(
+            '<strong style="color: blue;">{}</strong>',
+            obj.requested_plan.display_name
+        )
+    requested_plan_name.short_description = 'Plan Solicitado'
+    
+    def action_buttons(self, obj):
+        """Botones de acción rápida según el estado"""
+        buttons = []
+        
+        if obj.status == 'pending':
+            # Botón para aprobar
+            buttons.append(
+                '<span style="background: orange; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟠 PENDIENTE</span>'
+            )
+            buttons.append(
+                '<br><small style="color: gray;">Haz clic en EDITAR para aprobar</small>'
+            )
+        elif obj.status == 'approved':
+            buttons.append(
+                '<span style="background: blue; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🔵 APROBADA</span>'
+            )
+            buttons.append(
+                '<br><small style="color: gray;">Esperando pago del cliente</small>'
+            )
+        elif obj.status == 'payment_pending':
+            buttons.append(
+                '<span style="background: purple; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟣 VERIFICAR PAGO</span>'
+            )
+            buttons.append(
+                '<br><small style="color: gray;">Haz clic en EDITAR para completar</small>'
+            )
+        elif obj.status == 'completed':
+            buttons.append(
+                '<span style="background: green; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟢 COMPLETADA</span>'
+            )
+        
+        return format_html(''.join(buttons))
+    action_buttons.short_description = 'Estado y Acciones'
+    action_buttons.allow_tags = True
+    
     def organization_link(self, obj):
-        """Link a la organización"""
+        """Link a la organización (solo para fieldsets)"""
         url = reverse('admin:orgs_organization_change', args=[obj.organization.pk])
         return format_html('<a href="{}">{}</a>', url, obj.organization.name)
-    organization_link.short_description = 'Organización'
+    organization_link.short_description = 'Ver Organización'
     
     def current_plan_link(self, obj):
         """Link al plan actual"""
@@ -549,6 +626,32 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             diff
         )
     price_difference_display.short_description = 'Diferencia de Precio'
+    
+    def status_help_text(self, obj):
+        """Muestra ayuda sobre los estados"""
+        help_texts = {
+            'pending': '🟠 Pendiente: Cambiar a "Aprobada" para enviar instrucciones de pago por email',
+            'approved': '🔵 Aprobada: El usuario recibió instrucciones de pago. Cambiar a "Pago Reportado" cuando confirme el pago',
+            'payment_pending': '🟣 Pago Reportado: Verificar el comprobante y cambiar a "Completada" para activar el nuevo plan',
+            'completed': '🟢 Completada: El upgrade fue exitoso y el plan está activo',
+            'rejected': '🔴 Rechazada: La solicitud fue denegada',
+            'cancelled': '⚫ Cancelada: La solicitud fue cancelada'
+        }
+        
+        current_help = help_texts.get(obj.status, '')
+        
+        # Agregar pasos siguientes
+        next_steps = {
+            'pending': '<br><strong>Acción:</strong> Cambiar estado a "Aprobada - Pendiente de Pago"',
+            'approved': '<br><strong>Esperar:</strong> El usuario reportará su pago',
+            'payment_pending': '<br><strong>Acción:</strong> Verificar comprobante y cambiar a "Completada"',
+            'completed': '<br><strong>Estado final:</strong> Proceso terminado exitosamente',
+            'rejected': '<br><strong>Estado final:</strong> Solicitud denegada',
+            'cancelled': '<br><strong>Estado final:</strong> Solicitud cancelada'
+        }
+        
+        return format_html(current_help + next_steps.get(obj.status, ''))
+    status_help_text.short_description = 'Guía de Estados'
     
     # Acciones personalizadas
     def approve_requests(self, request, queryset):
@@ -646,6 +749,81 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                 messages.SUCCESS
             )
     complete_upgrades.short_description = "🎉 Completar upgrades"
+    
+    def save_model(self, request, obj, form, change):
+        """Manejar cambios de estado cuando se edita individualmente"""
+        original_status = None
+        
+        if change and obj.pk:
+            # Obtener el estado original de la base de datos
+            try:
+                original_obj = UpgradeRequest.objects.get(pk=obj.pk)
+                original_status = original_obj.status
+            except UpgradeRequest.DoesNotExist:
+                original_status = 'pending'
+        
+        new_status = obj.status
+        
+        # Pre-configurar campos según el cambio de estado
+        if change and original_status != new_status:
+            if new_status == 'approved' and original_status == 'pending':
+                obj.approved_by = request.user
+                obj.approved_date = timezone.now()
+                obj.admin_notes = f"Aprobado por {request.user.username} desde el admin"
+                
+            elif new_status == 'completed':
+                obj.completed_date = timezone.now()
+                
+            elif new_status == 'rejected' and original_status == 'pending':
+                obj.approved_by = request.user
+                obj.approved_date = timezone.now()
+                if not obj.rejection_reason:
+                    obj.rejection_reason = "Rechazado desde el panel de administración"
+        
+        # Guardar el objeto
+        super().save_model(request, obj, form, change)
+        
+        # Ejecutar acciones post-guardado
+        if change and original_status and original_status != new_status:
+            try:
+                if new_status == 'approved' and original_status == 'pending':
+                    # Enviar email de aprobación
+                    obj._send_payment_instructions()
+                    messages.success(
+                        request,
+                        f"✅ Solicitud aprobada. Se enviaron las instrucciones de pago a {obj.organization.name}."
+                    )
+                    
+                elif new_status == 'completed':
+                    # Completar el upgrade - ESTA ES LA PARTE IMPORTANTE
+                    try:
+                        subscription = obj.complete_upgrade(completed_by_user=request.user)
+                        messages.success(
+                            request,
+                            f"🎉 ¡Upgrade completado! {obj.organization.name} ahora tiene el plan {obj.requested_plan.display_name}."
+                        )
+                    except Exception as e:
+                        messages.error(
+                            request,
+                            f"❌ Error al completar el upgrade: {str(e)}"
+                        )
+                        # Revertir el estado si falla
+                        obj.status = original_status
+                        obj.save()
+                        
+                elif new_status == 'rejected' and original_status == 'pending':
+                    # Enviar email de rechazo
+                    obj._send_rejection_email()
+                    messages.warning(
+                        request,
+                        f"❌ Solicitud rechazada. Se notificó a {obj.organization.name}."
+                    )
+                    
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"❌ Error al procesar cambio de estado: {str(e)}"
+                )
 
 # Configuración adicional del admin
 admin.site.site_header = "ARC Manager - Administración"
