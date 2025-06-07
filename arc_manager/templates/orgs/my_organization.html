@@ -4,20 +4,21 @@
 {% block title %}Mi Organización{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/organization_management.css' %}">
+{% endblock %}
+
+{% block extra_js %}
 {% endblock %}
 
 {% block content %}
-<!-- Usar el container estándar de base.css -->
 <div class="page-container">
-    <!-- Header Section (viene de base.css) -->
+    <!-- Header Section -->
     <div class="header-section">
         <div class="header-content">
             <div class="header-title">
                 <div class="header-icon">
                     <i class="fas fa-building"></i>
                 </div>
-                <h1>Mi Organización</h1>
+                <h1>{{ organization.name }}</h1>
             </div>
             {% if user.is_org_admin %}
                 <a href="{% url 'orgs:edit' organization.pk %}" class="btn-primary">
@@ -27,203 +28,245 @@
         </div>
     </div>
 
-    <!-- Main Content Grid (viene de base.css) -->
     <div class="main-content-grid">
         <!-- Left Content -->
         <div class="left-content">
-            <!-- Información de la organización -->
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-header">
-                    <h3>
-                        <i class="fas fa-building"></i> {{ organization.name }}
-                    </h3>
+                    <i class="fas fa-building" style="color: var(--arc-color-primary); margin-right: 0.5rem;"></i>
+                    {{ organization.name }}
                 </div>
                 <div class="card-body">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-                        <div>
-                            <strong style="color: #374151; font-weight: 600;">Identificador:</strong>
-                            <p style="margin: 0.5rem 0;">
-                                <span class="identifier-badge">{{ organization.slug }}</span>
-                            </p>
+                    <div class="info-section">
+                        <div class="info-item">
+                            <span class="info-label">Identificador</span>
+                            <div class="identifier-badge">{{ organization.slug }}</div>
                         </div>
-                        <div>
-                            <strong style="color: #374151; font-weight: 600;">Estado:</strong>
-                            <p style="margin: 0.5rem 0;">
+                        <div class="info-item">
+                            <span class="info-label">Estado</span>
+                            <div class="status-container">
                                 {% if organization.is_active %}
-                                    <span class="status-badge active">Activa</span>
+                                    <span class="status-badge active">
+                                        <i class="fas fa-check-circle"></i> Activa
+                                    </span>
                                 {% else %}
-                                    <span class="status-badge inactive">Inactiva</span>
+                                    <span class="status-badge inactive">
+                                        <i class="fas fa-ban"></i> Inactiva
+                                    </span>
                                 {% endif %}
-                            </p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    {% if organization.description %}
-                    <div style="margin-bottom: 1.5rem;">
-                        <strong style="color: #374151; font-weight: 600;">Descripción:</strong>
-                        <p style="margin: 0.5rem 0; color: #111827;">{{ organization.description }}</p>
-                    </div>
-                    {% endif %}
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                        <div>
-                            <strong style="color: #374151; font-weight: 600;">Usuarios actuales:</strong>
-                            <p style="margin: 0.5rem 0; color: #111827;">{{ organization.get_user_count }} de {{ organization.max_users }}</p>
+                        <div class="info-item">
+                            <span class="info-label">Creada</span>
+                            <div class="date-text">{{ organization.created_at|date:"d/m/Y" }}</div>
                         </div>
-                        <div>
-                            <strong style="color: #374151; font-weight: 600;">Creada:</strong>
-                            <p style="margin: 0.5rem 0;">
-                                <span class="date-text">{{ organization.created_at|date:"d/m/Y H:i" }}</span>
-                            </p>
+                        <div class="info-item">
+                            <span class="info-label">Plan Actual</span>
+                            <div class="plan-info">
+                                {% if organization.plan %}
+                                    <span class="plan-badge">{{ organization.plan.name }}</span>
+                                    {% if organization.is_trial %}
+                                        <span class="trial-badge">
+                                            {{ organization.trial_days_remaining }} días restantes
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="plan-badge" style="background: #94a3b8;">Sin plan</span>
+                                {% endif %}
+                            </div>
                         </div>
+                        {% if organization.description %}
+                        <div class="info-item full-width">
+                            <span class="info-label">Descripción</span>
+                            <div class="description-text">{{ organization.description }}</div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-
-            <!-- Lista de usuarios -->
-            <div class="table-container" style="margin-top: 2rem;">
-                <div class="table-header">
-                    <h3>
-                        <i class="fas fa-users"></i> 
-                        Usuarios de la Organización
-                    </h3>
-                    <span class="result-count">
-                        {{ users|length }} usuario{{ users|length|pluralize:"s" }} en la organización
-                    </span>
-                </div>
-                
-                {% if users %}
-                    <div class="table-wrapper">
-                        <table class="modern-table">
-                            <thead>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Último acceso</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for org_user in users %}
-                                <tr>
-                                    <td>
-                                        <div class="user-info">
-                                            <div class="user-avatar">
-                                                {{ org_user.username|first|upper|default:org_user.email|first|upper }}
-                                            </div>
-                                            <div class="user-details">
-                                                <div class="user-name">
-                                                    {{ org_user.username|default:org_user.email }}
-                                                    {% if org_user == user %}
-                                                        <span class="role-badge admin" style="margin-left: 0.5rem; font-size: 0.7rem;">Tú</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span style="color: #374151;">{{ org_user.email }}</span>
-                                    </td>
-                                    <td>
-                                        {% if org_user.is_superuser %}
-                                            <span class="role-badge admin">Superadmin</span>
-                                        {% elif org_user.is_org_admin %}
-                                            <span class="role-badge manager">Admin</span>
-                                        {% else %}
-                                            <span class="role-badge developer">Usuario</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if org_user.is_active %}
-                                            <span class="status-badge active">Activo</span>
-                                        {% else %}
-                                            <span class="status-badge inactive">Inactivo</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if org_user.last_login %}
-                                            <span class="date-text">{{ org_user.last_login|date:"d/m/Y H:i" }}</span>
-                                        {% else %}
-                                            <span style="color: #94a3b8;">Nunca</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="table-wrapper" style="text-align: center; padding: 60px 20px;">
-                        <i class="fas fa-users fa-3x" style="color: #94a3b8; margin-bottom: 20px;"></i>
-                        <h3 style="color: #94a3b8; margin-bottom: 10px;">No hay usuarios en esta organización</h3>
-                        <p style="color: #94a3b8; margin-bottom: 20px;">Los usuarios aparecerán aquí cuando sean asignados.</p>
-                    </div>
-                {% endif %}
             </div>
         </div>
 
-        <!-- Right Sidebar (viene de base.css) -->
+        <!-- Right Sidebar -->
         <div class="right-sidebar">
-            <!-- Stats Card -->
-            <div class="info-card-sidebar">
-                <div class="info-header-sidebar">
-                    <i class="fas fa-chart-bar"></i>
-                    <h4>Estadísticas Rápidas</h4>
-                </div>
-                <div class="info-content-sidebar" style="text-align: center;">
-                    <div style="margin-bottom: 1.5rem;">
-                        <h3 style="color: #4285f4; font-size: 1.75rem; margin-bottom: 0.5rem;">{{ organization.get_user_count }}</h3>
-                        <small style="color: #6b7280; font-weight: 500;">Usuarios totales</small>
-                    </div>
-                    
-                    <div style="margin-bottom: 1.5rem;">
-                        <h3 style="color: #10b981; font-size: 1.5rem; margin-bottom: 0.5rem;">{{ admins.count }}</h3>
-                        <small style="color: #6b7280; font-weight: 500;">Administradores</small>
-                    </div>
-                    
-                    <!-- Progress bar -->
-                    {% widthratio organization.get_user_count organization.max_users 100 as percentage %}
-                    <div style="background: #e2e8f0; border-radius: 8px; height: 12px; margin-bottom: 0.5rem; overflow: hidden;">
-                        <div style="width: {{ percentage }}%; height: 100%; background: linear-gradient(90deg, #4285f4, #06b6d4); border-radius: 8px;"></div>
-                    </div>
-                    <small style="color: #6b7280; font-weight: 500;">{{ percentage }}% Capacidad utilizada</small>
-                </div>
-            </div>
-
-            <!-- Organization Info Card -->
             <div class="info-card-sidebar">
                 <div class="info-header-sidebar">
                     <i class="fas fa-info-circle"></i>
-                    <h4>Información de la Organización</h4>
+                    <h4>Información para el usuario</h4>
                 </div>
                 <div class="info-content-sidebar">
-                    <p><strong>Límite de usuarios:</strong> {{ organization.max_users }}</p>
-                    
-                    <p><strong>Espacios disponibles:</strong> {{ organization.max_users|add:organization.get_user_count|add:"-"|add:organization.get_user_count }}</p>
-                    
-                    <p><strong>Estado:</strong> 
-                        {% if organization.is_active %}
-                            Organización activa
-                        {% else %}
-                            Organización inactiva
-                        {% endif %}
-                    </p>
-                    
-                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;">
-                    
-                    <p><strong>🏢 Tu rol:</strong> 
-                        {% if user.is_superuser %}
-                            Superadministrador
-                        {% elif user.is_org_admin %}
-                            Administrador de organización
-                        {% else %}
-                            Usuario
-                        {% endif %}
-                    </p>
+                    <p>Bienvenido a la sección de tu organización. Aquí puedes consultar los datos generales y el estado de tu suscripción.</p>
+                    <p>Para gestionar usuarios, ve a la sección <b>Usuarios</b> en el menú principal.</p>
+                    {% if organization.is_trial %}
+                        <div class="info-block warning">
+                            <h5><i class="fas fa-exclamation-triangle"></i> Período de Prueba</h5>
+                            <p>Tu período de prueba termina en {{ organization.trial_days_remaining }} días.</p>
+                            <a href="#" class="btn-secondary btn-sm">Actualizar Plan</a>
+                        </div>
+                    {% endif %}
+                    {% if user.is_org_admin %}
+                        <hr>
+                        <p><b>Tu rol:</b> Administrador de organización</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.organization-info-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.info-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-label {
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.description-text {
+    color: #374151;
+    line-height: 1.5;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+.plan-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.plan-badge {
+    background: var(--arc-color-primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.trial-badge {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+}
+
+.usage-stats-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.usage-stat {
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.usage-stat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #374151;
+    font-weight: 600;
+}
+
+.usage-progress {
+    height: 0.5rem;
+    background: #e5e7eb;
+    border-radius: 1rem;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--arc-color-primary), #06b6d4);
+    border-radius: 1rem;
+    transition: width 0.3s ease;
+}
+
+.usage-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.limits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.limits-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: #374151;
+}
+
+.limits-list li i {
+    color: var(--arc-color-primary);
+    width: 1.25rem;
+}
+
+.info-block {
+    margin-bottom: 1.5rem;
+}
+
+.info-block h5 {
+    color: #374151;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.info-block.warning {
+    background: #fef3c7;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #92400e;
+}
+
+.info-block.warning h5 {
+    color: #92400e;
+}
+
+.btn-secondary {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    color: #374151;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+}
+
+.btn-secondary:hover {
+    background: #e5e7eb;
+}
+</style>
 {% endblock %} 

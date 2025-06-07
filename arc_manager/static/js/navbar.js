@@ -195,11 +195,6 @@ class NavbarManager {
     }
     
     // === API Pública ===
-    updateNotificationCount(count) {
-        // Esta función se mantiene por compatibilidad pero no hace nada
-        // ya que removimos los iconos de notificación
-    }
-    
     showToast(message, type = 'info') {
         // Sistema de notificaciones toast simple
         const toast = document.createElement('div');

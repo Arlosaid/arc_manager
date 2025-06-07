@@ -21,7 +21,7 @@
             <div class="nav-section">
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="#" data-tooltip="Dashboard">
+                        <a href="{% url 'main:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-tooltip="Dashboard">
                             <div class="nav-icon">
                                 <i class="fas fa-home"></i>
                             </div>

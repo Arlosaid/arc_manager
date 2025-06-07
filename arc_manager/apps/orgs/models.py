@@ -81,17 +81,24 @@ class Organization(models.Model):
             'has_inactive_users': inactive_count > 0
         }
     
+    @property
     def is_trial(self):
         """Verifica si está en período de trial"""
-        subscription = self.get_subscription()
-        return subscription and subscription.plan.is_trial and subscription.is_active()
+        try:
+            subscription = self.subscription
+            return subscription and subscription.plan.is_trial and subscription.is_active
+        except:
+            return False
     
     def trial_days_remaining(self):
         """Días restantes de trial"""
-        subscription = self.get_subscription()
-        if subscription and subscription.plan.is_trial:
-            return subscription.days_remaining()
-        return 0
+        try:
+            subscription = self.subscription
+            if subscription and subscription.plan.is_trial and subscription.is_active:
+                return subscription.trial_days_remaining
+            return 0
+        except:
+            return 0
     
     def get_admins(self):
         """Retorna usuarios administradores"""
