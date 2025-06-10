@@ -24,11 +24,6 @@ class SimpleUserCreateForm(forms.Form):
         label="Correo electrónico",
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'juan.perez@empresa.com'})
     )
-    username = forms.CharField(
-        max_length=150,
-        label="Nombre de usuario",
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'juan.perez'})
-    )
     
     # Organización (siempre obligatoria para usuarios de la app)
     organization = forms.ModelChoiceField(
@@ -108,11 +103,7 @@ class SimpleUserCreateForm(forms.Form):
             raise forms.ValidationError("Ya existe un usuario con este email.")
         return email
     
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if username and User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Ya existe un usuario con este nombre de usuario.")
-        return username
+
     
     def clean_organization(self):
         """La organización siempre es obligatoria para usuarios de la app"""
@@ -181,7 +172,6 @@ class SimpleUserCreateForm(forms.Form):
         
         user = User.objects.create_user(
             email=cleaned_data['email'],
-            username=cleaned_data['username'],
             password=temp_password,
             first_name=cleaned_data['first_name'],
             last_name=cleaned_data['last_name'],
@@ -215,12 +205,11 @@ class UserEditForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'username', 'organization', 'is_active']
+        fields = ['first_name', 'last_name', 'email', 'organization', 'is_active']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'username': forms.TextInput(attrs={'class': 'form-control'}),
             'organization': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -228,7 +217,6 @@ class UserEditForm(forms.ModelForm):
             'first_name': 'Nombre',
             'last_name': 'Apellido',
             'email': 'Correo electrónico',
-            'username': 'Nombre de usuario',
             'organization': 'Organización',
             'is_active': 'Usuario activo',
         }
@@ -259,11 +247,7 @@ class UserEditForm(forms.ModelForm):
             raise forms.ValidationError("Ya existe otro usuario con este email.")
         return email
     
-    def clean_username(self):
-        username = self.cleaned_data.get('username')
-        if username and User.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("Ya existe otro usuario con este nombre de usuario.")
-        return username
+
     
     def clean_organization(self):
         """Validar cambios de organización considerando límites"""

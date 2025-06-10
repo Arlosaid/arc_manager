@@ -9,13 +9,14 @@ from .models import User
 class UserCreationForm(forms.ModelForm):
     """Formulario para crear nuevos usuarios."""
     email = forms.EmailField(required=True, label="Correo electrónico")
-    username = forms.CharField(required=False, label="Nombre de usuario")
+    first_name = forms.CharField(required=True, label="Nombre")
+    last_name = forms.CharField(required=True, label="Apellido")
     password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirmar contraseña', widget=forms.PasswordInput)
 
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = ('email', 'first_name', 'last_name', 'organization')
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -44,7 +45,7 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'password', 'is_active', 'is_staff', 
+        fields = ('email', 'first_name', 'last_name', 'password', 'is_active', 'is_staff', 
                    'is_org_admin', 'organization')
 
     def clean_password(self):
@@ -55,12 +56,12 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'username', 'get_organization_name', 'is_org_admin', 'is_staff')
+    list_display = ('email', 'first_name', 'last_name', 'get_organization_name', 'is_org_admin', 'is_staff')
     list_filter = ('is_staff', 'is_org_admin', 'organization')
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Información personal', {'fields': ('username',)}),
+        ('Información personal', {'fields': ('first_name', 'last_name')}),
         ('Organización', {'fields': ('organization',)}),
         ('Permisos', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_org_admin')}),
     )
@@ -68,11 +69,17 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'password1', 'password2'),
+            'fields': ('email', 'first_name', 'last_name', 'password1', 'password2'),
+        }),
+        ('Organización', {
+            'fields': ('organization',),
+        }),
+        ('Permisos', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'is_org_admin'),
         }),
     )
     
-    search_fields = ('email', 'username')
+    search_fields = ('email', 'first_name', 'last_name')
     ordering = ('email',)
 
 # Registrar el modelo User

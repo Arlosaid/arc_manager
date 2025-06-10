@@ -165,9 +165,6 @@ class SimpleUserCreateForm(forms.Form):
         else:
             organization = self.cleaned_data.get('organization')
         
-        # Generar username único si no se especifica display_name
-        username = self._generate_unique_username()
-        
         # Determinar permisos según el rol
         user_role = self.cleaned_data.get('user_role')
         is_org_admin = user_role == 'admin'
@@ -177,7 +174,6 @@ class SimpleUserCreateForm(forms.Form):
         user = User.objects.create_user(
             email=self.cleaned_data['email'],
             password=password,
-            username=username,
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
             organization=organization,
@@ -190,27 +186,6 @@ class SimpleUserCreateForm(forms.Form):
         # Enviar credenciales
         email_sent = send_new_user_email(user, password, request)
         return user, password, email_sent
-    
-    def _generate_unique_username(self):
-        """Generar username único basado en nombre y apellido"""
-        first_name = self.cleaned_data['first_name'].lower()
-        last_name = self.cleaned_data['last_name'].lower()
-        
-        # Limpiar caracteres especiales
-        import re
-        first_name = re.sub(r'[^a-z]', '', first_name)
-        last_name = re.sub(r'[^a-z]', '', last_name)
-        
-        base_username = f"{first_name}.{last_name}"
-        username = base_username
-        counter = 1
-        
-        # Buscar username único
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}{counter}"
-            counter += 1
-        
-        return username
 
 
 class SimpleUserEditForm(forms.ModelForm):
@@ -224,17 +199,15 @@ class SimpleUserEditForm(forms.ModelForm):
     
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'is_active']
+        fields = ['first_name', 'last_name', 'is_active']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'first_name': 'Nombre',
             'last_name': 'Apellido',
-            'email': 'Correo electrónico',
             'is_active': 'Usuario activo',
         }
     
@@ -267,12 +240,6 @@ class SimpleUserEditForm(forms.ModelForm):
                 self.fields['user_role'].choices = [('user', 'Usuario Normal')]
             
             self.fields['user_role'].initial = current_role
-    
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if email and User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("Ya existe otro usuario con este email.")
-        return email
     
     def save(self, commit=True):
         user = super().save(commit=False)

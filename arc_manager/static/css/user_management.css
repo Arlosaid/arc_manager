@@ -82,6 +82,17 @@
 .modern-table td {
     padding: 1rem;
     vertical-align: middle;
+    text-align: center;
+}
+
+.modern-table td:first-child {
+    text-align: left;
+}
+
+.modern-table td:first-child .user-info {
+    justify-content: flex-start;
+    margin: 0 auto;
+    max-width: fit-content;
 }
 
 /* ===== BOTÓN PROMINENTE PARA CREAR USUARIO ===== */
@@ -423,10 +434,13 @@
 
 /* ===== INFORMACIÓN DE USUARIO ===== */
 .user-info {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 0.75rem;
-    justify-content: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+    visibility: visible !important;
 }
 
 .user-avatar {
@@ -446,15 +460,26 @@
 }
 
 .user-details {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     gap: 0.125rem;
+    min-width: 0;
+    flex: 1;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .user-name {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.875rem;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+    font-size: 0.875rem !important;
+    text-align: left !important;
+    white-space: nowrap;
+    overflow: visible;
+    display: block !important;
+    line-height: 1.2;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .user-username {
@@ -492,7 +517,7 @@
 }
 
 .table-search-input {
-    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    padding: 0.5rem 2.5rem 0.5rem 2.25rem;
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
     font-size: 0.875rem;
@@ -515,7 +540,7 @@
 
 .table-search-icon {
     position: absolute;
-    right: 0.75rem;
+    left: 0.75rem;
     color: #6b7280;
     font-size: 0.875rem;
     pointer-events: none;
@@ -528,7 +553,7 @@
 
 .clear-search-btn {
     position: absolute;
-    right: 2.25rem;
+    right: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     color: #6b7280;

@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 import logging
 
-from .forms import SimpleUserCreateForm, UserEditForm
+from .forms_simplified import SimpleUserCreateForm, SimpleUserEditForm
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ class UserEditView(LoginRequiredMixin, View):
     
     def get(self, request, pk):
         user_to_edit = get_object_or_404(User, pk=pk)
-        form = UserEditForm(instance=user_to_edit, user=request.user)
+        form = SimpleUserEditForm(instance=user_to_edit, user=request.user)
         return render(request, self.template_name, {
             'form': form, 
             'user_to_edit': user_to_edit
@@ -146,7 +146,7 @@ class UserEditView(LoginRequiredMixin, View):
     
     def post(self, request, pk):
         user_to_edit = get_object_or_404(User, pk=pk)
-        form = UserEditForm(request.POST, instance=user_to_edit, user=request.user)
+        form = SimpleUserEditForm(request.POST, instance=user_to_edit, user=request.user)
         
         if form.is_valid():
             form.save()

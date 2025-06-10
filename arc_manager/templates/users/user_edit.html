@@ -1,280 +1,707 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Editar Usuario - {{ user_to_edit.username }}{% endblock %}
+{% block title %}Editando: {{ user_to_edit.first_name }} {{ user_to_edit.last_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+<style>
+/* ===== MISMOS ESTILOS QUE CREATE USER ===== */
+
+/* Formulario mejorado con mejor UX */
+.form-section {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--arc-bg-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--arc-color-primary);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+}
+
+.modern-form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.modern-label {
+    display: block;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.required {
+    color: var(--arc-color-danger);
+    margin-left: 0.25rem;
+}
+
+.optional {
+    color: var(--arc-text-muted);
+    font-weight: 400;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.modern-input, .modern-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--arc-border-color);
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.875rem;
+    transition: var(--arc-transition);
+    background: var(--arc-bg-primary);
+    color: var(--arc-text-primary);
+}
+
+.modern-input:focus, .modern-select:focus {
+    outline: none;
+    border-color: var(--arc-color-primary);
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.modern-input:hover, .modern-select:hover {
+    border-color: var(--arc-text-secondary);
+}
+
+.field-hint {
+    font-size: 0.75rem;
+    color: var(--arc-text-muted);
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--arc-bg-secondary);
+    border-radius: var(--arc-border-radius-sm);
+    border: 2px solid var(--arc-border-color);
+    transition: var(--arc-transition);
+}
+
+.checkbox-wrapper:hover {
+    border-color: var(--arc-color-primary);
+    background: var(--arc-bg-primary);
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--arc-color-primary);
+}
+
+.checkbox-wrapper label {
+    margin: 0;
+    font-weight: 500;
+    color: var(--arc-text-primary);
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Botones de acción mejorados */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--arc-border-color);
+}
+
+.btn-primary-large {
+    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--arc-transition);
+    box-shadow: var(--arc-shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-primary-large:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--arc-shadow-lg);
+}
+
+.btn-primary-large:active {
+    transform: translateY(0);
+}
+
+.btn-primary-large:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary-outline {
+    background: transparent;
+    color: var(--arc-text-secondary);
+    border: 2px solid var(--arc-border-color);
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--arc-transition);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary-outline:hover {
+    border-color: var(--arc-text-secondary);
+    background: var(--arc-bg-secondary);
+    text-decoration: none;
+}
+
+/* Panel de información contextual mejorado */
+.process-guide {
+    background: var(--arc-bg-primary);
+    border-radius: var(--arc-border-radius-sm);
+    border: 1px solid var(--arc-border-color);
+    box-shadow: var(--arc-shadow-sm);
+    overflow: hidden;
+    position: sticky;
+    top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.process-header {
+    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
+    color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.process-header h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.process-steps {
+    padding: 1.25rem;
+}
+
+.process-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.875rem;
+    background: var(--arc-bg-secondary);
+    border-radius: var(--arc-border-radius-sm);
+    border-left: 3px solid var(--arc-color-primary);
+}
+
+.process-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--arc-color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.step-content h5 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+}
+
+.step-content p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--arc-text-secondary);
+    line-height: 1.4;
+}
+
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--arc-color-danger);
+    color: var(--arc-color-danger);
+    padding: 0.75rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-message i {
+    font-size: 0.875rem;
+}
+
+/* Campo modificado con borde azul sutil */
+.field-changed .modern-input,
+.field-changed .modern-select {
+    border-color: #60a5fa;
+    background-color: #eff6ff;
+}
+
+.field-changed::before {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 8px;
+    width: 8px;
+    height: 8px;
+    background: #3b82f6;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+/* Mensaje de éxito */
+.success-message {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    color: #16a34a;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    animation: slideIn 0.3s ease;
+}
+
+.success-message.visible {
+    display: flex;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column-reverse;
+        gap: 1rem;
+    }
+    
+    .btn-primary-large, .btn-secondary-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .process-guide {
+        position: static;
+        margin-top: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/user_management.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Valores originales de los campos
+    const originalValues = {};
+    const form = document.querySelector('#userForm');
+    
+    // Guardar valores originales
+    const editableFields = form.querySelectorAll('input:not([readonly]), select:not([disabled])');
+    editableFields.forEach(field => {
+        originalValues[field.name] = field.value;
+    });
+    
+    // Detectar cambios en campos
+    function checkForChanges() {
+        editableFields.forEach(field => {
+            const fieldGroup = field.closest('.modern-form-group');
+            if (field.value !== originalValues[field.name]) {
+                if (fieldGroup) fieldGroup.classList.add('field-changed');
+            } else {
+                if (fieldGroup) fieldGroup.classList.remove('field-changed');
+            }
+        });
+    }
+    
+    // Escuchar cambios en campos
+    editableFields.forEach(field => {
+        field.addEventListener('input', checkForChanges);
+        field.addEventListener('change', checkForChanges);
+    });
+    
+    // Manejo del envío del formulario con loading y éxito
+    form.addEventListener('submit', function(e) {
+        const saveButton = document.getElementById('saveButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const saveButtonText = document.getElementById('saveButtonText');
+        
+        if (saveButton && loadingSpinner && saveButtonText) {
+            // Mostrar loading
+            loadingSpinner.style.display = 'inline-block';
+            saveButtonText.innerHTML = 'Guardando...';
+            saveButton.disabled = true;
+        }
+    });
+    
+    // Mostrar mensaje de éxito al cargar si existe
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('saved') === 'true') {
+        const successMessage = document.getElementById('successMessage');
+        if (successMessage) {
+            successMessage.classList.add('visible');
+            setTimeout(function() {
+                successMessage.classList.remove('visible');
+            }, 4000);
+        }
+    }
+});
+</script>
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="fas fa-user-edit"></i> Editar Usuario
-    </h2>
-                        <a href="{% url 'users:user_list' %}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Volver a Lista
-    </a>
-</div>
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <!-- Información del usuario actual -->
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">
-                    <i class="fas fa-user"></i> {{ user_to_edit.first_name }} {{ user_to_edit.last_name }}
-                    <small class="text-muted">(@{{ user_to_edit.username }})</small>
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>Email:</strong> {{ user_to_edit.email }}</p>
-                        <p><strong>Fecha de registro:</strong> {{ user_to_edit.date_joined|date:"d/m/Y H:i" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>Organización:</strong> 
-                            {% if user_to_edit.organization %}
-                                {{ user_to_edit.organization.name }}
-                            {% else %}
-                                <span class="text-muted">Sin organización</span>
-                            {% endif %}
-                        </p>
-                        <p><strong>Estado:</strong> 
-                            {% if user_to_edit.is_active %}
-                                <span class="badge bg-success">Activo</span>
-                            {% else %}
-                                <span class="badge bg-danger">Inactivo</span>
-                            {% endif %}
-                        </p>
-                    </div>
+<div class="page-container">
+    <!-- HEADER SECTION -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="header-icon">
+                    <i class="fas fa-user-edit"></i>
                 </div>
+                <h1>Editar Usuario: {{ user_to_edit.first_name }} {{ user_to_edit.last_name }}</h1>
             </div>
-        </div>
-
-        <!-- Formulario de edición -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-edit"></i> Editar Información
-                </h5>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <!-- Información Personal -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-id-card"></i> Información Personal
-                        </h6>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                        <strong>{{ form.first_name.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.first_name }}
-                                    {% if form.first_name.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.first_name.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                        <strong>{{ form.last_name.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.last_name }}
-                                    {% if form.last_name.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.last_name.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Información de Cuenta -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-at"></i> Información de Cuenta
-                        </h6>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                <strong>{{ form.email.label }}</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">
-                                <strong>{{ form.username.label }}</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.username.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Organización y Permisos -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-building"></i> Organización y Permisos
-                        </h6>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.organization.id_for_label }}" class="form-label">
-                                <strong>{{ form.organization.label }}</strong>
-                            </label>
-                            {{ form.organization }}
-                            {% if form.organization.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.organization.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if not user.is_superuser and user.is_org_admin %}
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle"></i> Como admin de organización, solo puedes asignar usuarios a tu organización.
-                                </div>
-                            {% endif %}
-                            
-                            <!-- Mostrar información de límites para superusuarios -->
-                            {% if user.is_superuser %}
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <strong>💡 Información de límites por organización:</strong>
-                                    </small>
-                                    <div class="mt-1" style="max-height: 150px; overflow-y: auto;">
-                                        {% for org in form.organization.queryset %}
-                                            {% with limit_info=org.can_add_user_detailed %}
-                                                <div class="small p-1 mb-1 rounded {% if limit_info.can_add %}bg-light{% elif limit_info.has_inactive_users %}bg-warning bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}">
-                                                    <strong>{{ org.name }}:</strong>
-                                                    {{ limit_info.active_users }}/{{ limit_info.max_users }} activos
-                                                    {% if limit_info.inactive_users > 0 %}
-                                                        ({{ limit_info.inactive_users }} inactivos)
-                                                    {% endif %}
-                                                    {% if limit_info.can_add %}
-                                                        <span class="text-success">✅ Disponible</span>
-                                                    {% elif limit_info.has_inactive_users %}
-                                                        <span class="text-warning">⚠️ Límite alcanzado</span>
-                                                    {% else %}
-                                                        <span class="text-danger">🚫 Máximo alcanzado</span>
-                                                    {% endif %}
-                                                </div>
-                                            {% endwith %}
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.user_role.id_for_label }}" class="form-label">
-                                <strong>{{ form.user_role.label }}</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.user_role }}
-                            {% if form.user_role.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.user_role.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            {% if form.user_role.help_text %}
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle"></i> {{ form.user_role.help_text }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-check mb-3">
-                            {{ form.is_active }}
-                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                {{ form.is_active.label }}
-                            </label>
-                            {% if form.is_active.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.is_active.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Errores generales del formulario -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'users:user_list' %}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Guardar Cambios
-                        </button>
-                    </div>
-                </form>
+            <div>
+                <a href="{% url 'users:user_list' %}" class="btn-secondary-outline">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver a Usuarios
+                </a>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Información adicional -->
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6><i class="fas fa-info-circle"></i> Información</h6>
-                <ul class="mb-0 small">
-                    <li><strong>Contraseña:</strong> No se puede cambiar desde aquí. El usuario debe usar "Olvidé mi contraseña"</li>
-                    <li><strong>Límites de organización:</strong>
-                        <ul class="mt-1">
-                            <li><em>Cambio de organización:</em> Se valida que la nueva organización tenga espacio para usuarios activos</li>
-                            <li><em>Activar usuario:</em> Se verifica que la organización actual no haya alcanzado su límite</li>
-                            <li><em>Usuarios inactivos:</em> No cuentan para el límite, pero siguen perteneciendo a la organización</li>
-                        </ul>
-                    </li>
-                    {% if user.is_superuser %}
-                        <li><strong>Superusuario:</strong> Puedes cambiar cualquier configuración del usuario, pero se respetan los límites de organización</li>
-                    {% elif user.is_org_admin %}
-                        <li><strong>Admin de Organización:</strong> Solo puedes editar usuarios de tu organización</li>
-                    {% else %}
-                        <li><strong>Usuario estándar:</strong> Solo puedes editar tu propio perfil</li>
+    <!-- MAIN CONTENT GRID -->
+    <div class="main-content-grid">
+        <!-- FORMULARIO MEJORADO - LADO IZQUIERDO -->
+        <div class="left-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Editar Usuario: {{ user_to_edit.first_name }} {{ user_to_edit.last_name }}</h3>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Mensaje de éxito -->
+                    <div class="success-message" id="successMessage">
+                        <i class="fas fa-check-circle"></i>
+                        <span>✓ Cambios guardados correctamente</span>
+                    </div>
+
+                    <form method="post" id="userForm">
+                        {% csrf_token %}
+                        
+                        <!-- SECCIÓN: INFORMACIÓN PERSONAL -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                Información Personal
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="modern-form-group">
+                                    <label for="{{ form.first_name.id_for_label }}" class="modern-label">
+                                        Nombre<span class="required">*</span>
+                                    </label>
+                                    <input type="text" name="{{ form.first_name.name }}" 
+                                           id="{{ form.first_name.id_for_label }}" 
+                                           class="modern-input" 
+                                           value="{{ form.first_name.value|default:user_to_edit.first_name }}"
+                                           placeholder="Ej: Juan"
+                                           {% if form.first_name.field.required %}required{% endif %}>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Nombre real del usuario
+                                    </div>
+                                    {% if form.first_name.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="modern-form-group">
+                                    <label for="{{ form.last_name.id_for_label }}" class="modern-label">
+                                        Apellido<span class="required">*</span>
+                                    </label>
+                                    <input type="text" name="{{ form.last_name.name }}" 
+                                           id="{{ form.last_name.id_for_label }}" 
+                                           class="modern-input" 
+                                           value="{{ form.last_name.value|default:user_to_edit.last_name }}"
+                                           placeholder="Ej: Pérez"
+                                           {% if form.last_name.field.required %}required{% endif %}>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Apellido del usuario
+                                    </div>
+                                    {% if form.last_name.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Campo de Email - Solo lectura -->
+                            <div class="modern-form-group">
+                                <label class="modern-label">
+                                    Correo Electrónico
+                                </label>
+                                <input type="email" 
+                                       class="modern-input" 
+                                       value="{{ user_to_edit.email }}"
+                                       readonly
+                                       style="background-color: #f8f9fa; cursor: not-allowed;">
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    El email no se puede cambiar porque es usado para iniciar sesión
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECCIÓN: PERMISOS - Solo para admin y superuser -->
+                        {% if user.is_superuser or user.is_org_admin %}
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                Rol y Permisos
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="modern-form-group">
+                                    <label for="{{ form.user_role.id_for_label }}" class="modern-label">
+                                        Rol del Usuario<span class="required">*</span>
+                                    </label>
+                                    <select name="{{ form.user_role.name }}" 
+                                            id="{{ form.user_role.id_for_label }}" 
+                                            class="modern-select"
+                                            {% if form.user_role.field.required %}required{% endif %}>
+                                        {% for value, label in form.user_role.field.choices %}
+                                            <option value="{{ value }}" 
+                                                {% if value == form.user_role.value %}selected
+                                                {% elif value == 'admin' and user_to_edit.is_org_admin %}selected
+                                                {% elif value == 'user' and not user_to_edit.is_org_admin %}selected
+                                                {% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Define los permisos que tendrá en el sistema
+                                    </div>
+                                    {% if form.user_role.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.user_role.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="modern-form-group">
+                                    <label class="modern-label">Estado<span class="optional">(opcional)</span></label>
+                                    <div class="checkbox-wrapper">
+                                        <input type="checkbox" name="{{ form.is_active.name }}" 
+                                               id="{{ form.is_active.id_for_label }}" 
+                                               {% if form.is_active.value|default:user_to_edit.is_active %}checked{% endif %}>
+                                        <label for="{{ form.is_active.id_for_label }}">
+                                            Usuario Activo
+                                        </label>
+                                    </div>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Si está activo, puede acceder al sistema inmediatamente
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Errores generales -->
+                        {% if form.non_field_errors %}
+                            <div class="error-message" style="margin-bottom: 2rem;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- ACCIONES DEL FORMULARIO -->
+                        <div class="form-actions">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Los campos marcados con <span class="required">*</span> son obligatorios
+                                </small>
+                            </div>
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn-primary-large" id="saveButton">
+                                    <span class="loading-spinner" id="loadingSpinner"></span>
+                                    <span id="saveButtonText">
+                                        <i class="fas fa-save"></i>
+                                        Guardar Cambios
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INFORMACIÓN ADICIONAL - LADO DERECHO -->
+        <div class="right-sidebar">
+            <!-- Información del usuario -->
+            <div class="process-guide">
+                <div class="process-header">
+                    <i class="fas fa-user"></i>
+                    <h4>Información del Usuario</h4>
+                </div>
+                
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="step-content">
+                            <h5>Email</h5>
+                            <p>{{ user_to_edit.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="step-content">
+                            <h5>Miembro desde</h5>
+                            <p>{{ user_to_edit.date_joined|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if user_to_edit.last_login %}
+                        <div class="process-step">
+                            <div class="step-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="step-content">
+                                <h5>Último acceso</h5>
+                                <p>{{ user_to_edit.last_login|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
                     {% endif %}
-                </ul>
+                    
+                    <div class="process-step">
+                        <div class="step-icon">
+                            {% if user_to_edit.is_active %}
+                                <i class="fas fa-check"></i>
+                            {% else %}
+                                <i class="fas fa-times"></i>
+                            {% endif %}
+                        </div>
+                        <div class="step-content">
+                            <h5>Estado</h5>
+                            <p>{% if user_to_edit.is_active %}Activo{% else %}Inactivo{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
