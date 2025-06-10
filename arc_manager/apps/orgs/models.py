@@ -6,7 +6,6 @@ class Organization(models.Model):
     """Modelo simplificado de organización"""
     
     name = models.CharField("Nombre de la organización", max_length=200)
-    slug = models.SlugField("Identificador único", unique=True, max_length=50)
     description = models.TextField("Descripción", blank=True, null=True)
     is_active = models.BooleanField("Activa", default=True)
     created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)

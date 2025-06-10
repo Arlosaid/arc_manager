@@ -90,10 +90,9 @@ class OrganizationPlanChangeForm(forms.ModelForm):
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     form = OrganizationPlanChangeForm
-    list_display = ['name', 'slug', 'is_active', 'get_active_user_count', 'get_user_count', 'get_subscription_info', 'user_limit_status', 'get_current_plan_display', 'created_at']
+    list_display = ['name', 'is_active', 'get_active_user_count', 'get_user_count', 'get_subscription_info', 'user_limit_status', 'get_current_plan_display', 'created_at']
     list_filter = ['is_active', 'created_at', 'subscription__plan', 'subscription__status']
-    search_fields = ['name', 'slug', 'description']
-    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ['name', 'description']
     readonly_fields = ['created_at', 'updated_at', 'get_user_count', 'get_active_user_count', 'get_inactive_user_count', 'user_limit_status', 'get_subscription_info', 'get_current_plan_info']
     
     # Acciones personalizadas
@@ -101,7 +100,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Información básica', {
-            'fields': ('name', 'slug', 'description', 'is_active')
+            'fields': ('name', 'description', 'is_active')
         }),
         ('Gestión de Plan (Solo Gratuitos)', {
             'fields': ('current_plan',),

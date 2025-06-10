@@ -30,16 +30,16 @@ class SimpleUserCreateForm(forms.Form):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'juan.perez'})
     )
     
-    # Organización
+    # Organización (siempre obligatoria para usuarios de la app)
     organization = forms.ModelChoiceField(
         queryset=Organization.objects.all(),
-        required=False,
+        required=True,  # Siempre obligatoria
         label="Organización",
         widget=forms.Select(attrs={'class': 'form-select'}),
-        empty_label="Selecciona una organización (opcional)"
+        empty_label="Selecciona una organización"
     )
     
-    # Permisos - Ahora con opciones más específicas
+    # Permisos - Solo usuarios normales y org_admin
     is_active = forms.BooleanField(
         required=False,
         initial=True,
@@ -47,9 +47,13 @@ class SimpleUserCreateForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
-    # Campo de rol específico
+    # Campo de rol específico (sin superuser)
     user_role = forms.ChoiceField(
         label="Rol del usuario",
+        choices=[
+            ('normal', 'Usuario Normal'),
+            ('org_admin', 'Administrador de Organización'),
+        ],
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Selecciona el rol que tendrá el usuario en el sistema"
     )
@@ -58,59 +62,33 @@ class SimpleUserCreateForm(forms.Form):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Guardar referencia al usuario que está creando para usar en validaciones
+        # Guardar referencia al usuario que está creando
         self._creating_user = user
         
         # Configurar opciones según permisos del usuario que crea
-        if user:
-            if user.is_org_admin and user.organization:
-                # Admin de org solo puede crear en su organización y roles limitados
-                self.fields['organization'].queryset = Organization.objects.filter(
-                    id=user.organization.id
-                )
-                
-                # IMPORTANTE: Para admins de org, siempre establecer su organización
-                self.fields['organization'].initial = user.organization
-                
-                # En lugar de disabled, usar readonly para que el valor se envíe en POST
-                self.fields['organization'].widget.attrs.update({
-                    'readonly': True
-                })
-                
-                # Agregar JavaScript para evitar que el usuario cambie la selección
-                self.fields['organization'].widget.attrs.update({
-                    'onchange': 'this.selectedIndex = 0;',  # Resetea a la primera opción si intenta cambiar
-                    'style': 'pointer-events: none; background-color: #e9ecef;'  # Apariencia de deshabilitado
-                })
-                
-                # Solo puede crear usuarios normales y admins de org
-                self.fields['user_role'].choices = [
-                    ('normal', 'Usuario Normal'),
-                    ('org_admin', 'Administrador de Organización'),
-                ]
-                # Agregar ayuda contextual
-                self.fields['user_role'].help_text = "Como admin de organización, solo puedes crear usuarios normales y otros admins para tu organización"
-            else:
-                # Usuario sin permisos
-                self.fields['organization'].queryset = Organization.objects.none()
-                self.fields['user_role'].choices = [('normal', 'Usuario Normal')]
-
-        # NUEVO: Preservar valores en caso de errores de validación
+        if user and user.is_org_admin and user.organization:
+            # Admin de org solo puede crear en su organización
+            self.fields['organization'].queryset = Organization.objects.filter(
+                id=user.organization.id
+            )
+            self.fields['organization'].initial = user.organization
+            
+            # Hacer readonly para evitar cambios
+            self.fields['organization'].widget.attrs.update({
+                'style': 'pointer-events: none; background-color: #e9ecef;'
+            })
+        
+        # Preservar valores en caso de errores
         self._preserve_form_values()
     
     def _preserve_form_values(self):
         """Preserva los valores del formulario cuando hay errores de validación"""
         if self.data:
-            # Preservar el estado del checkbox is_active
-            # En Django, los checkboxes no marcados no se envían en POST
             if 'is_active' not in self.data:
-                # Si no está en POST data, significa que está desmarcado
                 self.fields['is_active'].initial = False
             else:
-                # Si está en POST data, está marcado
                 self.fields['is_active'].initial = True
             
-            # Preservar la organización seleccionada
             if 'organization' in self.data and self.data['organization']:
                 try:
                     org_id = int(self.data['organization'])
@@ -119,12 +97,9 @@ class SimpleUserCreateForm(forms.Form):
                 except (ValueError, TypeError):
                     pass
             
-            # Preservar el rol seleccionado
             if 'user_role' in self.data:
                 user_role = self.data['user_role']
-                # Verificar que el rol está en las opciones disponibles
-                available_roles = [choice[0] for choice in self.fields['user_role'].choices]
-                if user_role in available_roles:
+                if user_role in ['normal', 'org_admin']:
                     self.fields['user_role'].initial = user_role
     
     def clean_email(self):
@@ -140,77 +115,46 @@ class SimpleUserCreateForm(forms.Form):
         return username
     
     def clean_organization(self):
-        """Validar que la organización puede aceptar un nuevo usuario"""
+        """La organización siempre es obligatoria para usuarios de la app"""
         organization = self.cleaned_data.get('organization')
         
-        # IMPORTANTE: Para admins de org, si no hay organización en cleaned_data,
-        # usar la organización del usuario que está creando
+        # Para admins de org, usar su organización si no está presente
         if not organization and hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin:
             organization = self._creating_user.organization
-            # Actualizar cleaned_data para que el resto de validaciones funcionen
             self.cleaned_data['organization'] = organization
         
-        # Validar límite de usuarios (activos e inactivos) si hay organización
-        if organization:
-            limit_info = organization.can_add_user_detailed()
-            
-            if not limit_info['can_add']:
-                # Para admins de org, marcar que hay error de límite para manejarlo en clean()
-                if hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin:
-                    # Marcar que hay error de límite para manejarlo en clean()
-                    self._org_limit_error = {
-                        'organization': organization,
-                        'limit_info': limit_info
-                    }
-                    # NO lanzar excepción aquí para admins de org
-                else:
-                    # Para superusuarios, mostrar error normal en el campo
-                    if limit_info['has_inactive_users']:
-                        raise forms.ValidationError(
-                            f"La organización '{organization.name}' ha alcanzado su límite de "
-                            f"{organization.get_max_users()} usuarios. "
-                            f"Actualmente tiene {limit_info['total_users']} usuarios "
-                            f"({limit_info['active_users']} activos, {limit_info['inactive_users']} inactivos). "
-                            f"Para crear un nuevo usuario, elimina un usuario existente "
-                            f"o incrementa el límite de la organización."
-                        )
-                    else:
-                        raise forms.ValidationError(
-                            f"La organización '{organization.name}' ha alcanzado su límite máximo de "
-                            f"{organization.get_max_users()} usuarios. "
-                            f"Para crear un nuevo usuario, incrementa el límite de la organización."
-                        )
+        if not organization:
+            raise forms.ValidationError("La organización es obligatoria.")
+        
+        # Validar límite de usuarios
+        limit_info = organization.can_add_user_detailed()
+        
+        if not limit_info['can_add']:
+            if hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin:
+                self._org_limit_error = {
+                    'organization': organization,
+                    'limit_info': limit_info
+                }
+            else:
+                raise forms.ValidationError(
+                    f"La organización '{organization.name}' ha alcanzado su límite de "
+                    f"{organization.get_max_users()} usuarios."
+                )
         
         return organization
     
     def clean_is_active(self):
-        """Validación específica para el campo is_active"""
-        # Django no envía checkboxes desmarcados en POST data
-        # Si el campo no está en self.data, significa que está desmarcado
+        """Validación del campo is_active"""
         is_active = self.cleaned_data.get('is_active', False)
         return is_active
     
     def clean(self):
-        """Validación adicional que considera todos los campos juntos"""
+        """Validación adicional"""
         cleaned_data = super().clean()
         organization = cleaned_data.get('organization')
         
-        # Obtener is_active de manera más robusta
-        # Si 'is_active' no está en self.data (POST data), significa que el checkbox está desmarcado
-        if 'is_active' in self.data:
-            is_active = cleaned_data.get('is_active', False)
-        else:
-            is_active = False  # Checkbox desmarcado
-            
-        user_role = cleaned_data.get('user_role')
-        
-        # Los superusuarios pueden existir sin organización (activos o inactivos)
-        if user_role == 'org_admin':
-            return cleaned_data
-        
-        # IMPORTANTE: Manejar error de límite de organización para admins de org
-        if hasattr(self, '_org_limit_error') and hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin:
-            # Hay un error de límite marcado en clean_organization
+        # Manejar error de límite para admins de org
+        if hasattr(self, '_org_limit_error'):
             error_org = self._org_limit_error['organization']
             limit_info = self._org_limit_error['limit_info']
             
@@ -219,62 +163,21 @@ class SimpleUserCreateForm(forms.Form):
                 f"Tu organización '{error_org.name}' ha alcanzado su límite de "
                 f"{error_org.get_max_users()} usuarios. "
                 f"Actualmente tienes {limit_info['total_users']} usuarios "
-                f"({limit_info['active_users']} activos, {limit_info['inactive_users']} inactivos). "
-                f"💡 Sugerencia: Elimina un usuario existente o contacta al administrador para incrementar el límite."
+                f"({limit_info['active_users']} activos, {limit_info['inactive_users']} inactivos)."
             )
-            # El formulario será inválido por este error
-            return cleaned_data
-        
-        # IMPORTANTE: Solo validar organización obligatoria si NO hay errores en el campo organization
-        # Esto evita el doble error cuando la organización está en límite
-        if 'organization' not in self.errors:
-            # Para usuarios activos que no son superusuarios, la organización es obligatoria
-            if is_active and not organization:
-                # EXCEPCIÓN: Para admins de org, usar su organización automáticamente
-                if hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin:
-                    organization = self._creating_user.organization
-                    cleaned_data['organization'] = organization
-                else:
-                    self.add_error('organization', 
-                        "Los usuarios activos deben pertenecer a una organización. "
-                        "Selecciona una organización o marca el usuario como inactivo."
-                    )
-                    return cleaned_data
-        
-        # Información adicional para usuarios con organización
-        if organization:
-            limit_info = organization.can_add_user_detailed()
-            
-            if not limit_info['can_add']:
-                # Agregar información útil para el usuario (solo para superusuarios, ya que para admins se maneja arriba)
-                if not (hasattr(self, '_creating_user') and self._creating_user and self._creating_user.is_org_admin):
-                    if limit_info['has_inactive_users']:
-                        self.add_error(None, 
-                            f"💡 Sugerencia: La organización '{organization.name}' tiene "
-                            f"{limit_info['inactive_users']} usuario(s) inactivo(s). "
-                            f"Puedes eliminar uno de ellos para hacer espacio."
-                        )
         
         return cleaned_data
     
     def save(self, request=None):
-        """Crear el usuario con los datos del formulario y contraseña generada automáticamente"""
+        """Crear el usuario con los datos del formulario"""
         cleaned_data = self.cleaned_data
         role = cleaned_data.get('user_role')
         
         # Generar contraseña aleatoria
         temp_password = generate_random_password()
         
-        # Configurar permisos según el rol seleccionado (sin superuser)
-        is_staff = False
-        is_org_admin = False
-        
-        if role == 'org_admin':
-            is_staff = False
-            is_org_admin = True
-        else:  # normal
-            is_staff = False
-            is_org_admin = False
+        # Configurar permisos según el rol (SOLO normal y org_admin)
+        is_org_admin = (role == 'org_admin')
         
         user = User.objects.create_user(
             email=cleaned_data['email'],
@@ -282,27 +185,30 @@ class SimpleUserCreateForm(forms.Form):
             password=temp_password,
             first_name=cleaned_data['first_name'],
             last_name=cleaned_data['last_name'],
-            organization=cleaned_data.get('organization'),
+            organization=cleaned_data['organization'],
             is_active=cleaned_data.get('is_active', True),
-            is_superuser=False,  # Nunca crear superusers desde la app
-            is_staff=is_staff,
+            is_superuser=False,  # NUNCA crear superusers desde la app
+            is_staff=False,      # NUNCA crear staff desde la app
             is_org_admin=is_org_admin
         )
         
-        # SIEMPRE enviar email con las credenciales (ya que el email es necesario para login)
+        # Enviar email con credenciales
         email_sent = send_new_user_email(user, temp_password, request)
         user.email_sent = email_sent
         
-        return user, temp_password, email_sent  # Retornamos también si se envió el email
+        return user, temp_password, email_sent
 
 
-# El resto de la clase UserEditForm permanece igual...
 class UserEditForm(forms.ModelForm):
     """Formulario para editar usuarios existentes"""
     
-    # Campo de rol específico para edición
+    # Campo de rol específico para edición (sin superuser)
     user_role = forms.ChoiceField(
         label="Rol del usuario",
+        choices=[
+            ('normal', 'Usuario Normal'),
+            ('org_admin', 'Administrador de Organización'),
+        ],
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text="Cambia el rol del usuario en el sistema"
     )
@@ -328,33 +234,21 @@ class UserEditForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)  # Usuario que está editando
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
-        # Configurar rol actual
+        # Configurar rol actual (excluyendo superuser)
         if self.instance.is_org_admin:
             current_role = 'org_admin'
         else:
             current_role = 'normal'
         
-        # Filtrar organizaciones y roles según permisos
-        if user:
-            if user.is_org_admin and user.organization:
-                # Admin de org solo puede asignar a su organización y roles limitados
-                self.fields['organization'].queryset = Organization.objects.filter(
-                    id=user.organization.id
-                )
-                # Solo puede cambiar entre admin de org y usuario normal
-                self.fields['user_role'].choices = [
-                    ('normal', 'Usuario Normal'),
-                    ('org_admin', 'Administrador de Organización'),
-                ]
-                self.fields['user_role'].help_text = "Como admin de organización, solo puedes asignar roles de usuario normal o admin de organización"
-            else:
-                # Usuario normal no puede cambiar organización ni roles
-                self.fields['organization'].widget.attrs['readonly'] = True
-                self.fields['user_role'].widget.attrs['disabled'] = True
-                self.fields['user_role'].choices = [(current_role, 'Sin permisos para cambiar')]
+        # Filtrar organizaciones según permisos
+        if user and user.is_org_admin and user.organization:
+            # Admin de org solo puede asignar a su organización
+            self.fields['organization'].queryset = Organization.objects.filter(
+                id=user.organization.id
+            )
         
         # Establecer el rol actual
         self.fields['user_role'].initial = current_role
@@ -372,48 +266,40 @@ class UserEditForm(forms.ModelForm):
         return username
     
     def clean_organization(self):
-        """Validar cambios de organización considerando límites de usuarios"""
+        """Validar cambios de organización considerando límites"""
         new_organization = self.cleaned_data.get('organization')
         current_organization = self.instance.organization
         is_active = self.cleaned_data.get('is_active', self.instance.is_active)
         
-        # Si no hay cambio de organización, no validar
+        # La organización siempre es obligatoria para usuarios de la app
+        if not new_organization:
+            raise forms.ValidationError("La organización es obligatoria para todos los usuarios.")
+        
+        # Si no hay cambio de organización, no validar límites
         if new_organization == current_organization:
             return new_organization
         
-        # Si el usuario va a estar en la nueva organización, validar límites
+        # Si el usuario va a estar activo en la nueva organización, validar límites
         if new_organization and is_active:
             limit_info = new_organization.can_add_user_detailed()
             
             if not limit_info['can_add']:
-                if limit_info['has_inactive_users']:
-                    raise forms.ValidationError(
-                        f"No se puede asignar el usuario a la organización '{new_organization.name}' "
-                        f"porque ha alcanzado su límite de {new_organization.get_max_users()} usuarios. "
-                        f"Actualmente tiene {limit_info['total_users']} usuarios "
-                        f"({limit_info['active_users']} activos, {limit_info['inactive_users']} inactivos). "
-                        f"Para asignar este usuario, elimina un usuario de esa organización "
-                        f"o incrementa el límite de la organización."
-                    )
-                else:
-                    raise forms.ValidationError(
-                        f"No se puede asignar el usuario a la organización '{new_organization.name}' "
-                        f"porque ha alcanzado su límite máximo de {new_organization.get_max_users()} usuarios. "
-                        f"Para asignar este usuario, incrementa el límite de la organización."
-                    )
+                raise forms.ValidationError(
+                    f"No se puede asignar el usuario a la organización '{new_organization.name}' "
+                    f"porque ha alcanzado su límite de {new_organization.get_max_users()} usuarios."
+                )
         
         return new_organization
     
     def clean(self):
-        """Validación adicional que considera todos los campos juntos"""
+        """Validación adicional"""
         cleaned_data = super().clean()
         new_organization = cleaned_data.get('organization')
         current_organization = self.instance.organization
         new_is_active = cleaned_data.get('is_active', self.instance.is_active)
         current_is_active = self.instance.is_active
-        user_role = cleaned_data.get('user_role')
         
-        # Caso: Usuario inactivo que se va a activar en la misma organización
+        # Usuario inactivo que se va a activar en la misma organización
         if (new_organization == current_organization and 
             current_organization and 
             not current_is_active and 
@@ -424,37 +310,8 @@ class UserEditForm(forms.ModelForm):
             if not limit_info['can_add']:
                 self.add_error('is_active',
                     f"No se puede activar el usuario porque la organización '{current_organization.name}' "
-                    f"ha alcanzado su límite de {current_organization.get_max_users()} usuarios. "
-                    f"Actualmente tiene {limit_info['total_users']} usuarios "
-                    f"({limit_info['active_users']} activos, {limit_info['inactive_users']} inactivos)."
+                    f"ha alcanzado su límite de {current_organization.get_max_users()} usuarios."
                 )
-        
-        # Caso: Usuario que se mueve a nueva organización
-        if (new_organization != current_organization and 
-            new_organization and 
-            new_is_active):
-            
-            limit_info = new_organization.can_add_user_detailed()
-            
-            if not limit_info['can_add']:
-                # Agregar información útil para el usuario
-                if limit_info['has_inactive_users']:
-                    self.add_error(None, 
-                        f"💡 Sugerencia: La organización '{new_organization.name}' tiene "
-                        f"{limit_info['inactive_users']} usuario(s) inactivo(s). "
-                        f"Puedes eliminar uno de ellos para hacer espacio."
-                    )
-        
-        # Los superusuarios pueden existir sin organización
-        if user_role == 'org_admin':
-            return cleaned_data
-        
-        # Para usuarios activos que no son superusuarios, la organización es obligatoria
-        if new_is_active and not new_organization:
-            self.add_error('organization', 
-                "Los usuarios activos deben pertenecer a una organización. "
-                "Selecciona una organización o marca el usuario como inactivo."
-            )
         
         return cleaned_data
     
@@ -462,18 +319,17 @@ class UserEditForm(forms.ModelForm):
         """Guardar los cambios del usuario"""
         user = super().save(commit=False)
         
-        # Aplicar el rol seleccionado (sin superuser)
+        # Aplicar el rol seleccionado (SOLO normal y org_admin)
         role = self.cleaned_data.get('user_role')
         
         if role == 'org_admin':
             user.is_org_admin = True
-            user.is_staff = False
         else:  # normal
             user.is_org_admin = False
-            user.is_staff = False
         
-        # Los superusers solo se gestionan desde el admin de Django
+        # NUNCA crear superusers o staff desde la app
         user.is_superuser = False
+        user.is_staff = False
         
         if commit:
             user.save()
