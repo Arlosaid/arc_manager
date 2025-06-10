@@ -48,7 +48,7 @@ MIDDLEWARE = [
     'axes.middleware.AxesMiddleware',
     'apps.accounts.middleware.LoginRequiredMiddleware',
     'apps.accounts.middleware.SuperuserRestrictMiddleware',
-    'apps.orgs.middleware.OrganizationMiddleware',
+    'apps.orgs.middleware.OrganizationContextMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'

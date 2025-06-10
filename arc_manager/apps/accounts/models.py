@@ -42,7 +42,26 @@ class User(AbstractUser):
     objects = CustomUserManager()
     
     def __str__(self):
-        return self.username or self.email
+        """Mostrar nombre completo o email como fallback"""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        return self.email
+    
+    @property
+    def full_name(self):
+        """Nombre completo del usuario"""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        return self.email
+    
+    @property
+    def username_display(self):
+        """Para compatibilidad con templates existentes"""
+        return self.full_name
     
     def role_display(self):
         if self.is_org_admin:
@@ -61,3 +80,15 @@ class User(AbstractUser):
     
     def can_manage_organization(self):
         return self.is_org_admin and self.organization
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(is_superuser=True) | models.Q(organization__isnull=False) | models.Q(is_active=False),
+                name='users_must_have_org_or_be_superuser_or_inactive'
+            ),
+            models.UniqueConstraint(
+                fields=['email'],
+                name='unique_email'
+            )
+        ]

@@ -20,15 +20,11 @@ class OrganizationForm(forms.ModelForm):
     
     class Meta:
         model = Organization
-        fields = ['name', 'slug', 'description', 'is_active']
+        fields = ['name', 'description', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Nombre de la organización'
-            }),
-            'slug': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'identificador-unico'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -60,16 +56,7 @@ class OrganizationForm(forms.ModelForm):
             if 'initial_plan' in self.fields:
                 del self.fields['initial_plan']
     
-    def clean_slug(self):
-        slug = self.cleaned_data.get('slug')
-        if slug:
-            # Verificar que el slug sea único (excluyendo la instancia actual si es edición)
-            qs = Organization.objects.filter(slug=slug)
-            if self.instance.pk:
-                qs = qs.exclude(pk=self.instance.pk)
-            if qs.exists():
-                raise forms.ValidationError("Este identificador ya está en uso.")
-        return slug
+
     
     def clean_initial_plan(self):
         # Solo validar si es una nueva organización

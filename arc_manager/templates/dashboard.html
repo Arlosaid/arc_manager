@@ -121,21 +121,41 @@
             </div>
         </div>
         <!-- KPI Cards -->
-        <div class="dashboard-card-md kpi-card bg-primary kpi1">
+        <div class="dashboard-card-md kpi-card bg-primary kpi1 metric-card" data-tooltip="Número total de ventas de autores en el último periodo">
+            <div class="dashboard-card-icon bg-primary">
+                <i class="fas fa-chart-line"></i>
+            </div>
             <div class="kpi-value">3,900</div>
             <div class="kpi-label">Author Sales</div>
+            <div class="trend-indicator positive">
+                <i class="fas fa-arrow-up"></i>
+                +12% desde el mes pasado
+            </div>
         </div>
-        <div class="dashboard-card-md kpi-card bg-success kpi2">
+        <div class="dashboard-card-md kpi-card bg-success kpi2 metric-card" data-tooltip="Estadísticas completas de rendimiento de autores">
+            <div class="dashboard-card-icon bg-success">
+                <i class="fas fa-users"></i>
+            </div>
             <div class="kpi-value">4.9M</div>
             <div class="kpi-label">Author Stats</div>
             <div style="width:100%; background:#fff3; border-radius:6px; height:7px; margin-top:0.7rem;">
                 <div style="width:70%; height:100%; background:#fff; border-radius:6px;"></div>
             </div>
+            <div class="trend-indicator positive">
+                <i class="fas fa-check-circle"></i>
+                Rendimiento excelente
+            </div>
         </div>
-        <div class="dashboard-card-md kpi-card bg-warning kpi3">
+        <div class="dashboard-card-md kpi-card bg-warning kpi3 metric-card" data-tooltip="Porcentaje de éxito en las operaciones del sistema">
+            <div class="dashboard-card-icon bg-warning">
+                <i class="fas fa-chart-pie"></i>
+            </div>
             <div class="kpi-value">75%</div>
             <div class="kpi-label">Success Rate</div>
-            <i class="fas fa-chart-pie" style="font-size:1.3rem; opacity:0.7;"></i>
+            <div class="trend-indicator neutral">
+                <i class="fas fa-minus-circle"></i>
+                Estable
+            </div>
         </div>
         <!-- Acción destacada -->
         <div class="dashboard-card-md action-card action">

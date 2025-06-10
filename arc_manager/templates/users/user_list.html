@@ -4,6 +4,7 @@
 {% block title %}Gestión de Usuarios{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/user_management.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -18,288 +19,374 @@
                 </div>
                 <h1>Gestión de Usuarios</h1>
             </div>
-            <a href="{% url 'users:create' %}" class="btn-primary">
+            <a href="{% url 'users:create' %}" class="btn-primary-prominent">
                 <i class="fas fa-user-plus"></i>
                 Crear Usuario
             </a>
         </div>
     </div>
 
-    <!-- Main Content Grid (viene de base.css) -->
-    <div class="main-content-grid">
-        <!-- Left Content -->
-        <div class="left-content">
-            <!-- Stats Cards Mini (específicas de user_management.css) -->
-            <div class="stats-grid-mini">
-                <div class="stat-card-mini">
-                    <div class="stat-icon-mini users">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-details-mini">
-                        <div class="stat-number-mini">{{ total_users|default:"0" }}</div>
-                        <div class="stat-label-mini">Total Usuarios</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini">
-                    <div class="stat-icon-mini admins">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="stat-details-mini">
-                        <div class="stat-number-mini">{{ total_admins|default:"0" }}</div>
-                        <div class="stat-label-mini">Administradores</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini">
-                    <div class="stat-icon-mini active">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div class="stat-details-mini">
-                        <div class="stat-number-mini">{{ active_users|default:"0" }}</div>
-                        <div class="stat-label-mini">Usuarios Activos</div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini">
-                    <div class="stat-icon-mini organizations">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-details-mini">
-                        <div class="stat-number-mini">{{ total_organizations|default:"0" }}</div>
-                        <div class="stat-label-mini">Organizaciones</div>
-                    </div>
-                </div>
+    <!-- Stats mejoradas con tooltips e indicadores -->
+    <div class="stats-grid-simple">
+        <div class="stat-card-simple metric-card" data-tooltip="Usuarios registrados versus límite máximo">
+            <div class="stat-icon-simple users">
+                <i class="fas fa-users"></i>
             </div>
-
-            <!-- Users Table (usa estilos de base.css + user_management.css) -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h3>Lista de Usuarios</h3>
-                    <div class="table-search-container">
-                        <form method="get" class="table-search-box">
-                            <input type="text" 
-                                   name="search" 
-                                   value="{{ search }}" 
-                                   class="table-search-input" 
-                                   placeholder="Buscar usuarios...">
-                            <i class="fas fa-search table-search-icon"></i>
-                            {% if search %}
-                                <a href="{% url 'users:user_list' %}" class="clear-search-btn">
-                                    <i class="fas fa-times"></i>
-                                </a>
-                            {% endif %}
-                        </form>
-                    </div>
-                    <span class="result-count">
-                        {% if search %}
-                            {{ users|length }} resultado{{ users|length|pluralize }} para "{{ search }}"
-                        {% else %}
-                            Mostrando {{ users|length }} de {{ total_users|default:users|length }} usuarios
-                        {% endif %}
-                    </span>
-                </div>
-                
-                {% if users %}
-                    <div class="table-wrapper">
-                        <table class="modern-table">
-                            <thead>
-                                <tr>
-                                    <th>Usuario</th>
-                                    <th>Organización</th>
-                                    <th>Rol</th>
-                                    <th>Email</th>
-                                    <th>Estado</th>
-                                    <th>Fecha Registro</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user_item in users %}
-                                <tr>
-                                    <td>
-                                        <div class="user-info">
-                                            <div class="user-avatar">
-                                                {{ user_item.first_name|first|upper }}{{ user_item.last_name|first|upper }}
-                                            </div>
-                                            <div class="user-details">
-                                                <div class="user-name">{{ user_item.first_name }} {{ user_item.last_name }}</div>
-                                                <div class="user-username">@{{ user_item.username }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {% if user_item.organization %}
-                                            <span class="organization-badge">{{ user_item.organization.name }}</span>
-                                        {% else %}
-                                            <span class="organization-badge" style="opacity: 0.5;">Sin organización</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if user_item.is_superuser %}
-                                            <span class="role-badge admin">Superusuario</span>
-                                        {% elif user_item.is_org_admin %}
-                                            <span class="role-badge manager">Admin Org</span>
-                                        {% else %}
-                                            <span class="role-badge developer">Usuario</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ user_item.email }}</td>
-                                    <td>
-                                        {% if user_item.is_active %}
-                                            <span class="status-badge active">Activo</span>
-                                        {% else %}
-                                            <span class="status-badge inactive">Inactivo</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="date-text">{{ user_item.date_joined|date:"d/m/Y" }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <a href="{% url 'users:detail' user_item.pk %}" 
-                                               class="action-btn view"
-                                               data-tooltip="Ver perfil">
-                                                <i class="fas fa-user-circle"></i>
-                                            </a>
-                                            <a href="{% url 'users:edit' user_item.pk %}" 
-                                               class="action-btn edit"
-                                               data-tooltip="Editar usuario">
-                                                <i class="fas fa-user-edit"></i>
-                                            </a>
-                                            
-                                            <!-- Botón de eliminar con validaciones de permisos -->
-                                            {% if user.is_superuser and user_item != user %}
-                                                <a href="{% url 'users:delete' user_item.pk %}" 
-                                                   class="action-btn delete"
-                                                   data-tooltip="Eliminar usuario"
-                                                   onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">
-                                                    <i class="fas fa-user-times"></i>
-                                                </a>
-                                            {% elif user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user and not user_item.is_superuser %}
-                                                <a href="{% url 'users:delete' user_item.pk %}" 
-                                                   class="action-btn delete"
-                                                   data-tooltip="Eliminar usuario"
-                                                   onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?')">
-                                                    <i class="fas fa-user-times"></i>
-                                                </a>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination (usa estilos de base.css) -->
-                    {% if is_paginated %}
-                        <div class="pagination-container">
-                            <div class="pagination-info">
-                                <span>Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} resultados</span>
-                            </div>
-                            <div class="pagination">
-                                {% if page_obj.has_previous %}
-                                    <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.previous_page_number }}" 
-                                       class="pagination-btn">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </a>
-                                {% else %}
-                                    <button class="pagination-btn disabled">
-                                        <i class="fas fa-chevron-left"></i>
-                                        Anterior
-                                    </button>
-                                {% endif %}
-                                
-                                {% for num in page_obj.paginator.page_range %}
-                                    {% if page_obj.number == num %}
-                                        <button class="pagination-number active">{{ num }}</button>
-                                    {% else %}
-                                        <a href="?{% if search %}search={{ search }}&{% endif %}page={{ num }}" 
-                                           class="pagination-number">{{ num }}</a>
-                                    {% endif %}
-                                {% endfor %}
-                                
-                                {% if page_obj.has_next %}
-                                    <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.next_page_number }}" 
-                                       class="pagination-btn">
-                                        Siguiente
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                {% else %}
-                                    <button class="pagination-btn disabled">
-                                        Siguiente
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endif %}
-                    
-                {% else %}
-                    <div class="table-wrapper" style="text-align: center; padding: 60px 20px;">
-                        <i class="fas fa-users fa-3x" style="color: #94a3b8; margin-bottom: 20px;"></i>
-                        <h3 style="color: #94a3b8; margin-bottom: 10px;">
-                            {% if search %}
-                                No se encontraron usuarios que coincidan con "{{ search }}"
-                            {% else %}
-                                No hay usuarios registrados
-                            {% endif %}
-                        </h3>
-                        {% if not search %}
-                            <a href="{% url 'users:create' %}" class="btn-primary" style="margin-top: 20px;">
-                                <i class="fas fa-user-plus"></i> 
-                                Crear Primer Usuario
-                            </a>
-                        {% endif %}
-                    </div>
-                {% endif %}
+            <div class="stat-details-simple">
+                <div class="stat-number-simple">{{ total_users|default:"1" }}/{{ max_users|default:"2" }}</div>
+                <div class="stat-label-simple">Total Usuarios</div>
+                <div class="stat-sublabel-simple">{{ remaining_slots|default:"1" }} espacios disponibles</div>
+            </div>
+        </div>
+        
+        <div class="stat-card-simple metric-card" data-tooltip="Usuarios con acceso activo al sistema">
+            <div class="stat-icon-simple active">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-details-simple">
+                <div class="stat-number-simple">{{ active_users|default:"1" }}</div>
+                <div class="stat-label-simple">Usuarios Activos</div>
+                <div class="stat-sublabel-simple">Con acceso al sistema</div>
             </div>
         </div>
 
-        <!-- Right Sidebar (usa estilos de base.css) -->
-        <div class="right-sidebar">
-            <!-- Permission Info Card -->
-            <div class="info-card-sidebar">
-                <div class="info-header-sidebar">
-                    <i class="fas fa-shield-alt"></i>
-                    <h4>Información de Permisos</h4>
-                </div>
-                <div class="info-content-sidebar">
-                    {% if user.is_superuser %}
-                        <div class="permission-highlight">
-                            <p><strong>Superusuario</strong></p>
-                        </div>
-                        <p>Tienes acceso completo al sistema. Puedes ver, editar y eliminar todos los usuarios (excepto eliminarte a ti mismo).</p>
-                        <p><strong>Capacidades:</strong> Gestión total de usuarios y organizaciones.</p>
-                    {% elif user.is_org_admin %}
-                        <div class="permission-highlight">
-                            <p><strong>Admin de Organización</strong></p>
-                        </div>
-                        <p>Solo puedes gestionar usuarios de tu organización: <strong>{{ user.organization.name }}</strong></p>
-                        <p><strong>Eliminación:</strong> Puedes eliminar usuarios de tu organización, excepto superusuarios y tu propio usuario.</p>
-                    {% else %}
-                        <div class="permission-highlight">
-                            <p><strong>Usuario Estándar</strong></p>
-                        </div>
-                        <p>Solo puedes ver y editar tu propio perfil. No tienes permisos de administración.</p>
-                    {% endif %}
-                    
-                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;">
-                    
-                    <p><strong>⚠️ Eliminación permanente:</strong> Los usuarios eliminados no se pueden recuperar.</p>
-                    <p><strong>💡 Alternativa:</strong> Considera desactivar usuarios en lugar de eliminarlos para suspender el acceso temporalmente.</p>
-                </div>
+        <div class="stat-card-simple metric-card" data-tooltip="Usuarios sin acceso al sistema">
+            <div class="stat-icon-simple inactive">
+                <i class="fas fa-user-times"></i>
+            </div>
+            <div class="stat-details-simple">
+                <div class="stat-number-simple">{{ inactive_users|default:"0" }}</div>
+                <div class="stat-label-simple">Usuarios Inactivos</div>
+                <div class="stat-sublabel-simple">Acceso suspendido</div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Tooltip Container -->
-<div id="tooltip-container"></div>
+    <!-- Tabla mejorada -->
+    <div class="table-container">
+        <div class="table-header">
+            <h3>Lista de Usuarios</h3>
+            
+            <!-- Búsqueda mejorada -->
+            <div class="table-search-container">
+                <form method="get" class="table-search-box">
+                    <input type="text" 
+                           name="search" 
+                           value="{{ search }}" 
+                           class="table-search-input" 
+                           placeholder="Buscar por nombre, email o usuario..."
+                           autocomplete="off">
+                    <i class="fas fa-search table-search-icon"></i>
+                    {% if search %}
+                        <a href="{% url 'users:user_list' %}" class="clear-search-btn" data-tooltip="Limpiar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+            
+            <span class="result-count">
+                {% if search %}
+                    {{ users|length }} resultado{{ users|length|pluralize }} para "{{ search }}"
+                {% else %}
+                    {{ users|length }} usuario{{ users|length|pluralize }}
+                {% endif %}
+            </span>
+        </div>
+        
+        {% if users %}
+            <!-- Vista de escritorio - Tabla -->
+            <div class="table-wrapper">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center;">Usuario</th>
+                            <th style="text-align: center;">Email</th>
+                            <th style="text-align: center;">Tipo</th>
+                            <th style="text-align: center;">Estado</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_item in users %}
+                        <tr>
+                            <td style="text-align: center;">
+                                <div class="user-info">
+                                    <div class="user-avatar" data-tooltip="Avatar de {{ user_item.first_name }}">
+                                        {{ user_item.first_name|first|upper }}{{ user_item.last_name|first|upper }}
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">{{ user_item.first_name }} {{ user_item.last_name }}</div>
+                                        <div class="user-username">@{{ user_item.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="mailto:{{ user_item.email }}" class="email-link" data-tooltip="Enviar email">
+                                    {{ user_item.email }}
+                                </a>
+                            </td>
+                            <td style="text-align: center;">
+                                {% if user_item.is_org_admin %}
+                                    <span class="role-badge admin" data-tooltip="Administrador con permisos completos">Admin</span>
+                                {% else %}
+                                    <span class="role-badge developer" data-tooltip="Usuario con permisos limitados">Usuario</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                {% if user_item.is_active %}
+                                    <span class="status-badge active" data-tooltip="Usuario puede acceder al sistema">Activo</span>
+                                {% else %}
+                                    <span class="status-badge inactive" data-tooltip="Acceso suspendido">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="action-buttons">
+                                    <a href="{% url 'users:edit' user_item.pk %}" 
+                                       class="action-btn edit"
+                                       data-tooltip="Editar información del usuario">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    
+                                    <a href="{% url 'users:detail' user_item.pk %}" 
+                                       class="action-btn view"
+                                       data-tooltip="Ver detalles del usuario">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    <!-- Botón de eliminar mejorado con validaciones -->
+                                    {% if user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user %}
+                                        <a href="{% url 'users:delete' user_item.pk %}" 
+                                           class="action-btn delete"
+                                           data-tooltip="Eliminar"
+                                           onclick="return confirm('¿Eliminar usuario {{ user_item.first_name }}?')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    {% elif user_item != user %}
+                                        <span class="action-btn delete disabled" 
+                                              data-tooltip="Sin permisos">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </span>
+                                    {% else %}
+                                        <span class="action-btn delete disabled" 
+                                              data-tooltip="Tu cuenta">
+                                            <i class="fas fa-ban"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Vista móvil - Cards -->
+            <div class="mobile-user-cards" style="display: none;">
+                {% for user_item in users %}
+                <div class="mobile-user-card">
+                    <div class="mobile-user-header">
+                        <div class="user-avatar">
+                            {{ user_item.first_name|first|upper }}{{ user_item.last_name|first|upper }}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">{{ user_item.first_name }} {{ user_item.last_name }}</div>
+                            <div class="user-username">@{{ user_item.username }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mobile-user-details">
+                        <div class="mobile-detail-item">
+                            <span class="mobile-detail-label">Email</span>
+                            <span class="mobile-detail-value">{{ user_item.email }}</span>
+                        </div>
+                        <div class="mobile-detail-item">
+                            <span class="mobile-detail-label">Tipo</span>
+                            <span class="mobile-detail-value">
+                                {% if user_item.is_org_admin %}
+                                    <span class="role-badge admin">Admin</span>
+                                {% else %}
+                                    <span class="role-badge developer">Usuario</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="mobile-detail-item">
+                            <span class="mobile-detail-label">Estado</span>
+                            <span class="mobile-detail-value">
+                                {% if user_item.is_active %}
+                                    <span class="status-badge active">Activo</span>
+                                {% else %}
+                                    <span class="status-badge inactive">Inactivo</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mobile-user-actions">
+                        <a href="{% url 'users:edit' user_item.pk %}" class="action-btn edit" data-tooltip="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                                                 <a href="{% url 'users:detail' user_item.pk %}" class="action-btn view" data-tooltip="Ver">
+                             <i class="fas fa-eye"></i>
+                         </a>
+                        {% if user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user %}
+                            <a href="{% url 'users:delete' user_item.pk %}" 
+                               class="action-btn delete"
+                               data-tooltip="Eliminar"
+                               onclick="return confirm('¿Eliminar usuario {{ user_item.first_name }}?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        {% elif user_item != user %}
+                            <span class="action-btn delete disabled" 
+                                  data-tooltip="Sin permisos">
+                                <i class="fas fa-trash-alt"></i>
+                            </span>
+                        {% else %}
+                            <span class="action-btn delete disabled" 
+                                  data-tooltip="Tu cuenta">
+                                <i class="fas fa-ban"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación mejorada -->
+            {% if is_paginated %}
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        <span>Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} usuarios</span>
+                    </div>
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?{% if search %}search={{ search }}&{% endif %}page=1" 
+                               class="pagination-btn" data-tooltip="Primera página">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                            <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+                               class="pagination-btn">
+                                <i class="fas fa-chevron-left"></i>
+                                Anterior
+                            </a>
+                        {% endif %}
+                        
+                        <span class="pagination-current">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.next_page_number }}" 
+                               class="pagination-btn">
+                                Siguiente
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                            <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+                               class="pagination-btn" data-tooltip="Última página">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+        {% else %}
+            <!-- Estado vacío mejorado -->
+            <div class="empty-state-enhanced">
+                {% if search %}
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No se encontraron usuarios</h3>
+                    <p>No hay usuarios que coincidan con la búsqueda "<strong>{{ search }}</strong>".</p>
+                    <div class="search-suggestions">
+                        <p><strong>Sugerencias:</strong></p>
+                        <ul>
+                            <li>Verifica la ortografía</li>
+                            <li>Intenta con términos más generales</li>
+                            <li>Busca por nombre, email o usuario</li>
+                        </ul>
+                    </div>
+                    <a href="{% url 'users:user_list' %}" class="btn-primary-prominent">
+                        <i class="fas fa-times"></i>
+                        Limpiar búsqueda
+                    </a>
+                {% else %}
+                    <div class="empty-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>¡Bienvenido!</h3>
+                    <p>Comienza creando tu primer usuario para gestionar el acceso a tu organización.</p>
+                    
+                    <!-- Pasos de onboarding mejorados -->
+                    <div class="onboarding-steps">
+                        <div class="onboarding-step">
+                            <div class="onboarding-step-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <span>Crear Usuario</span>
+                        </div>
+                        <div class="onboarding-step">
+                            <div class="onboarding-step-icon">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <span>Asignar Permisos</span>
+                        </div>
+                        <div class="onboarding-step">
+                            <div class="onboarding-step-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <span>Enviar Credenciales</span>
+                        </div>
+                        <div class="onboarding-step">
+                            <div class="onboarding-step-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <span>¡Listo!</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'users:create' %}" class="btn-primary-prominent">
+                        <i class="fas fa-user-plus"></i> 
+                        Crear mi primer usuario
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/user_management.js' %}"></script>
+<script>
+// Responsividad: alternar entre tabla y cards
+function toggleTableView() {
+    const tableWrapper = document.querySelector('.table-wrapper');
+    const mobileCards = document.querySelector('.mobile-user-cards');
+    
+    if (window.innerWidth <= 768) {
+        if (tableWrapper) tableWrapper.style.display = 'none';
+        if (mobileCards) mobileCards.style.display = 'block';
+    } else {
+        if (tableWrapper) tableWrapper.style.display = 'block';
+        if (mobileCards) mobileCards.style.display = 'none';
+    }
+}
+
+// Ejecutar al cargar y redimensionar
+window.addEventListener('load', toggleTableView);
+window.addEventListener('resize', toggleTableView);
+
+// Búsqueda en tiempo real (opcional)
+const searchInput = document.querySelector('.table-search-input');
+if (searchInput) {
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            // Aquí podrías implementar búsqueda AJAX en tiempo real
+            console.log('Búsqueda:', this.value);
+        }, 500);
+    });
+}
+</script>
 {% endblock %}

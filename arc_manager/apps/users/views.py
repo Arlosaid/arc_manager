@@ -13,7 +13,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 class UserListView(LoginRequiredMixin, ListView):
-    """Vista para listar usuarios"""
+    """Vista para listar usuarios - Solo para org_admin"""
     model = User
     template_name = 'users/user_list.html'
     context_object_name = 'users'
@@ -21,15 +21,16 @@ class UserListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         user = self.request.user
-        queryset = User.objects.select_related('organization')
         
-        # Solo los org_admin pueden ver usuarios de su organización
-        if user.is_org_admin and user.organization:
-            # Admin de org solo ve usuarios de su organización
-            queryset = queryset.filter(organization=user.organization)
-        else:
-            # Usuarios normales no pueden ver otros usuarios
+        # Solo los org_admin pueden ver usuarios
+        if not user.is_org_admin or not user.organization:
             raise PermissionDenied("No tienes permisos para ver usuarios")
+        
+        # Admin de org solo ve usuarios de su organización (excluyendo superusers)
+        queryset = User.objects.filter(
+            organization=user.organization,
+            is_superuser=False  # Excluir superusers de la vista
+        ).select_related('organization')
         
         # Filtro de búsqueda
         search = self.request.GET.get('search', '')
@@ -45,11 +46,32 @@ class UserListView(LoginRequiredMixin, ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+        
+        # Calcular solo las métricas esenciales basadas en la organización del usuario
+        org_users = User.objects.filter(
+            organization=user.organization,
+            is_superuser=False  # Excluir superusers para consistencia
+        )
+        
+        # Métricas mejoradas
+        total_users = org_users.count()
+        active_users = org_users.filter(is_active=True).count()
+        inactive_users = total_users - active_users
+        percentage_active = round((active_users / total_users * 100) if total_users > 0 else 0)
+        
+        context['total_users'] = total_users
+        context['active_users'] = active_users
+        context['inactive_users'] = inactive_users
+        context['percentage_active'] = percentage_active
+        
+        # Pasar búsqueda al contexto
         context['search'] = self.request.GET.get('search', '')
+        
         return context
 
 class SimpleUserCreateView(LoginRequiredMixin, View):
-    """Vista para crear usuarios de forma simple"""
+    """Vista para crear usuarios - Solo para org_admin"""
     template_name = 'users/simple_create_user.html'
     
     def dispatch(self, request, *args, **kwargs):
@@ -98,7 +120,11 @@ class UserEditView(LoginRequiredMixin, View):
         user_to_edit = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
         
-        # Verificar permisos - solo org_admin de la misma organización o el propio usuario
+        # Excluir superusers de la edición
+        if user_to_edit.is_superuser:
+            raise PermissionDenied("Los superusuarios solo se gestionan desde el admin")
+        
+        # Verificar permisos
         if current_user.is_org_admin and current_user.organization:
             # Admin de org solo puede editar usuarios de su organización
             if user_to_edit.organization != current_user.organization:
@@ -140,7 +166,11 @@ class UserDetailView(LoginRequiredMixin, View):
         user_to_view = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
         
-        # Verificar permisos - solo org_admin de la misma organización o el propio usuario
+        # Excluir superusers de la vista
+        if user_to_view.is_superuser:
+            raise PermissionDenied("Los superusuarios solo se gestionan desde el admin")
+        
+        # Verificar permisos
         if current_user.is_org_admin and current_user.organization:
             # Admin de org solo puede ver usuarios de su organización
             if user_to_view.organization != current_user.organization:
@@ -157,12 +187,16 @@ class UserDetailView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'user_to_view': user_to_view})
 
 class UserDeleteView(LoginRequiredMixin, View):
-    """Vista para eliminar usuarios"""
+    """Vista para eliminar usuarios - Solo para org_admin"""
     template_name = 'users/user_delete.html'
     
     def dispatch(self, request, *args, **kwargs):
         user_to_delete = get_object_or_404(User, pk=kwargs['pk'])
         current_user = request.user
+        
+        # Excluir superusers de la eliminación
+        if user_to_delete.is_superuser:
+            raise PermissionDenied("Los superusuarios solo se gestionan desde el admin")
         
         # Solo org_admin puede eliminar usuarios de su organización
         if not (current_user.is_org_admin and current_user.organization and 

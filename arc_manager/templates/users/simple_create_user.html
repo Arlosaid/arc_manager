@@ -3,343 +3,743 @@
 
 {% block title %}Crear Usuario{% endblock %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="fas fa-user-plus"></i> Crear Nuevo Usuario
-    </h2>
-</div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+<style>
+/* ===== MEJORAS DE UX - DISEÑO OPTIMIZADO ===== */
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fas fa-user"></i> Información del Usuario
-                </h5>
+/* Estadísticas simplificadas y menos prominentes */
+.org-status-compact {
+    background: rgba(6, 182, 212, 0.05);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: var(--arc-border-radius-sm);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.org-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.org-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--arc-color-info);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.org-text h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+}
+
+.org-text p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--arc-text-secondary);
+}
+
+.org-stats {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.stat-compact {
+    text-align: center;
+}
+
+.stat-compact .number {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--arc-color-info);
+}
+
+.stat-compact .label {
+    font-size: 0.65rem;
+    color: var(--arc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-indicator {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.status-indicator.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+}
+
+.status-indicator.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #92400e;
+}
+
+/* Formulario mejorado con mejor UX */
+.form-section {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.form-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--arc-bg-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--arc-color-primary);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+}
+
+.modern-form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.modern-label {
+    display: block;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.required {
+    color: var(--arc-color-danger);
+    margin-left: 0.25rem;
+}
+
+.optional {
+    color: var(--arc-text-muted);
+    font-weight: 400;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.modern-input, .modern-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--arc-border-color);
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.875rem;
+    transition: var(--arc-transition);
+    background: var(--arc-bg-primary);
+    color: var(--arc-text-primary);
+}
+
+.modern-input:focus, .modern-select:focus {
+    outline: none;
+    border-color: var(--arc-color-primary);
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.modern-input:hover, .modern-select:hover {
+    border-color: var(--arc-text-secondary);
+}
+
+.field-hint {
+    font-size: 0.75rem;
+    color: var(--arc-text-muted);
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--arc-bg-secondary);
+    border-radius: var(--arc-border-radius-sm);
+    border: 2px solid var(--arc-border-color);
+    transition: var(--arc-transition);
+}
+
+.checkbox-wrapper:hover {
+    border-color: var(--arc-color-primary);
+    background: var(--arc-bg-primary);
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--arc-color-primary);
+}
+
+.checkbox-wrapper label {
+    margin: 0;
+    font-weight: 500;
+    color: var(--arc-text-primary);
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Botones de acción mejorados */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--arc-border-color);
+}
+
+.btn-primary-large {
+    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--arc-transition);
+    box-shadow: var(--arc-shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.btn-primary-large:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--arc-shadow-lg);
+}
+
+.btn-primary-large:active {
+    transform: translateY(0);
+}
+
+.btn-primary-large:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary-outline {
+    background: transparent;
+    color: var(--arc-text-secondary);
+    border: 2px solid var(--arc-border-color);
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--arc-transition);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary-outline:hover {
+    border-color: var(--arc-text-secondary);
+    background: var(--arc-bg-secondary);
+    text-decoration: none;
+}
+
+/* Panel de información contextual mejorado */
+.process-guide {
+    background: var(--arc-bg-primary);
+    border-radius: var(--arc-border-radius-sm);
+    border: 1px solid var(--arc-border-color);
+    box-shadow: var(--arc-shadow-sm);
+    overflow: hidden;
+    position: sticky;
+    top: 2rem;
+}
+
+.process-header {
+    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
+    color: white;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.process-header h4 {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.process-steps {
+    padding: 1.25rem;
+}
+
+.process-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 0.875rem;
+    background: var(--arc-bg-secondary);
+    border-radius: var(--arc-border-radius-sm);
+    border-left: 3px solid var(--arc-color-primary);
+}
+
+.process-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-icon {
+    width: 20px;
+    height: 20px;
+    background: var(--arc-color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.step-content h5 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+}
+
+.step-content p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--arc-text-secondary);
+    line-height: 1.4;
+}
+
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--arc-color-danger);
+    color: var(--arc-color-danger);
+    padding: 0.75rem;
+    border-radius: var(--arc-border-radius-sm);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-message i {
+    font-size: 0.875rem;
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+    .org-status-compact {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .org-stats {
+        justify-content: space-around;
+        gap: 1rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column-reverse;
+        gap: 1rem;
+    }
+    
+    .btn-primary-large, .btn-secondary-outline {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .process-guide {
+        position: static;
+        margin-top: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- HEADER SECTION -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="header-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1>Crear Nuevo Usuario</h1>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
+            <div>
+                <a href="{% url 'users:user_list' %}" class="btn-secondary-outline">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver a Usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ESTADO DE ORGANIZACIÓN SIMPLIFICADO -->
+    {% if user.is_org_admin and user.organization %}
+        {% with limit_info=user.organization.can_add_user_detailed %}
+            <div class="org-status-compact">
+                <div class="org-info">
+                    <div class="org-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="org-text">
+                        <h4>{{ user.organization.name }}</h4>
+                        <p>Organización actual</p>
+                    </div>
+                </div>
+                
+                <div class="org-stats">
+                    <div class="stat-compact">
+                        <span class="number">{{ limit_info.total_users }}/{{ limit_info.max_users }}</span>
+                        <span class="label">Usuarios</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span class="number">{{ limit_info.active_users }}</span>
+                        <span class="label">Activos</span>
+                    </div>
+                    <div class="stat-compact">
+                        <span class="number">{{ limit_info.available_slots }}</span>
+                        <span class="label">Disponibles</span>
+                    </div>
                     
-                    <!-- Campo oculto para enviar la organización del admin -->
-                    {% if not user.is_superuser and user.is_org_admin and user.organization %}
-                        <input type="hidden" name="organization" value="{{ user.organization.id }}">
+                    {% if limit_info.can_add %}
+                        <div class="status-indicator success">✓ Puedes crear usuarios</div>
+                    {% else %}
+                        <div class="status-indicator warning">⚠ Límite alcanzado</div>
                     {% endif %}
-                    
-                    <!-- Información Personal -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-id-card"></i> Información Personal
-                        </h6>
+                </div>
+            </div>
+        {% endwith %}
+    {% endif %}
+
+    <!-- MAIN CONTENT GRID -->
+    <div class="main-content-grid">
+        <!-- FORMULARIO MEJORADO - LADO IZQUIERDO -->
+        <div class="left-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Nuevo Usuario</h3>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="userForm">
+                        {% csrf_token %}
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                        <strong>{{ form.first_name.label }}</strong>
-                                        <span class="text-danger">*</span>
+                        <!-- Campo oculto para organización -->
+                        {% if user.is_org_admin and user.organization %}
+                            <input type="hidden" name="organization" value="{{ user.organization.id }}">
+                        {% endif %}
+                        
+                        <!-- SECCIÓN: INFORMACIÓN PERSONAL -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                Información Personal
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="modern-form-group">
+                                    <label for="{{ form.first_name.id_for_label }}" class="modern-label">
+                                        Nombre<span class="required">*</span>
                                     </label>
-                                    {{ form.first_name }}
-                                    {% if form.first_name.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.first_name.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                        <strong>{{ form.last_name.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.last_name }}
-                                    {% if form.last_name.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.last_name.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Información de Cuenta -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-at"></i> Información de Cuenta
-                        </h6>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                <strong>{{ form.email.label }}</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="form-text">
-                                <i class="fas fa-info-circle"></i> El email es necesario para iniciar sesión
-                            </div>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">
-                                <strong>{{ form.username.label }}</strong>
-                                <span class="text-danger">*</span>
-                            </label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {% for error in form.username.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Contraseña y Email Automático -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-lock"></i> Contraseña y Notificación
-                        </h6>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Proceso Automático:</strong> 
-                            <ul class="mb-0 mt-2">
-                                <li>Se generará una contraseña segura automáticamente</li>
-                                <li>Se enviará un email con las credenciales al usuario</li>
-                                <li>El usuario podrá cambiar la contraseña cuando lo desee</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <!-- Organización y Permisos -->
-                    <div class="mb-4">
-                        <h6 class="border-bottom pb-2 mb-3">
-                            <i class="fas fa-building"></i> Organización y Permisos
-                        </h6>
-                        
-                        <!-- Solo mostrar el campo de organización si es superuser -->
-                        {% if user.is_superuser %}
-                            <div class="form-group mb-3">
-                                <label for="{{ form.organization.id_for_label }}" class="form-label">
-                                    <strong>{{ form.organization.label }}</strong>
-                                    <span class="text-danger" id="org-required-indicator">*</span>
-                                </label>
-                                {{ form.organization }}
-                                {% if form.organization.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.organization.errors %}
-                                            {{ error }}
-                                        {% endfor %}
+                                    <input type="text" name="{{ form.first_name.name }}" 
+                                           id="{{ form.first_name.id_for_label }}" 
+                                           class="modern-input" 
+                                           value="{{ form.first_name.value|default:'' }}"
+                                           placeholder="Ej: Juan"
+                                           {% if form.first_name.field.required %}required{% endif %}>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Nombre real del usuario
                                     </div>
-                                {% endif %}
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle"></i> 
-                                    <span id="org-help-text">
-                                        La organización es obligatoria para usuarios activos (excepto superusuarios).
-                                    </span>
-                                </div>
-                            </div>
-                        {% elif user.is_org_admin and user.organization %}
-                            <!-- Para admins de org, mostrar la organización como información -->
-                            <div class="form-group mb-3">
-                                <label class="form-label">
-                                    <strong>Organización</strong>
-                                </label>
-                                <div class="form-control-plaintext bg-light p-2 rounded">
-                                    <i class="fas fa-building"></i> {{ user.organization.name }}
-                                </div>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle"></i> Como admin de organización, solo puedes crear usuarios en tu organización.
+                                    {% if form.first_name.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
                                 </div>
                                 
-                                <!-- Mostrar información específica de la organización del admin -->
-                                {% with limit_info=user.organization.can_add_user_detailed %}
-                                    <div class="mt-2 p-2 rounded {% if limit_info.can_add %}bg-light{% else %}bg-danger bg-opacity-10{% endif %}">
-                                        <small>
-                                            <strong>Estado de tu organización ({{ user.organization.name }}):</strong><br>
-                                            📊 Total de usuarios: {{ limit_info.total_users }}/{{ limit_info.max_users }}<br>
-                                            📈 Activos: {{ limit_info.active_users }} | Inactivos: {{ limit_info.inactive_users }}<br>
-                                            {% if limit_info.can_add %}
-                                                ✅ Puedes crear {{ limit_info.available_slots }} usuario(s) más
-                                            {% else %}
-                                                🚫 Límite máximo alcanzado - elimina un usuario existente o contacta al administrador
-                                            {% endif %}
-                                        </small>
+                                <div class="modern-form-group">
+                                    <label for="{{ form.last_name.id_for_label }}" class="modern-label">
+                                        Apellido<span class="required">*</span>
+                                    </label>
+                                    <input type="text" name="{{ form.last_name.name }}" 
+                                           id="{{ form.last_name.id_for_label }}" 
+                                           class="modern-input" 
+                                           value="{{ form.last_name.value|default:'' }}"
+                                           placeholder="Ej: Pérez"
+                                           {% if form.last_name.field.required %}required{% endif %}>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Apellido del usuario
                                     </div>
-                                {% endwith %}
+                                    {% if form.last_name.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- SECCIÓN: ACCESO -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-at"></i>
+                                </div>
+                                Acceso al Sistema
+                            </div>
+                            
+                            <div class="modern-form-group">
+                                <label for="{{ form.email.id_for_label }}" class="modern-label">
+                                    Correo Electrónico<span class="required">*</span>
+                                </label>
+                                <input type="email" name="{{ form.email.name }}" 
+                                       id="{{ form.email.id_for_label }}" 
+                                       class="modern-input" 
+                                       value="{{ form.email.value|default:'' }}"
+                                       placeholder="usuario@empresa.com"
+                                       {% if form.email.field.required %}required{% endif %}>
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Se usará para iniciar sesión y recibir notificaciones
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- SECCIÓN: PERMISOS -->
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <div class="form-section-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                Permisos y Organización
+                            </div>
+                            
+                            <!-- Organización (solo para super admins) -->
+                            {% if not user.is_org_admin or not user.organization %}
+                            <div class="modern-form-group">
+                                <label for="{{ form.organization.id_for_label }}" class="modern-label">
+                                    Organización<span class="required">*</span>
+                                </label>
+                                <select name="{{ form.organization.name }}" 
+                                        id="{{ form.organization.id_for_label }}" 
+                                        class="modern-select"
+                                        {% if form.organization.field.required %}required{% endif %}>
+                                    <option value="">Selecciona una organización</option>
+                                    {% for org in form.organization.queryset %}
+                                        <option value="{{ org.pk }}" {% if org.pk == form.organization.value %}selected{% endif %}>
+                                            {{ org.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Determina a qué organización pertenecerá el usuario
+                                </div>
+                                {% if form.organization.errors %}
+                                    <div class="error-message">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        {% for error in form.organization.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="form-row">
+                                <div class="modern-form-group">
+                                    <label for="{{ form.user_role.id_for_label }}" class="modern-label">
+                                        Rol del Usuario<span class="required">*</span>
+                                    </label>
+                                    <select name="{{ form.user_role.name }}" 
+                                            id="{{ form.user_role.id_for_label }}" 
+                                            class="modern-select"
+                                            {% if form.user_role.field.required %}required{% endif %}>
+                                        {% for value, label in form.user_role.field.choices %}
+                                            <option value="{{ value }}" {% if value == form.user_role.value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Define los permisos que tendrá en el sistema
+                                    </div>
+                                    {% if form.user_role.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.user_role.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="modern-form-group">
+                                    <label class="modern-label">Estado<span class="optional">(opcional)</span></label>
+                                    <div class="checkbox-wrapper">
+                                        <input type="checkbox" name="{{ form.is_active.name }}" 
+                                               id="{{ form.is_active.id_for_label }}" 
+                                               {% if form.is_active.value %}checked{% endif %}>
+                                        <label for="{{ form.is_active.id_for_label }}">
+                                            Usuario Activo
+                                        </label>
+                                    </div>
+                                    <div class="field-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Si está activo, puede acceder al sistema inmediatamente
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="error-message">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Errores generales -->
+                        {% if form.non_field_errors %}
+                            <div class="error-message" style="margin-bottom: 2rem;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="{{ form.user_role.id_for_label }}" class="form-label">
-                                        <strong>{{ form.user_role.label }}</strong>
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.user_role }}
-                                    {% if form.user_role.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.user_role.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                    {% if form.user_role.help_text %}
-                                        <div class="form-text">
-                                            <i class="fas fa-info-circle"></i> {{ form.user_role.help_text }}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                        <!-- ACCIONES DEL FORMULARIO -->
+                        <div class="form-actions">
+                            <div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Los campos marcados con <span class="required">*</span> son obligatorios
+                                </small>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check mt-4">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        {{ form.is_active.label }}
-                                    </label>
-                                    {% if form.is_active.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in form.is_active.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
+                            <div style="display: flex; gap: 1rem;">
+                                <button type="submit" class="btn-primary-large">
+                                    <i class="fas fa-user-plus"></i>
+                                    Crear Usuario
+                                </button>
                             </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GUÍA DEL PROCESO - LADO DERECHO -->
+        <div class="right-sidebar">
+            <div class="process-guide">
+                <div class="process-header">
+                    <i class="fas fa-route"></i>
+                    <h4>Proceso de Creación</h4>
+                </div>
+                
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="step-content">
+                            <h5>1. Completar Información</h5>
+                            <p>Ingresa nombre, apellido y email del nuevo usuario.</p>
                         </div>
                     </div>
                     
-                    <!-- Errores generales del formulario -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-lock"></i>
                         </div>
-                    {% endif %}
-                    
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-user-plus"></i> Crear Usuario
-                        </button>
+                        <div class="step-content">
+                            <h5>2. Contraseña Automática</h5>
+                            <p>Se generará una contraseña segura de forma automática.</p>
+                        </div>
                     </div>
-                </form>
+                    
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="step-content">
+                            <h5>3. Notificación por Email</h5>
+                            <p>El usuario recibirá sus credenciales por correo electrónico.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-step">
+                        <div class="step-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <h5>4. Acceso Inmediato</h5>
+                            <p>El usuario podrá iniciar sesión y cambiar su contraseña.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Información adicional -->
-<div class="row justify-content-center mt-4">
-    <div class="col-md-8">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6><i class="fas fa-info-circle"></i> Información del Proceso</h6>
-                <ul class="mb-0 small">
-                    <li><strong>Email obligatorio:</strong> Se usa como nombre de usuario para iniciar sesión</li>
-                    <li><strong>Contraseña automática:</strong> Se genera una contraseña segura de 12 caracteres</li>
-                    <li><strong>Notificación por email:</strong> Se envía automáticamente con las credenciales</li>
-                    <li><strong>Si falla el email:</strong> Se mostrará la contraseña en pantalla para entrega manual</li>
-                    <li><strong>Organización:</strong> Determina a qué organización pertenece el usuario</li>
-                    <li><strong>Organización obligatoria:</strong>
-                        <ul class="mt-1">
-                            <li><em>Usuarios activos normales y admins:</em> Deben pertenecer a una organización</li>
-                            <li><em>Superusuarios:</em> Pueden existir sin organización</li>
-                            <li><em>Usuarios inactivos:</em> No requieren organización</li>
-                        </ul>
-                    </li>
-                    <li><strong>Límites de usuarios:</strong>
-                        <ul class="mt-1">
-                            <li><em>Límite único:</em> Aplica a todos los usuarios (activos e inactivos)</li>
-                            <li><em>Si el límite está alcanzado:</em> Elimina un usuario existente o contacta al administrador</li>
-                        </ul>
-                    </li>
-                    <li><strong>Rol del usuario:</strong>
-                        <ul class="mt-1">
-                            <li><em>Usuario Normal:</em> Acceso básico al sistema</li>
-                            <li><em>Admin de Organización:</em> Puede gestionar usuarios de su organización</li>
-                            {% if user.is_superuser %}
-                                <li><em>Superusuario:</em> Acceso completo al sistema</li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                    {% if not user.is_superuser %}
-                        <li><strong>Restricciones:</strong> Como admin de organización, solo puedes crear usuarios normales y otros admins para tu organización</li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// JavaScript para mostrar/ocultar el indicador de obligatorio según el rol y estado activo
-document.addEventListener('DOMContentLoaded', function() {
-    const userRoleField = document.getElementById('{{ form.user_role.id_for_label }}');
-    const isActiveField = document.getElementById('{{ form.is_active.id_for_label }}');
-    const orgRequiredIndicator = document.getElementById('org-required-indicator');
-    const orgHelpText = document.getElementById('org-help-text');
-    const organizationField = document.getElementById('{{ form.organization.id_for_label }}');
-    
-    function updateOrgRequirement() {
-        // Solo aplicar para superusuarios (admins de org tienen organización fija)
-        if (!orgRequiredIndicator || !orgHelpText) return;
-        
-        const userRole = userRoleField ? userRoleField.value : '';
-        const isActive = isActiveField ? isActiveField.checked : false;
-        
-        if (userRole === 'superuser' || !isActive) {
-            // Superusuarios o usuarios inactivos no requieren organización
-            orgRequiredIndicator.style.display = 'none';
-            if (userRole === 'superuser') {
-                orgHelpText.textContent = 'Los superusuarios pueden existir sin organización.';
-            } else if (!isActive) {
-                orgHelpText.textContent = 'Los usuarios inactivos no requieren organización.';
-            }
-            
-            // Si el usuario se marca como inactivo, permitir que no tenga organización
-            if (!isActive && organizationField) {
-                organizationField.removeAttribute('required');
-            }
-        } else {
-            // Usuarios activos normales y admins de org requieren organización
-            orgRequiredIndicator.style.display = 'inline';
-            orgHelpText.textContent = 'La organización es obligatoria para usuarios activos (excepto superusuarios).';
-            
-            // Si el usuario se marca como activo, hacer la organización obligatoria
-            if (isActive && organizationField) {
-                organizationField.setAttribute('required', 'required');
-            }
-        }
-    }
-    
-    // Actualizar al cargar la página
-    updateOrgRequirement();
-    
-    // Actualizar cuando cambien los campos
-    if (userRoleField) {
-        userRoleField.addEventListener('change', updateOrgRequirement);
-    }
-    if (isActiveField) {
-        isActiveField.addEventListener('change', updateOrgRequirement);
-    }
-});
-</script>
 {% endblock %}
