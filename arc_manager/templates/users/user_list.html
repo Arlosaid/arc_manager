@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="{% static 'css/delete_modal.css' %}">
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/user_management.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Usar el container estándar de base.css -->
 <div class="page-container">
@@ -111,7 +115,7 @@
                     <tbody>
                         {% for user_item in users %}
                         <tr>
-                            <td>
+                            <td style="text-align: left; padding-left: 1.5rem;">
                                 <div class="user-info">
                                     <div class="user-avatar">
                                         {{ user_item.first_name|first|upper }}{{ user_item.last_name|first|upper }}
@@ -393,7 +397,7 @@
                             <div>
                                 <div class="mb-1"><strong id="userFullName"></strong></div>
                                 <div class="text-muted mb-1" id="userEmail"></div>
-                                <div class="text-muted mb-1">Org: <span id="userOrganization"></span></div>
+                                <div class="text-muted mb-1">Org: <span id="userOrganization">{{ user.organization.name|default:"N/A" }}</span></div>
                                 <div id="userStatus"></div>
                             </div>
                         </div>
@@ -425,178 +429,5 @@
     </div>
 </div>
 
-<!-- Script simplificado del modal -->
-<script>
-// Función para abrir modal de eliminación
-function openDeleteModal(userId) {
-    // Buscar información del usuario en la tabla
-    let userRow = null;
-    const deleteButtons = document.querySelectorAll('button[onclick*="openDeleteModal"]');
-    
-    for (let btn of deleteButtons) {
-        if (btn.onclick.toString().includes(userId)) {
-            userRow = btn.closest('tr');
-            if (!userRow) {
-                userRow = btn.closest('.mobile-user-card');
-            }
-            break;
-        }
-    }
-    
-    if (!userRow) {
-        console.error('No se encontró información del usuario');
-        return;
-    }
-    
-    // Poblar modal
-    if (userRow.tagName === 'TR') {
-        populateDeleteModalFromTable(userId, userRow);
-    } else {
-        populateDeleteModalFromMobile(userId, userRow);
-    }
-    
-    // Mostrar modal manualmente
-    const modalElement = document.getElementById('deleteUserModal');
-    modalElement.style.display = 'block';
-    modalElement.classList.add('show');
-    document.body.classList.add('modal-open');
-}
-
-// Función para cerrar el modal
-function closeDeleteModal() {
-    const modalElement = document.getElementById('deleteUserModal');
-    modalElement.style.display = 'none';
-    modalElement.classList.remove('show');
-    document.body.classList.remove('modal-open');
-}
-
-function populateDeleteModalFromTable(userId, row) {
-    const userInfo = extractUserInfoFromTableRow(row);
-    populateDeleteModal(userId, userInfo);
-}
-
-function populateDeleteModalFromMobile(userId, card) {
-    const userInfo = extractUserInfoFromMobileCard(card);
-    populateDeleteModal(userId, userInfo);
-}
-
-function extractUserInfoFromTableRow(row) {
-    const userNameEl = row.querySelector('.user-name');
-    const emailEl = row.querySelector('.email-link');
-    const roleEl = row.querySelector('.role-badge');
-    const statusEl = row.querySelector('.status-badge');
-    
-    return {
-        fullName: userNameEl ? userNameEl.textContent.trim() : 'N/A',
-        email: emailEl ? emailEl.textContent.trim() : 'N/A',
-        role: roleEl ? roleEl.textContent.trim() : 'N/A',
-        status: statusEl ? statusEl.textContent.trim() : 'N/A',
-        initials: userNameEl ? getInitials(userNameEl.textContent) : 'NA'
-    };
-}
-
-function extractUserInfoFromMobileCard(card) {
-    const userNameEl = card.querySelector('.user-name');
-    const emailEl = card.querySelector('.user-username');
-    const roleEl = card.querySelector('.role-badge');
-    const statusEl = card.querySelector('.status-badge');
-    
-    return {
-        fullName: userNameEl ? userNameEl.textContent.trim() : 'N/A',
-        email: emailEl ? emailEl.textContent.trim() : 'N/A',
-        role: roleEl ? roleEl.textContent.trim() : 'N/A',
-        status: statusEl ? statusEl.textContent.trim() : 'N/A',
-        initials: userNameEl ? getInitials(userNameEl.textContent) : 'NA'
-    };
-}
-
-function getInitials(name) {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-}
-
-function populateDeleteModal(userId, userInfo) {
-    document.getElementById('userInitials').textContent = userInfo.initials;
-    document.getElementById('userFullName').textContent = userInfo.fullName;
-    document.getElementById('userEmail').textContent = userInfo.email;
-    document.getElementById('userOrganization').textContent = '{{ user.organization.name|default:"N/A" }}';
-    document.getElementById('userStatus').innerHTML = `<span class="badge ${userInfo.status.toLowerCase() === 'activo' ? 'bg-success' : 'bg-secondary'}">${userInfo.status}</span>`;
-    
-    // Configurar el botón de confirmación
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    confirmBtn.setAttribute('data-user-id', userId);
-    
-    // Resetear checkbox y botón
-    const checkbox = document.getElementById('confirmUnderstand');
-    checkbox.checked = false;
-    confirmBtn.disabled = true;
-    
-    // Resetear spinner
-    const spinner = confirmBtn.querySelector('.spinner-border');
-    if (spinner) spinner.classList.add('d-none');
-}
-
-function deleteUser(userId) {
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    const spinner = confirmBtn.querySelector('.spinner-border');
-    
-    // Mostrar loading
-    confirmBtn.disabled = true;
-    if (spinner) spinner.classList.remove('d-none');
-    
-    // Realizar petición de eliminación con la URL correcta
-    const formData = new FormData();
-    formData.append('confirm_delete', 'yes');
-    
-    fetch(`/users/${userId}/delete-ajax/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Cerrar modal antes de recargar
-            closeDeleteModal();
-            // Recargar la página sin alertas
-            window.location.reload();
-        } else {
-            throw new Error(data.error || 'Error al eliminar usuario');
-        }
-    })
-    .catch(error => {
-        // Restaurar botón
-        confirmBtn.disabled = false;
-        if (spinner) spinner.classList.add('d-none');
-        
-        // Solo log en consola, sin popup molesto
-        console.error('Error al eliminar usuario:', error);
-        
-        // Cerrar modal 
-        closeDeleteModal();
-    });
-}
-
-// Inicializar cuando la página esté lista
-document.addEventListener('DOMContentLoaded', function() {
-    // Configurar modal de eliminación
-    const confirmCheckbox = document.getElementById('confirmUnderstand');
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
-    
-    if (confirmCheckbox && confirmBtn) {
-        confirmCheckbox.addEventListener('change', function() {
-            confirmBtn.disabled = !this.checked;
-        });
-        
-        // Manejar click del botón de eliminar
-        confirmBtn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            if (userId && confirmCheckbox.checked) {
-                deleteUser(userId);
-            }
-        });
-    }
-});
-</script>
+<!-- El JavaScript para el modal se encuentra en user_management.js -->
 {% endblock %}

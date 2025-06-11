@@ -1,8 +1,11 @@
 import string
 import random
+import logging
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
 
 def generate_random_password(length=12):
     """
@@ -113,10 +116,9 @@ Este mensaje fue generado automáticamente, por favor no respondas a este email.
         email.attach_alternative(html_message, "text/html")
         email.send()
         
-        print(f"Email enviado exitosamente a {user.email} con contraseña: {password}")
+        logger.info(f"Email de credenciales enviado a {user.email}")
         return True
         
     except Exception as e:
-        print(f"Error al enviar email a {user.email}: {str(e)}")
-        print(f"Contraseña generada: {password}")
+        logger.error(f"Error enviando email a {user.email}: {str(e)}")
         return False 
