@@ -8,54 +8,36 @@ from .models import Organization
 from .mixins import OrganizationAdminMixin
 from .forms import OrganizationForm
 
-class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
-    """Vista para editar organizaciones"""
-    model = Organization
-    form_class = OrganizationForm
-    template_name = 'orgs/organization_form.html'
-    
-    def dispatch(self, request, *args, **kwargs):
-        org = self.get_object()
-        # Solo admins de la organización pueden editarla
-        if not (request.user.organization == org and request.user.is_org_admin):
-            messages.error(request, "No tienes permisos para editar esta organización.")
-            return redirect('main:dashboard')
-        return super().dispatch(request, *args, **kwargs)
-    
-    def get_success_url(self):
-        return reverse_lazy('orgs:detail', kwargs={'pk': self.object.pk})
-    
-    def form_valid(self, form):
-        old_plan = None
-        old_max_users = None
-        
-        # Capturar información del plan anterior si existe la instancia
-        if hasattr(self, 'object') and self.object.pk:
-            old_plan = self.object.plan
-            old_max_users = self.object.get_max_users()
-        
-        response = super().form_valid(form)
-        
-        new_plan = self.object.plan
-        new_max_users = self.object.get_max_users()
-        
-        # Mensaje personalizado dependiendo de si cambió el plan
-        if old_plan and old_plan != new_plan:
-            messages.success(
-                self.request, 
-                f"Organización '{self.object.name}' actualizada. "
-                f"Plan cambiado de '{old_plan.display_name}' a '{new_plan.display_name}'. "
-                f"Nuevo límite de usuarios: {new_max_users}."
-            )
-        else:
-            messages.success(
-                self.request, 
-                f"Organización '{self.object.name}' actualizada exitosamente. "
-                f"Plan actual: {new_plan.display_name if new_plan else 'Sin plan'} "
-                f"({new_max_users} usuario{'s' if new_max_users != 1 else ''} máximo)."
-            )
-        
-        return response
+# =============================================================================
+# NOTA IMPORTANTE: Vista de edición de organizaciones DESHABILITADA
+# =============================================================================
+# 
+# PROBLEMA: Permitir que un org_admin edite su organización puede causar:
+# 
+# 1. CAMBIO DE NOMBRE:
+#    - Afecta logs del sistema, emails automáticos, reportes
+#    - Rompe referencias en URLs del admin
+#    - Confunde a usuarios y administradores del sistema
+# 
+# 2. DESACTIVAR ORGANIZACIÓN (is_active=False):
+#    - Bloquea acceso a TODOS los usuarios incluido el propio admin
+#    - Rompe funcionalidades del middleware de validación
+#    - Crea problemas con suscripciones y facturación
+#    - El admin no puede volver a activarla después
+# 
+# 3. BAJO VALOR DE LA FUNCIONALIDAD:
+#    - Solo quedaría editar la descripción
+#    - No justifica toda una vista compleja
+# 
+# SOLUCIÓN: Solo superusers pueden editar organizaciones desde el admin panel
+# 
+# =============================================================================
+
+# class OrganizationUpdateView(LoginRequiredMixin, UpdateView):
+#     """
+#     Vista DESHABILITADA para editar organizaciones.
+#     """
+#     pass
 
 @login_required
 def my_organization(request):

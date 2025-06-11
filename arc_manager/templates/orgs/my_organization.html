@@ -4,269 +4,217 @@
 {% block title %}Mi Organización{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/organization_management.css' %}">
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/organization_management.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="page-container">
-    <!-- Header Section -->
-    <div class="header-section">
-        <div class="header-content">
-            <div class="header-title">
-                <div class="header-icon">
+<div class="organization-container">
+    <!-- Header simplificado -->
+    <div class="org-header">
+        <div class="org-header-content">
+            <div class="org-info">
+                <div class="org-icon">
                     <i class="fas fa-building"></i>
                 </div>
-                <h1>{{ organization.name }}</h1>
+                <div class="org-details">
+                    <h1>{{ organization.name }}</h1>
+                    {% if user.is_org_admin %}
+                        <div class="org-role">
+                            <i class="fas fa-crown"></i> Administrador
+                        </div>
+                    {% else %}
+                        <div class="org-role">
+                            <i class="fas fa-user"></i> Miembro
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            {% if user.is_org_admin %}
-                <a href="{% url 'orgs:edit' organization.pk %}" class="btn-primary">
-                    <i class="fas fa-edit"></i> Editar Organización
+            <div class="org-status">
+                {% if organization.is_active %}
+                    <i class="fas fa-check-circle"></i>
+                    <span>Activa</span>
+                {% else %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Inactiva</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta de trial mejorada -->
+    {% if organization.is_trial and organization.trial_days_remaining %}
+        <div class="trial-warning-card {% if organization.trial_days_remaining <= 3 %}trial-urgent{% elif organization.trial_days_remaining <= 7 %}trial-warning{% endif %}" role="alert" aria-live="polite">
+            <div class="trial-icon">
+                {% if organization.trial_days_remaining <= 3 %}
+                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                {% elif organization.trial_days_remaining <= 7 %}
+                    <i class="fas fa-clock" aria-hidden="true"></i>
+                {% else %}
+                    <i class="fas fa-fire" aria-hidden="true"></i>
+                {% endif %}
+            </div>
+            
+            {% if organization.trial_days_remaining <= 3 %}
+                <div class="trial-title">⚠️ Tu prueba expira pronto</div>
+                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
+                <div class="trial-subtitle">
+                    {% if organization.trial_days_remaining == 1 %}
+                        ¡Último día! Tu acceso se suspenderá mañana
+                    {% else %}
+                        Tu acceso se suspenderá en {{ organization.trial_days_remaining }} días
+                    {% endif %}
+                </div>
+                <div class="trial-consequences">
+                    Sin actualizar: perderás acceso a usuarios y funciones
+                </div>
+            {% elif organization.trial_days_remaining <= 7 %}
+                <div class="trial-title">⏰ Prueba terminando</div>
+                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
+                <div class="trial-subtitle">restantes de tu período de prueba</div>
+                <div class="trial-benefits">
+                    Actualiza ahora y mantén todos tus usuarios y datos
+                </div>
+            {% else %}
+                <div class="trial-title">🔥 Período de Prueba Activo</div>
+                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
+                <div class="trial-subtitle">para explorar todas las funciones</div>
+                <div class="trial-benefits">
+                    Usuarios ilimitados • Soporte prioritario • Sin restricciones
+                </div>
+            {% endif %}
+            
+            <div class="trial-actions">
+                <a href="{% url 'plans:pricing' %}" class="btn-primary-improved" aria-label="{% if organization.trial_days_remaining <= 3 %}Actualizar plan ahora{% else %}Ver planes disponibles{% endif %}">
+                    <i class="fas fa-rocket" aria-hidden="true"></i>
+                    {% if organization.trial_days_remaining <= 3 %}
+                        Actualizar Ahora
+                    {% else %}
+                        Ver Planes
+                    {% endif %}
                 </a>
+                {% if organization.trial_days_remaining > 7 %}
+                    <a href="{% url 'plans:subscription_dashboard' %}" class="btn-secondary-trial" aria-label="Ver más información sobre suscripción">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        Más Info
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Contenido principal -->
+    <div class="main-content-grid">
+        <!-- Plan actual -->
+        <div class="info-card plan-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h3 class="card-title">Plan Actual</h3>
+            </div>
+            {% if organization.plan %}
+                <div class="plan-name">{{ organization.plan.display_name }}</div>
+                <div class="plan-price">
+                    {% if organization.plan.price > 0 %}
+                        ${{ organization.plan.price }}/mes
+                    {% else %}
+                        Gratuito
+                    {% endif %}
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Límite de usuarios</span>
+                    <span class="stat-value">{{ organization.get_max_users }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Estado</span>
+                    {% if organization.is_subscription_active %}
+                        <span class="stat-badge">Activa</span>
+                    {% else %}
+                        <span class="stat-badge danger">Inactiva</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p style="color: #64748b; text-align: center;">No hay plan asignado</p>
             {% endif %}
         </div>
+
+        <!-- Estadísticas de usuarios -->
+        <div class="info-card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="card-title">Usuarios</h3>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total</span>
+                <span class="stat-value">{{ organization.get_user_count }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Activos</span>
+                <span class="stat-value">{{ organization.get_active_user_count }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Administradores</span>
+                <span class="stat-value">{{ organization.get_admins.count }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Capacidad</span>
+                {% with max_users=organization.get_max_users %}
+                    {% if max_users > 0 %}
+                        {% widthratio organization.get_user_count max_users 100 as percentage %}
+                        {% if percentage >= 90 %}
+                            <span class="stat-badge danger">{{ percentage }}%</span>
+                        {% elif percentage >= 70 %}
+                            <span class="stat-badge warning">{{ percentage }}%</span>
+                        {% else %}
+                            <span class="stat-badge">{{ percentage }}%</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="stat-badge danger">N/A</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
     </div>
 
-    <div class="main-content-grid">
-        <!-- Left Content -->
-        <div class="left-content">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-building" style="color: var(--arc-color-primary); margin-right: 0.5rem;"></i>
-                    {{ organization.name }}
+    <!-- Acciones rápidas -->
+    {% if user.is_org_admin %}
+        <div class="quick-actions">
+            <a href="{% url 'users:user_list' %}" class="action-card" aria-label="Gestionar usuarios de la organización">
+                <div class="action-icon">
+                    <i class="fas fa-users" aria-hidden="true"></i>
                 </div>
-                <div class="card-body">
-                    <div class="info-section">
-                        <div class="info-item">
-                            <span class="info-label">Identificador</span>
-                            <div class="identifier-badge">{{ organization.slug }}</div>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Estado</span>
-                            <div class="status-container">
-                                {% if organization.is_active %}
-                                    <span class="status-badge active">
-                                        <i class="fas fa-check-circle"></i> Activa
-                                    </span>
-                                {% else %}
-                                    <span class="status-badge inactive">
-                                        <i class="fas fa-ban"></i> Inactiva
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Creada</span>
-                            <div class="date-text">{{ organization.created_at|date:"d/m/Y" }}</div>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Plan Actual</span>
-                            <div class="plan-info">
-                                {% if organization.plan %}
-                                    <span class="plan-badge">{{ organization.plan.name }}</span>
-                                    {% if organization.is_trial %}
-                                        <span class="trial-badge">
-                                            {{ organization.trial_days_remaining }} días restantes
-                                        </span>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="plan-badge" style="background: #94a3b8;">Sin plan</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% if organization.description %}
-                        <div class="info-item full-width">
-                            <span class="info-label">Descripción</span>
-                            <div class="description-text">{{ organization.description }}</div>
-                        </div>
-                        {% endif %}
-                    </div>
+                <div class="action-title">Gestionar Usuarios</div>
+                <div class="action-description">Crear y administrar usuarios</div>
+            </a>
+            
+            <a href="{% url 'plans:subscription_dashboard' %}" class="action-card" aria-label="Ver dashboard de suscripción">
+                <div class="action-icon">
+                    <i class="fas fa-credit-card" aria-hidden="true"></i>
                 </div>
-            </div>
+                <div class="action-title">Suscripción</div>
+                <div class="action-description">Ver plan y facturación</div>
+            </a>
+            
+            <a href="{% url 'plans:pricing' %}" class="action-card" aria-label="Actualizar plan de suscripción">
+                <div class="action-icon">
+                    <i class="fas fa-rocket" aria-hidden="true"></i>
+                </div>
+                <div class="action-title">Actualizar Plan</div>
+                <div class="action-description">Explorar más opciones</div>
+            </a>
         </div>
+    {% endif %}
 
-        <!-- Right Sidebar -->
-        <div class="right-sidebar">
-            <div class="info-card-sidebar">
-                <div class="info-header-sidebar">
-                    <i class="fas fa-info-circle"></i>
-                    <h4>Información para el usuario</h4>
-                </div>
-                <div class="info-content-sidebar">
-                    <p>Bienvenido a la sección de tu organización. Aquí puedes consultar los datos generales y el estado de tu suscripción.</p>
-                    <p>Para gestionar usuarios, ve a la sección <b>Usuarios</b> en el menú principal.</p>
-                    {% if organization.is_trial %}
-                        <div class="info-block warning">
-                            <h5><i class="fas fa-exclamation-triangle"></i> Período de Prueba</h5>
-                            <p>Tu período de prueba termina en {{ organization.trial_days_remaining }} días.</p>
-                            <a href="#" class="btn-secondary btn-sm">Actualizar Plan</a>
-                        </div>
-                    {% endif %}
-                    {% if user.is_org_admin %}
-                        <hr>
-                        <p><b>Tu rol:</b> Administrador de organización</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+    <!-- Mensaje de soporte -->
+    <div class="support-message">
+        <i class="fas fa-info-circle"></i>
+        <span>Para cambios en la organización, contacta al soporte</span>
     </div>
 </div>
-
-<style>
-.organization-info-grid {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.info-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.info-item.full-width {
-    grid-column: 1 / -1;
-}
-
-.info-label {
-    color: #6b7280;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.description-text {
-    color: #374151;
-    line-height: 1.5;
-    padding: 0.75rem;
-    background: #f9fafb;
-    border-radius: 0.5rem;
-}
-
-.plan-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.plan-badge {
-    background: var(--arc-color-primary);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-}
-
-.trial-badge {
-    background: #fef3c7;
-    color: #92400e;
-    padding: 0.25rem 0.75rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-}
-
-.usage-stats-grid {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.usage-stat {
-    background: #f9fafb;
-    border-radius: 0.75rem;
-    padding: 1rem;
-}
-
-.usage-stat-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    color: #374151;
-    font-weight: 600;
-}
-
-.usage-progress {
-    height: 0.5rem;
-    background: #e5e7eb;
-    border-radius: 1rem;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--arc-color-primary), #06b6d4);
-    border-radius: 1rem;
-    transition: width 0.3s ease;
-}
-
-.usage-details {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #6b7280;
-    font-size: 0.875rem;
-}
-
-.limits-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.limits-list li {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    color: #374151;
-}
-
-.limits-list li i {
-    color: var(--arc-color-primary);
-    width: 1.25rem;
-}
-
-.info-block {
-    margin-bottom: 1.5rem;
-}
-
-.info-block h5 {
-    color: #374151;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-}
-
-.info-block.warning {
-    background: #fef3c7;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    color: #92400e;
-}
-
-.info-block.warning h5 {
-    color: #92400e;
-}
-
-.btn-secondary {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background: #f3f4f6;
-    color: #374151;
-    border-radius: 0.375rem;
-    text-decoration: none;
-    font-size: 0.875rem;
-    margin-top: 0.75rem;
-}
-
-.btn-secondary:hover {
-    background: #e5e7eb;
-}
-</style>
 {% endblock %} 
