@@ -23,7 +23,7 @@
 }
 
 .user-table tbody tr {
-    transition: background-color 0.15s ease;
+    /* transition: background-color 0.15s ease; */ /* DESHABILITADO: animación */
     border-bottom: 1px solid #f1f5f9;
 }
 
@@ -66,13 +66,13 @@
 }
 
 .modern-table tbody tr {
-    transition: all 0.15s ease;
+    /* transition: all 0.15s ease; */ /* DESHABILITADO: animación */
     border-bottom: 1px solid #f1f5f9;
 }
 
 .modern-table tbody tr:hover {
     background-color: #f8fafc;
-    transform: translateX(2px);
+    /* transform: translateX(2px); */ /* DESHABILITADO: animación */
 }
 
 .modern-table tbody tr:last-child {
@@ -456,7 +456,7 @@
     font-size: 0.875rem;
     flex-shrink: 0;
     border: 2px solid #e2e8f0;
-    transition: all 0.2s ease;
+    /* transition: all 0.2s ease; */ /* DESHABILITADO: animación */
 }
 
 .user-details {
@@ -805,11 +805,13 @@
 }
 
 /* ===== EFECTOS HOVER ADICIONALES ===== */
+/* DESHABILITADO: Efectos hover en avatar
 .modern-table tbody tr:hover .user-avatar {
     transform: scale(1.1);
     border-color: #cbd5e1;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
+*/
 
 .stat-card-mini:hover .stat-icon-mini {
     transform: scale(1.1);
@@ -987,14 +989,15 @@
     border-radius: 50%;
 }
 
-/* Efectos de hover mejorados para cards móviles */
+/* DESHABILITADO: Efectos de hover mejorados para cards móviles
 .mobile-user-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     border-color: #cbd5e1;
 }
+*/
 
-/* Transiciones suaves para el cambio de vista */
+/* DESHABILITADO: Transiciones suaves para el cambio de vista
 .table-wrapper,
 .mobile-user-cards {
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -1005,6 +1008,7 @@
     opacity: 0;
     transform: translateY(10px);
 }
+*/
 
 /* Mejoras en la accesibilidad */
 .action-btn:focus {
@@ -1095,7 +1099,7 @@
     }
 }
 
-/* Animaciones de entrada para elementos */
+/* DESHABILITADO: Animaciones de entrada para elementos
 .stat-card-simple {
     animation: slideInUp 0.4s ease forwards;
 }
@@ -1121,6 +1125,7 @@
         transform: translateY(0);
     }
 }
+*/
 
 /* ===== CENTRADO DE CONTENIDO EN LA TABLA ===== */
 .modern-table th,

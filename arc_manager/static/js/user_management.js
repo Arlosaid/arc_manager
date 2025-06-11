@@ -117,6 +117,8 @@ class UserManagement {
     }
 
     animateOnLoad() {
+        // DESHABILITADO: animaciones de carga
+        /*
         // Usar la clase base para animaciones
         BaseAnimation.animateElements('.stat-card-mini, .table-container, .info-card-sidebar', {
             stagger: 30,
@@ -134,6 +136,7 @@ class UserManagement {
         actionButtons.forEach(button => {
             BaseAnimation.animateButton(button);
         });
+        */
     }
 
     handleSearch(event) {
@@ -148,7 +151,8 @@ class UserManagement {
             row.style.display = isVisible ? '' : 'none';
             if (isVisible) visibleCount++;
             
-            // Animación suave
+            // DESHABILITADO: Animación suave
+            /*
             if (isVisible) {
                 row.style.opacity = '0';
                 setTimeout(() => {
@@ -156,6 +160,7 @@ class UserManagement {
                     row.style.opacity = '1';
                 }, 50);
             }
+            */
         });
 
         this.updateResultCount(visibleCount, searchTerm);

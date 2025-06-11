@@ -377,66 +377,7 @@
 </style>
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/user_management.js' %}"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Valores originales de los campos
-    const originalValues = {};
-    const form = document.querySelector('#userForm');
-    
-    // Guardar valores originales
-    const editableFields = form.querySelectorAll('input:not([readonly]), select:not([disabled])');
-    editableFields.forEach(field => {
-        originalValues[field.name] = field.value;
-    });
-    
-    // Detectar cambios en campos
-    function checkForChanges() {
-        editableFields.forEach(field => {
-            const fieldGroup = field.closest('.modern-form-group');
-            if (field.value !== originalValues[field.name]) {
-                if (fieldGroup) fieldGroup.classList.add('field-changed');
-            } else {
-                if (fieldGroup) fieldGroup.classList.remove('field-changed');
-            }
-        });
-    }
-    
-    // Escuchar cambios en campos
-    editableFields.forEach(field => {
-        field.addEventListener('input', checkForChanges);
-        field.addEventListener('change', checkForChanges);
-    });
-    
-    // Manejo del envío del formulario con loading y éxito
-    form.addEventListener('submit', function(e) {
-        const saveButton = document.getElementById('saveButton');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const saveButtonText = document.getElementById('saveButtonText');
-        
-        if (saveButton && loadingSpinner && saveButtonText) {
-            // Mostrar loading
-            loadingSpinner.style.display = 'inline-block';
-            saveButtonText.innerHTML = 'Guardando...';
-            saveButton.disabled = true;
-        }
-    });
-    
-    // Mostrar mensaje de éxito al cargar si existe
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('saved') === 'true') {
-        const successMessage = document.getElementById('successMessage');
-        if (successMessage) {
-            successMessage.classList.add('visible');
-            setTimeout(function() {
-                successMessage.classList.remove('visible');
-            }, 4000);
-        }
-    }
-});
-</script>
-{% endblock %}
+
 
 {% block content %}
 <div class="page-container">
@@ -706,4 +647,191 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/user_management.js' %}"></script>
+<script>
+// Sistema de logging para edición de usuarios
+class UserEditLogger {
+    constructor() {
+        this.initializeLogging();
+    }
+    
+    log(level, message, data = null) {
+        const timestamp = new Date().toISOString();
+        console[level](`[UserEdit] ${timestamp} - ${message}`, data || '');
+        
+        if (level === 'error') {
+            this.reportError(message, data);
+        }
+    }
+    
+    info(message, data) { this.log('info', message, data); }
+    warning(message, data) { this.log('warn', message, data); }
+    error(message, data) { this.log('error', message, data); }
+    
+    initializeLogging() {
+        this.info('Inicializando página de edición de usuarios');
+        this.logPageContext();
+        this.setupFormMonitoring();
+        this.checkForErrors();
+    }
+    
+    logPageContext() {
+        const context = {
+            userToEdit: {
+                id: {{ user_to_edit.pk|default:0 }},
+                email: "{{ user_to_edit.email|default:'N/A' }}",
+                firstName: "{{ user_to_edit.first_name|default:'N/A' }}",
+                lastName: "{{ user_to_edit.last_name|default:'N/A' }}",
+                isActive: {{ user_to_edit.is_active|yesno:"true,false" }},
+                isOrgAdmin: {{ user_to_edit.is_org_admin|yesno:"true,false" }},
+                organization: "{{ user_to_edit.organization.name|default:'N/A' }}",
+                dateJoined: "{{ user_to_edit.date_joined|date:'Y-m-d' }}",
+                lastLogin: "{{ user_to_edit.last_login|date:'Y-m-d H:i'|default:'Nunca' }}"
+            },
+            currentUser: {
+                isOrgAdmin: {{ user.is_org_admin|yesno:"true,false" }},
+                isSuperuser: {{ user.is_superuser|yesno:"true,false" }},
+                organization: "{{ user.organization.name|default:'N/A' }}"
+            }
+        };
+        
+        this.info('Contexto de la página de edición', context);
+        
+        // Verificar permisos
+        if (!context.currentUser.isOrgAdmin && !context.currentUser.isSuperuser) {
+            this.warning('⚠️ Usuario sin permisos de administración editando usuario');
+        }
+        
+        // Verificar si el usuario se está editando a sí mismo
+        if (context.userToEdit.id === {{ user.pk|default:0 }}) {
+            this.info('👤 Usuario editando su propio perfil');
+        }
+    }
+    
+    setupFormMonitoring() {
+        const form = document.querySelector('form');
+        if (!form) {
+            this.error('❌ Formulario de edición no encontrado');
+            return;
+        }
+        
+        this.info('✅ Formulario de edición encontrado, configurando monitoreo');
+        
+        // Monitorear campos principales
+        const fieldsToMonitor = ['first_name', 'last_name', 'user_role', 'is_active', 'organization'];
+        
+        fieldsToMonitor.forEach(fieldName => {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (field) {
+                const originalValue = field.value || (field.type === 'checkbox' ? field.checked : '');
+                
+                field.addEventListener('change', (e) => {
+                    const newValue = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+                    
+                    this.info(`🔄 Campo ${fieldName} modificado`, {
+                        field: fieldName,
+                        originalValue: originalValue,
+                        newValue: newValue,
+                        hasChanged: originalValue !== newValue
+                    });
+                    
+                    // Validaciones específicas
+                    if (fieldName === 'user_role') {
+                        this.validateRoleChange(originalValue, newValue);
+                    } else if (fieldName === 'is_active') {
+                        this.validateStatusChange(originalValue, newValue);
+                    }
+                });
+            } else {
+                this.warning(`⚠️ Campo ${fieldName} no encontrado en el formulario`);
+            }
+        });
+        
+        // Monitorear envío del formulario
+        form.addEventListener('submit', (e) => {
+            this.info('🚀 Enviando formulario de edición de usuario');
+            this.logFormSubmission(form);
+        });
+        
+        // Monitorear botón de guardado
+        const saveBtn = document.getElementById('saveButton');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.info('💾 Botón de guardar presionado');
+            });
+        }
+    }
+    
+    validateRoleChange(oldRole, newRole) {
+        if (oldRole !== newRole) {
+            this.info(`🔐 Cambio de rol detectado: ${oldRole} → ${newRole}`);
+            
+            if (newRole === 'org_admin') {
+                this.info('⬆️ Usuario será promovido a administrador');
+            } else {
+                this.info('⬇️ Usuario será degradado a usuario normal');
+            }
+        }
+    }
+    
+    validateStatusChange(oldStatus, newStatus) {
+        if (oldStatus !== newStatus) {
+            if (newStatus) {
+                this.info('✅ Usuario será activado');
+            } else {
+                this.warning('❌ Usuario será desactivado');
+            }
+        }
+    }
+    
+    logFormSubmission(form) {
+        const formData = new FormData(form);
+        const data = {};
+        
+        for (let [key, value] of formData.entries()) {
+            if (key !== 'csrfmiddlewaretoken') {
+                data[key] = value;
+            }
+        }
+        
+        this.info('📋 Datos del formulario de edición', data);
+    }
+    
+    checkForErrors() {
+        // Verificar mensajes de Django
+        {% if messages %}
+            {% for message in messages %}
+                this.{{ message.tags }}('Mensaje Django: {{ message|escapejs }}');
+            {% endfor %}
+        {% endif %}
+        
+        // Verificar errores de formulario
+        const errorMessages = document.querySelectorAll('.error-message');
+        if (errorMessages.length > 0) {
+            this.error(`${errorMessages.length} errores de validación encontrados`);
+        }
+        
+        // Verificar JavaScript errors
+        window.addEventListener('error', (e) => {
+            this.error('Error JavaScript en edición de usuario', {
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno
+            });
+        });
+    }
+    
+    reportError(message, data) {
+        // Endpoint de logging si es necesario
+    }
+}
+
+// Inicializar cuando la página esté lista
+document.addEventListener('DOMContentLoaded', function() {
+    window.userEditLogger = new UserEditLogger();
+});
+</script>
 {% endblock %} 

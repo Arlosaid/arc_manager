@@ -404,10 +404,108 @@
         margin-top: 2rem;
     }
 }
+
+/* NUEVA SECCIÓN: Logging Panel */
+#debug-panel {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.9);
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 10000;
+    border: 1px solid #333;
+    display: none;
+}
+
+#debug-panel.show {
+    display: block;
+}
+
+.debug-toggle {
+    position: fixed;
+    top: 10px;
+    right: 370px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 10001;
+    font-size: 11px;
+}
+
+.log-entry {
+    margin: 2px 0;
+    padding: 2px 0;
+    border-bottom: 1px solid #333;
+}
+
+.log-info { color: #00ff00; }
+.log-warning { color: #ffaa00; }
+.log-error { color: #ff0000; }
+.log-debug { color: #888; }
+
+/* Estilos para organización fija */
+.org-display {
+    margin-bottom: 0.5rem;
+}
+
+.org-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--arc-bg-secondary);
+    border: 2px solid var(--arc-color-primary);
+    border-radius: var(--arc-border-radius-sm);
+}
+
+.org-card .org-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--arc-color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.org-card .org-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--arc-text-primary);
+}
+
+.org-card .org-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--arc-text-secondary);
+}
 </style>
 {% endblock %}
 
 {% block content %}
+
+<!-- PANEL DE DEBUG -->
+<button class="debug-toggle" onclick="toggleDebugPanel()">🐛 Debug</button>
+<div id="debug-panel">
+    <div style="text-align: center; border-bottom: 1px solid #333; margin-bottom: 10px; padding-bottom: 5px;">
+        <strong>LOG DE CREACIÓN DE USUARIOS</strong>
+    </div>
+    <div id="debug-logs"></div>
+</div>
+
 <div class="page-container">
     <!-- HEADER SECTION -->
     <div class="header-section">
@@ -477,11 +575,6 @@
                 <div class="card-body">
                     <form method="post" id="userForm">
                         {% csrf_token %}
-                        
-                        <!-- Campo oculto para organización -->
-                        {% if user.is_org_admin and user.organization %}
-                            <input type="hidden" name="organization" value="{{ user.organization.id }}">
-                        {% endif %}
                         
                         <!-- SECCIÓN: INFORMACIÓN PERSONAL -->
                         <div class="form-section">
@@ -607,6 +700,30 @@
                                         {% for error in form.organization.errors %}{{ error }}{% endfor %}
                                     </div>
                                 {% endif %}
+                            </div>
+                            {% else %}
+                            <!-- Organización fija para org_admin -->
+                            <div class="modern-form-group">
+                                <label class="modern-label">
+                                    Organización<span class="required">*</span>
+                                </label>
+                                <div class="org-display">
+                                    <div class="org-card">
+                                        <div class="org-icon">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="org-info">
+                                            <h4>{{ user.organization.name }}</h4>
+                                            <p>Tu organización</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Campo oculto con el valor -->
+                                <input type="hidden" name="organization_id" value="{{ user.organization.id }}">
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    El usuario será creado en tu organización
+                                </div>
                             </div>
                             {% endif %}
                             
@@ -742,4 +859,232 @@
         </div>
     </div>
 </div>
+
+<!-- Contexto Django para JavaScript -->
+{{ django_context|json_script:"django-context" }}
+
+<script>
+// ===== SISTEMA DE LOGGING DETALLADO =====
+class UserCreationLogger {
+    constructor() {
+        this.logs = [];
+        this.isVisible = false;
+        this.initializeLogging();
+    }
+    
+    log(level, message, data = null) {
+        const timestamp = new Date().toISOString().substr(11, 12);
+        const logEntry = {
+            timestamp,
+            level,
+            message,
+            data: data ? JSON.stringify(data, null, 2) : null
+        };
+        
+        this.logs.push(logEntry);
+        this.displayLog(logEntry);
+        
+        // También enviar a consola del navegador
+        console[level](
+            `[UserCreation] ${timestamp} - ${message}`,
+            data || ''
+        );
+    }
+    
+    info(message, data) { this.log('info', message, data); }
+    warning(message, data) { this.log('warn', message, data); }
+    error(message, data) { this.log('error', message, data); }
+    debug(message, data) { this.log('debug', message, data); }
+    
+    displayLog(entry) {
+        const debugPanel = document.getElementById('debug-logs');
+        if (!debugPanel) return;
+        
+        const logDiv = document.createElement('div');
+        logDiv.className = `log-entry log-${entry.level}`;
+        
+        let content = `[${entry.timestamp}] ${entry.level.toUpperCase()}: ${entry.message}`;
+        if (entry.data) {
+            content += `\n  Data: ${entry.data}`;
+        }
+        
+        logDiv.textContent = content;
+        debugPanel.appendChild(logDiv);
+        
+        // Mantener solo últimos 50 logs
+        while (debugPanel.children.length > 50) {
+            debugPanel.removeChild(debugPanel.firstChild);
+        }
+        
+        // Auto-scroll al final
+        debugPanel.scrollTop = debugPanel.scrollHeight;
+    }
+    
+    initializeLogging() {
+        this.info('Sistema de logging inicializado');
+        this.logPageState();
+        this.setupFormMonitoring();
+        this.logBrowserInfo();
+    }
+    
+    logPageState() {
+        // Log del estado de la página
+        this.info('Cargando página de creación de usuarios');
+        
+                          // Datos del contexto Django inyectados desde el template
+         const djangoContext = JSON.parse(document.getElementById('django-context').textContent);
+         this.info('Usuario actual', djangoContext.currentUser);
+         
+         if (djangoContext.orgLimits) {
+             this.info('Límites de organización', djangoContext.orgLimits);
+             if (!djangoContext.orgLimits.canAdd) {
+                 this.warning('⚠️ Organización ha alcanzado su límite de usuarios');
+             }
+         }
+         
+         if (djangoContext.formErrors) {
+             this.error('Errores de formulario detectados', djangoContext.formErrors);
+         }
+         
+         if (djangoContext.nonFieldErrors) {
+             this.error('Errores generales de formulario', djangoContext.nonFieldErrors);
+         }
+    }
+    
+    logBrowserInfo() {
+        const browserInfo = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            url: window.location.href,
+            referrer: document.referrer
+        };
+        this.debug('Información del navegador', browserInfo);
+    }
+    
+    setupFormMonitoring() {
+        const form = document.getElementById('userForm');
+        if (!form) {
+            this.error('❌ Formulario no encontrado en la página');
+            return;
+        }
+        
+        this.info('✅ Formulario encontrado, configurando monitoreo');
+        
+        // Monitorear cambios en campos
+        const fields = ['first_name', 'last_name', 'email', 'organization', 'user_role', 'is_active'];
+        fields.forEach(fieldName => {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (field) {
+                field.addEventListener('change', (e) => {
+                    this.debug(`Campo ${fieldName} cambiado`, {
+                        field: fieldName,
+                        oldValue: e.target.defaultValue,
+                        newValue: e.target.value
+                    });
+                });
+                
+                field.addEventListener('blur', (e) => {
+                    this.validateField(fieldName, e.target.value);
+                });
+            } else {
+                this.warning(`⚠️ Campo ${fieldName} no encontrado en el formulario`);
+            }
+        });
+        
+        // Monitorear envío del formulario
+        form.addEventListener('submit', (e) => {
+            this.info('🚀 Enviando formulario de creación de usuario');
+            this.logFormData(form);
+        });
+        
+        // Monitorear errores de red
+        window.addEventListener('error', (e) => {
+            this.error('Error JavaScript detectado', {
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno
+            });
+        });
+    }
+    
+    validateField(fieldName, value) {
+        this.debug(`Validando campo ${fieldName}: "${value}"`);
+        
+        switch(fieldName) {
+            case 'email':
+                if (value && !this.isValidEmail(value)) {
+                    this.warning(`❌ Email inválido: ${value}`);
+                } else if (value) {
+                    this.info(`✅ Email válido: ${value}`);
+                }
+                break;
+            case 'first_name':
+            case 'last_name':
+                if (!value || value.trim().length < 2) {
+                    this.warning(`❌ ${fieldName} muy corto o vacío`);
+                } else {
+                    this.info(`✅ ${fieldName} válido`);
+                }
+                break;
+        }
+    }
+    
+    isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+    
+    logFormData(form) {
+        const formData = new FormData(form);
+        const data = {};
+        
+        for (let [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        
+        // No loggear el token CSRF por seguridad
+        if (data.csrfmiddlewaretoken) {
+            data.csrfmiddlewaretoken = '[OCULTO]';
+        }
+        
+        this.info('Datos del formulario a enviar', data);
+    }
+}
+
+// Función para toggle del panel de debug
+function toggleDebugPanel() {
+    const panel = document.getElementById('debug-panel');
+    const button = document.querySelector('.debug-toggle');
+    
+    if (panel.classList.contains('show')) {
+        panel.classList.remove('show');
+        button.textContent = '🐛 Debug';
+    } else {
+        panel.classList.add('show');
+        button.textContent = '🐛 Ocultar';
+    }
+}
+
+// Inicializar el logger cuando la página esté lista
+document.addEventListener('DOMContentLoaded', function() {
+    window.userLogger = new UserCreationLogger();
+    
+    // Log adicional para mensajes de Django
+    {% if messages %}
+        {% for message in messages %}
+            window.userLogger.{{ message.tags }}('Mensaje Django: {{ message|escapejs }}');
+        {% endfor %}
+    {% endif %}
+});
+
+// Detectar errores de red en requests
+window.addEventListener('beforeunload', function() {
+    if (window.userLogger) {
+        window.userLogger.info('Usuario abandonando la página de creación');
+    }
+});
+</script>
+
 {% endblock %}

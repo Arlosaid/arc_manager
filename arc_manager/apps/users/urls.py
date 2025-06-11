@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import UserListView, SimpleUserCreateView, UserEditView, UserDetailView, UserDeleteView
+from .views import UserListView, SimpleUserCreateView, UserEditView, UserDetailView, UserDeleteView, UserDeleteAjaxView
 
 app_name = 'users'
 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('<int:pk>/', UserDetailView.as_view(), name='detail'),
     path('<int:pk>/edit/', UserEditView.as_view(), name='edit'),
     path('<int:pk>/delete/', UserDeleteView.as_view(), name='delete'),
+    path('<int:pk>/delete-ajax/', UserDeleteAjaxView.as_view(), name='delete_ajax'),
 ] 
