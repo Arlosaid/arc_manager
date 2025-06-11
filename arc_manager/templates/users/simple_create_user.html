@@ -5,406 +5,10 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
-<style>
-/* ===== MEJORAS DE UX - DISEÑO OPTIMIZADO ===== */
+{% endblock %}
 
-/* Estadísticas simplificadas y menos prominentes */
-.org-status-compact {
-    background: rgba(6, 182, 212, 0.05);
-    border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: var(--arc-border-radius-sm);
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.org-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.org-icon {
-    width: 32px;
-    height: 32px;
-    background: var(--arc-color-info);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.875rem;
-}
-
-.org-text h4 {
-    margin: 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-}
-
-.org-text p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--arc-text-secondary);
-}
-
-.org-stats {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.stat-compact {
-    text-align: center;
-}
-
-.stat-compact .number {
-    display: block;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--arc-color-info);
-}
-
-.stat-compact .label {
-    font-size: 0.65rem;
-    color: var(--arc-text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-indicator {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-
-.status-indicator.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #065f46;
-}
-
-.status-indicator.warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: #92400e;
-}
-
-/* Formulario mejorado con mejor UX */
-.form-section {
-    margin-bottom: 2rem;
-    position: relative;
-}
-
-.form-section-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--arc-bg-tertiary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.form-section-icon {
-    width: 20px;
-    height: 20px;
-    background: var(--arc-color-primary);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.75rem;
-}
-
-.modern-form-group {
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.modern-label {
-    display: block;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-}
-
-.required {
-    color: var(--arc-color-danger);
-    margin-left: 0.25rem;
-}
-
-.optional {
-    color: var(--arc-text-muted);
-    font-weight: 400;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-}
-
-.modern-input, .modern-select {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border: 2px solid var(--arc-border-color);
-    border-radius: var(--arc-border-radius-sm);
-    font-size: 0.875rem;
-    transition: var(--arc-transition);
-    background: var(--arc-bg-primary);
-    color: var(--arc-text-primary);
-}
-
-.modern-input:focus, .modern-select:focus {
-    outline: none;
-    border-color: var(--arc-color-primary);
-    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-}
-
-.modern-input:hover, .modern-select:hover {
-    border-color: var(--arc-text-secondary);
-}
-
-.field-hint {
-    font-size: 0.75rem;
-    color: var(--arc-text-muted);
-    margin-top: 0.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-}
-
-.checkbox-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem;
-    background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius-sm);
-    border: 2px solid var(--arc-border-color);
-    transition: var(--arc-transition);
-}
-
-.checkbox-wrapper:hover {
-    border-color: var(--arc-color-primary);
-    background: var(--arc-bg-primary);
-}
-
-.checkbox-wrapper input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--arc-color-primary);
-}
-
-.checkbox-wrapper label {
-    margin: 0;
-    font-weight: 500;
-    color: var(--arc-text-primary);
-    cursor: pointer;
-    flex: 1;
-}
-
-/* Botones de acción mejorados */
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--arc-border-color);
-}
-
-.btn-primary-large {
-    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: var(--arc-border-radius-sm);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--arc-transition);
-    box-shadow: var(--arc-shadow-md);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 180px;
-    justify-content: center;
-}
-
-.btn-primary-large:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--arc-shadow-lg);
-}
-
-.btn-primary-large:active {
-    transform: translateY(0);
-}
-
-.btn-primary-large:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-secondary-outline {
-    background: transparent;
-    color: var(--arc-text-secondary);
-    border: 2px solid var(--arc-border-color);
-    padding: 0.875rem 1.5rem;
-    border-radius: var(--arc-border-radius-sm);
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: var(--arc-transition);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.btn-secondary-outline:hover {
-    border-color: var(--arc-text-secondary);
-    background: var(--arc-bg-secondary);
-    text-decoration: none;
-}
-
-/* Panel de información contextual mejorado */
-.process-guide {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius-sm);
-    border: 1px solid var(--arc-border-color);
-    box-shadow: var(--arc-shadow-sm);
-    overflow: hidden;
-    position: sticky;
-    top: 2rem;
-}
-
-.process-header {
-    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
-    color: white;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.process-header h4 {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-
-.process-steps {
-    padding: 1.25rem;
-}
-
-.process-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    padding: 0.875rem;
-    background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius-sm);
-    border-left: 3px solid var(--arc-color-primary);
-}
-
-.process-step:last-child {
-    margin-bottom: 0;
-}
-
-.step-icon {
-    width: 20px;
-    height: 20px;
-    background: var(--arc-color-primary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.75rem;
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-}
-
-.step-content h5 {
-    margin: 0 0 0.25rem 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-}
-
-.step-content p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--arc-text-secondary);
-    line-height: 1.4;
-}
-
-.error-message {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid var(--arc-color-danger);
-    color: var(--arc-color-danger);
-    padding: 0.75rem;
-    border-radius: var(--arc-border-radius-sm);
-    font-size: 0.8rem;
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.error-message i {
-    font-size: 0.875rem;
-}
-
-/* Responsive mejorado */
-@media (max-width: 768px) {
-    .org-status-compact {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1rem;
-    }
-    
-    .org-stats {
-        justify-content: space-around;
-        gap: 1rem;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .form-actions {
-        flex-direction: column-reverse;
-        gap: 1rem;
-    }
-    
-    .btn-primary-large, .btn-secondary-outline {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .process-guide {
-        position: static;
-        margin-top: 2rem;
-    }
-}
-</style>
+{% block extra_js %}
+<script src="{% static 'js/user_management.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -477,11 +81,6 @@
                 <div class="card-body">
                     <form method="post" id="userForm">
                         {% csrf_token %}
-                        
-                        <!-- Campo oculto para organización -->
-                        {% if user.is_org_admin and user.organization %}
-                            <input type="hidden" name="organization" value="{{ user.organization.id }}">
-                        {% endif %}
                         
                         <!-- SECCIÓN: INFORMACIÓN PERSONAL -->
                         <div class="form-section">
@@ -607,6 +206,30 @@
                                         {% for error in form.organization.errors %}{{ error }}{% endfor %}
                                     </div>
                                 {% endif %}
+                            </div>
+                            {% else %}
+                            <!-- Organización fija para org_admin -->
+                            <div class="modern-form-group">
+                                <label class="modern-label">
+                                    Organización<span class="required">*</span>
+                                </label>
+                                <div class="org-display">
+                                    <div class="org-card">
+                                        <div class="org-icon">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="org-info">
+                                            <h4>{{ user.organization.name }}</h4>
+                                            <p>Tu organización</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Campo oculto con el valor -->
+                                <input type="hidden" name="organization_id" value="{{ user.organization.id }}">
+                                <div class="field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    El usuario será creado en tu organización
+                                </div>
                             </div>
                             {% endif %}
                             
@@ -742,4 +365,6 @@
         </div>
     </div>
 </div>
+
+<!-- El contexto Django y JavaScript se manejan en user_management.js -->
 {% endblock %}

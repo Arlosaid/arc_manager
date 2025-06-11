@@ -68,7 +68,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    transition: var(--arc-transition);
+    /* transition: var(--arc-transition); */ /* DESHABILITADO: transición de página */
     position: relative;
     background: var(--arc-bg-primary);
     padding-top: var(--arc-layout-navbar-height);
@@ -250,7 +250,7 @@ body {
 }
 
 .modern-table tbody tr {
-    transition: background-color 0.2s ease;
+    /* transition: background-color 0.2s ease; */ /* DESHABILITADO: animación tabla */
 }
 
 .modern-table tbody tr:hover {

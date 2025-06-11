@@ -29,39 +29,7 @@ def validate_organization_limits(sender, instance, **kwargs):
             )
 
 
-@receiver(pre_save, sender=User)
-def auto_generate_username(sender, instance, **kwargs):
-    """Auto generar username si está vacío"""
-    if not instance.username:
-        # Generar username basado en nombre y apellido
-        first_name = instance.first_name.lower() if instance.first_name else ''
-        last_name = instance.last_name.lower() if instance.last_name else ''
-        
-        # Limpiar caracteres especiales
-        import re
-        first_name = re.sub(r'[^a-z]', '', first_name)
-        last_name = re.sub(r'[^a-z]', '', last_name)
-        
-        if first_name and last_name:
-            base_username = f"{first_name}.{last_name}"
-        elif first_name:
-            base_username = first_name
-        elif last_name:
-            base_username = last_name
-        else:
-            # Fallback al email
-            email_part = instance.email.split('@')[0] if instance.email else 'user'
-            base_username = re.sub(r'[^a-z0-9]', '', email_part.lower())
-        
-        # Buscar username único
-        username = base_username
-        counter = 1
-        
-        while User.objects.filter(username=username).exclude(pk=instance.pk).exists():
-            username = f"{base_username}{counter}"
-            counter += 1
-        
-        instance.username = username
+# El signal auto_generate_username ya no es necesario porque eliminamos el campo username
 
 
 @receiver(pre_save, sender=User)

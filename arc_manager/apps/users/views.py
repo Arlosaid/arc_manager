@@ -5,9 +5,12 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 import logging
 
-from .forms import SimpleUserCreateForm, UserEditForm
+from .forms import SimpleUserCreateForm, SimpleUserEditForm
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -77,18 +80,31 @@ class SimpleUserCreateView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         # Solo org_admin pueden crear usuarios
         if not request.user.is_org_admin:
+            logger.warning(f"Acceso denegado para crear usuario: {request.user.email}")
             raise PermissionDenied("No tienes permisos para crear usuarios")
+        
         return super().dispatch(request, *args, **kwargs)
     
     def get(self, request):
         form = SimpleUserCreateForm(user=request.user)
+        
+        # Log solo si hay problemas con límites de organización
+        if request.user.organization:
+            limit_info = request.user.organization.can_add_user_detailed()
+            if not limit_info['can_add']:
+                logger.warning(f"Límite de usuarios alcanzado para {request.user.organization.name}: {limit_info['total_users']}/{limit_info['max_users']}")
+        
         return render(request, self.template_name, {'form': form})
     
     def post(self, request):
         form = SimpleUserCreateForm(request.POST, user=request.user)
+        
         if form.is_valid():
             try:
                 user, temp_password, email_sent = form.save(request)
+                
+                # Log solo el resultado importante
+                logger.info(f"Usuario creado: {user.email} por {request.user.email}")
                 
                 if email_sent:
                     messages.success(
@@ -103,14 +119,21 @@ class SimpleUserCreateView(LoginRequiredMixin, View):
                         f'pero no se pudo enviar el correo electrónico. '
                         f'Credenciales: {user.email} / {temp_password}'
                     )
+                    logger.warning(f"Error enviando email a usuario creado: {user.email}")
                 
                 return redirect('users:user_list')
                 
             except Exception as e:
-                logger.error(f"Error al crear usuario: {str(e)}")
+                logger.error(f"Error al crear usuario: {str(e)}", exc_info=True)
                 messages.error(request, f"Error al crear el usuario: {str(e)}")
+        else:
+            # Log solo errores críticos
+            if form.non_field_errors():
+                logger.warning(f"Errores de validación al crear usuario: {form.non_field_errors()}")
         
         return render(request, self.template_name, {'form': form})
+    
+
 
 class UserEditView(LoginRequiredMixin, View):
     """Vista para editar usuarios"""
@@ -138,7 +161,7 @@ class UserEditView(LoginRequiredMixin, View):
     
     def get(self, request, pk):
         user_to_edit = get_object_or_404(User, pk=pk)
-        form = UserEditForm(instance=user_to_edit, user=request.user)
+        form = SimpleUserEditForm(instance=user_to_edit, user=request.user)
         return render(request, self.template_name, {
             'form': form, 
             'user_to_edit': user_to_edit
@@ -146,7 +169,7 @@ class UserEditView(LoginRequiredMixin, View):
     
     def post(self, request, pk):
         user_to_edit = get_object_or_404(User, pk=pk)
-        form = UserEditForm(request.POST, instance=user_to_edit, user=request.user)
+        form = SimpleUserEditForm(request.POST, instance=user_to_edit, user=request.user)
         
         if form.is_valid():
             form.save()
@@ -186,9 +209,10 @@ class UserDetailView(LoginRequiredMixin, View):
         user_to_view = get_object_or_404(User, pk=pk)
         return render(request, self.template_name, {'user_to_view': user_to_view})
 
-class UserDeleteView(LoginRequiredMixin, View):
-    """Vista para eliminar usuarios - Solo para org_admin"""
-    template_name = 'users/user_delete.html'
+
+
+class UserDeleteAjaxView(LoginRequiredMixin, View):
+    """Vista AJAX para obtener información del usuario a eliminar"""
     
     def dispatch(self, request, *args, **kwargs):
         user_to_delete = get_object_or_404(User, pk=kwargs['pk'])
@@ -210,18 +234,56 @@ class UserDeleteView(LoginRequiredMixin, View):
         return super().dispatch(request, *args, **kwargs)
     
     def get(self, request, pk):
+        """Obtener información del usuario para mostrar en el modal"""
         user_to_delete = get_object_or_404(User, pk=pk)
-        return render(request, self.template_name, {'user_to_delete': user_to_delete})
+        
+        user_data = {
+            'id': user_to_delete.id,
+            'first_name': user_to_delete.first_name,
+            'last_name': user_to_delete.last_name,
+            'username': user_to_delete.username,
+            'email': user_to_delete.email,
+            'is_active': user_to_delete.is_active,
+            'is_org_admin': user_to_delete.is_org_admin,
+            'organization': user_to_delete.organization.name if user_to_delete.organization else 'Sin organización',
+            'initials': f"{user_to_delete.first_name[:1]}{user_to_delete.last_name[:1]}".upper(),
+            'full_name': f"{user_to_delete.first_name} {user_to_delete.last_name}",
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'user': user_data
+        })
     
     def post(self, request, pk):
+        """Procesar la eliminación del usuario"""
         user_to_delete = get_object_or_404(User, pk=pk)
         
         try:
+            # Verificar que se confirmó la eliminación
+            confirm_delete = request.POST.get('confirm_delete')
+            if confirm_delete != 'yes':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Confirmación requerida'
+                })
+            
             username = user_to_delete.username or user_to_delete.email
+            full_name = f"{user_to_delete.first_name} {user_to_delete.last_name}"
+            
+            # Log importante para auditoría
+            logger.info(f"Usuario eliminado: {user_to_delete.email} por {request.user.email}")
+            
             user_to_delete.delete()
-            messages.success(request, f"Usuario {username} eliminado exitosamente.")
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Usuario {full_name} ({username}) eliminado exitosamente.'
+            })
+            
         except Exception as e:
             logger.error(f"Error al eliminar usuario: {str(e)}")
-            messages.error(request, f"Error al eliminar el usuario: {str(e)}")
-        
-        return redirect('users:user_list')
+            return JsonResponse({
+                'success': False,
+                'error': f'Error al eliminar el usuario: {str(e)}'
+            })

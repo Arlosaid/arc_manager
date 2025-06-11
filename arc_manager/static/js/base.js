@@ -3,7 +3,7 @@
 class BaseAnimation {
     static init() {
         // Configuración de animaciones base
-        this.setupAnimations();
+        // this.setupAnimations(); // DESHABILITADO: animaciones de carga de página
     }
 
     static setupAnimations() {

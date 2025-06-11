@@ -5,6 +5,11 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+<link rel="stylesheet" href="{% static 'css/delete_modal.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/user_management.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -26,9 +31,9 @@
         </div>
     </div>
 
-    <!-- Stats mejoradas con tooltips e indicadores -->
+    <!-- Estadísticas -->
     <div class="stats-grid-simple">
-        <div class="stat-card-simple metric-card" data-tooltip="Usuarios registrados versus límite máximo">
+        <div class="stat-card-simple metric-card">
             <div class="stat-icon-simple users">
                 <i class="fas fa-users"></i>
             </div>
@@ -39,7 +44,7 @@
             </div>
         </div>
         
-        <div class="stat-card-simple metric-card" data-tooltip="Usuarios con acceso activo al sistema">
+        <div class="stat-card-simple metric-card">
             <div class="stat-icon-simple active">
                 <i class="fas fa-user-check"></i>
             </div>
@@ -50,7 +55,7 @@
             </div>
         </div>
 
-        <div class="stat-card-simple metric-card" data-tooltip="Usuarios sin acceso al sistema">
+        <div class="stat-card-simple metric-card">
             <div class="stat-icon-simple inactive">
                 <i class="fas fa-user-times"></i>
             </div>
@@ -67,18 +72,18 @@
         <div class="table-header">
             <h3>Lista de Usuarios</h3>
             
-            <!-- Búsqueda mejorada -->
+            <!-- Búsqueda -->
             <div class="table-search-container">
                 <form method="get" class="table-search-box">
                     <input type="text" 
                            name="search" 
                            value="{{ search }}" 
                            class="table-search-input" 
-                           placeholder="Buscar por nombre, email o usuario..."
+                           placeholder="Buscar por nombre o email..."
                            autocomplete="off">
                     <i class="fas fa-search table-search-icon"></i>
                     {% if search %}
-                        <a href="{% url 'users:user_list' %}" class="clear-search-btn" data-tooltip="Limpiar búsqueda">
+                        <a href="{% url 'users:user_list' %}" class="clear-search-btn">
                             <i class="fas fa-times"></i>
                         </a>
                     {% endif %}
@@ -100,7 +105,7 @@
                 <table class="modern-table">
                     <thead>
                         <tr>
-                            <th style="text-align: center;">Usuario</th>
+                            <th style="text-align: center;">Nombre</th>
                             <th style="text-align: center;">Email</th>
                             <th style="text-align: center;">Tipo</th>
                             <th style="text-align: center;">Estado</th>
@@ -110,66 +115,61 @@
                     <tbody>
                         {% for user_item in users %}
                         <tr>
-                            <td style="text-align: center;">
+                            <td style="text-align: left; padding-left: 1.5rem;">
                                 <div class="user-info">
-                                    <div class="user-avatar" data-tooltip="Avatar de {{ user_item.first_name }}">
+                                    <div class="user-avatar">
                                         {{ user_item.first_name|first|upper }}{{ user_item.last_name|first|upper }}
                                     </div>
                                     <div class="user-details">
                                         <div class="user-name">{{ user_item.first_name }} {{ user_item.last_name }}</div>
-                                        <div class="user-username">@{{ user_item.username }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td style="text-align: center;">
-                                <a href="mailto:{{ user_item.email }}" class="email-link" data-tooltip="Enviar email">
+                                <a href="mailto:{{ user_item.email }}" class="email-link">
                                     {{ user_item.email }}
                                 </a>
                             </td>
                             <td style="text-align: center;">
                                 {% if user_item.is_org_admin %}
-                                    <span class="role-badge admin" data-tooltip="Administrador con permisos completos">Admin</span>
+                                    <span class="role-badge admin">Admin</span>
                                 {% else %}
-                                    <span class="role-badge developer" data-tooltip="Usuario con permisos limitados">Usuario</span>
+                                    <span class="role-badge developer">Usuario</span>
                                 {% endif %}
                             </td>
                             <td style="text-align: center;">
                                 {% if user_item.is_active %}
-                                    <span class="status-badge active" data-tooltip="Usuario puede acceder al sistema">Activo</span>
+                                    <span class="status-badge active">Activo</span>
                                 {% else %}
-                                    <span class="status-badge inactive" data-tooltip="Acceso suspendido">Inactivo</span>
+                                    <span class="status-badge inactive">Inactivo</span>
                                 {% endif %}
                             </td>
                             <td style="text-align: center;">
                                 <div class="action-buttons">
                                     <a href="{% url 'users:edit' user_item.pk %}" 
-                                       class="action-btn edit"
-                                       data-tooltip="Editar información del usuario">
+                                       class="action-btn edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     
                                     <a href="{% url 'users:detail' user_item.pk %}" 
-                                       class="action-btn view"
-                                       data-tooltip="Ver detalles del usuario">
+                                       class="action-btn view">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     
-                                    <!-- Botón de eliminar mejorado con validaciones -->
+                                    <!-- Botón de eliminar -->
                                     {% if user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user %}
-                                        <a href="{% url 'users:delete' user_item.pk %}" 
-                                           class="action-btn delete"
-                                           data-tooltip="Eliminar"
-                                           onclick="return confirm('¿Eliminar usuario {{ user_item.first_name }}?')">
+                                        <button type="button"
+                                                class="action-btn delete"
+                                                onclick="openDeleteModal({{ user_item.pk }})"
+                                                title="Eliminar usuario">
                                             <i class="fas fa-trash-alt"></i>
-                                        </a>
+                                        </button>
                                     {% elif user_item != user %}
-                                        <span class="action-btn delete disabled" 
-                                              data-tooltip="Sin permisos">
+                                        <span class="action-btn delete disabled">
                                             <i class="fas fa-trash-alt"></i>
                                         </span>
                                     {% else %}
-                                        <span class="action-btn delete disabled" 
-                                              data-tooltip="Tu cuenta">
+                                        <span class="action-btn delete disabled">
                                             <i class="fas fa-ban"></i>
                                         </span>
                                     {% endif %}
@@ -191,7 +191,7 @@
                         </div>
                         <div class="user-details">
                             <div class="user-name">{{ user_item.first_name }} {{ user_item.last_name }}</div>
-                            <div class="user-username">@{{ user_item.username }}</div>
+                            <div class="user-username">{{ user_item.email }}</div>
                         </div>
                     </div>
                     
@@ -223,27 +223,25 @@
                     </div>
                     
                     <div class="mobile-user-actions">
-                        <a href="{% url 'users:edit' user_item.pk %}" class="action-btn edit" data-tooltip="Editar">
+                        <a href="{% url 'users:edit' user_item.pk %}" class="action-btn edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                                                 <a href="{% url 'users:detail' user_item.pk %}" class="action-btn view" data-tooltip="Ver">
-                             <i class="fas fa-eye"></i>
-                         </a>
+                        <a href="{% url 'users:detail' user_item.pk %}" class="action-btn view">
+                            <i class="fas fa-eye"></i>
+                        </a>
                         {% if user.is_org_admin and user.organization and user_item.organization == user.organization and user_item != user %}
-                            <a href="{% url 'users:delete' user_item.pk %}" 
-                               class="action-btn delete"
-                               data-tooltip="Eliminar"
-                               onclick="return confirm('¿Eliminar usuario {{ user_item.first_name }}?')">
+                            <button type="button"
+                                    class="action-btn delete"
+                                    onclick="openDeleteModal({{ user_item.pk }})"
+                                    title="Eliminar usuario">
                                 <i class="fas fa-trash-alt"></i>
-                            </a>
+                            </button>
                         {% elif user_item != user %}
-                            <span class="action-btn delete disabled" 
-                                  data-tooltip="Sin permisos">
+                            <span class="action-btn delete disabled">
                                 <i class="fas fa-trash-alt"></i>
                             </span>
                         {% else %}
-                            <span class="action-btn delete disabled" 
-                                  data-tooltip="Tu cuenta">
+                            <span class="action-btn delete disabled">
                                 <i class="fas fa-ban"></i>
                             </span>
                         {% endif %}
@@ -261,7 +259,7 @@
                     <div class="pagination">
                         {% if page_obj.has_previous %}
                             <a href="?{% if search %}search={{ search }}&{% endif %}page=1" 
-                               class="pagination-btn" data-tooltip="Primera página">
+                               class="pagination-btn">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
                             <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.previous_page_number }}" 
@@ -280,7 +278,7 @@
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                             <a href="?{% if search %}search={{ search }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
-                               class="pagination-btn" data-tooltip="Última página">
+                               class="pagination-btn">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         {% endif %}
@@ -353,40 +351,83 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/user_management.js' %}"></script>
-<script>
-// Responsividad: alternar entre tabla y cards
-function toggleTableView() {
-    const tableWrapper = document.querySelector('.table-wrapper');
-    const mobileCards = document.querySelector('.mobile-user-cards');
-    
-    if (window.innerWidth <= 768) {
-        if (tableWrapper) tableWrapper.style.display = 'none';
-        if (mobileCards) mobileCards.style.display = 'block';
-    } else {
-        if (tableWrapper) tableWrapper.style.display = 'block';
-        if (mobileCards) mobileCards.style.display = 'none';
-    }
-}
+<!-- Modal de Eliminación Sin Backdrop -->
+{% csrf_token %}
+<div id="deleteUserModal" class="modal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- Header del Modal -->
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteUserModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Eliminar Usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" onclick="closeDeleteModal()" aria-label="Cerrar"></button>
+            </div>
+            
+            <!-- Cuerpo del Modal -->
+            <div class="modal-body">
+                <!-- Alerta de advertencia principal -->
+                <div class="alert alert-danger">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-circle me-3"></i>
+                        <div>
+                            <h6 class="mb-1">¡ATENCIÓN! Acción Irreversible</h6>
+                            <p class="mb-0">
+                                Estás a punto de eliminar permanentemente este usuario. 
+                                <strong>Esta acción no se puede deshacer.</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-// Ejecutar al cargar y redimensionar
-window.addEventListener('load', toggleTableView);
-window.addEventListener('resize', toggleTableView);
+                <!-- Información del usuario a eliminar -->
+                <div class="card bg-light mb-3" id="userInfoCard">
+                    <div class="card-body">
+                        <h6 class="card-title text-muted mb-3">
+                            <i class="fas fa-user me-2"></i>
+                            Usuario a Eliminar
+                        </h6>
+                        
+                        <div class="text-center mb-3">
+                            <div class="user-avatar-large bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-2">
+                                <span id="userInitials"></span>
+                            </div>
+                            <div>
+                                <div class="mb-1"><strong id="userFullName"></strong></div>
+                                <div class="text-muted mb-1" id="userEmail"></div>
+                                <div class="text-muted mb-1">Org: <span id="userOrganization">{{ user.organization.name|default:"N/A" }}</span></div>
+                                <div id="userStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-// Búsqueda en tiempo real (opcional)
-const searchInput = document.querySelector('.table-search-input');
-if (searchInput) {
-    let searchTimeout;
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            // Aquí podrías implementar búsqueda AJAX en tiempo real
-            console.log('Búsqueda:', this.value);
-        }, 500);
-    });
-}
-</script>
+                <!-- Confirmación -->
+                <div class="bg-light rounded p-3 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmUnderstand" required>
+                        <label class="form-check-label" for="confirmUnderstand">
+                            <strong>Entiendo que esta acción es irreversible</strong> y confirmo que quiero eliminar permanentemente este usuario
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer del Modal -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    Eliminar Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- El JavaScript para el modal se encuentra en user_management.js -->
 {% endblock %}
