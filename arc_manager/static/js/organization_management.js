@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== FUNCIONES DE INICIALIZACIÓN ===== //
     initializeAnimations();
     initializeInteractions();
-    initializeTrialWarning();
     initializeCounters();
 });
 
@@ -145,60 +144,19 @@ function createRippleEffect(e) {
     setTimeout(() => ripple.remove(), 600);
 }
 
-// ===== MANEJO DE ALERTA DE TRIAL ===== //
-function initializeTrialWarning() {
-    const trialCard = document.querySelector('.trial-warning-card');
-    if (!trialCard) return;
-
-    // Agregar urgencia visual basada en días restantes
-    const daysElement = trialCard.querySelector('.trial-days');
-    if (daysElement) {
-        const days = parseInt(daysElement.textContent);
-        
-        if (days <= 3) {
-            trialCard.classList.add('trial-urgent');
-            addPulseEffect(trialCard);
-        } else if (days <= 7) {
-            trialCard.classList.add('trial-warning');
-        }
-    }
-
-    // Hacer que los botones se destaquen más en situaciones urgentes
-    if (trialCard.classList.contains('trial-urgent')) {
-        const primaryBtn = trialCard.querySelector('.btn-primary-improved');
-        if (primaryBtn) {
-            primaryBtn.style.animation = 'pulse 2s infinite';
-            primaryBtn.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.5)';
-        }
-    }
-}
-
-// ===== EFECTO PULSE PARA URGENCIA ===== //
-function addPulseEffect(element) {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-    `;
-    
-    if (!document.querySelector('style[data-pulse]')) {
-        style.setAttribute('data-pulse', 'true');
-        document.head.appendChild(style);
-    }
-}
-
 // ===== ANIMACIÓN DE CONTADORES ===== //
 function initializeCounters() {
-    const counterElements = document.querySelectorAll('.stat-value, .trial-days');
+    // Solo animar elementos con la clase específica 'animate-counter'
+    const counterElements = document.querySelectorAll('.trial-days');
     
     const animateCounter = (element) => {
-        const target = parseInt(element.textContent.replace(/\D/g, ''));
-        if (isNaN(target)) return;
+        const originalText = element.textContent.trim();
         
-        const increment = target / 50;
+        // Solo animar números puros (días de trial)
+        const target = parseInt(originalText);
+        if (isNaN(target) || target <= 0) return;
+        
+        const increment = target / 30; // Más suave
         let current = 0;
         const timer = setInterval(() => {
             current += increment;
@@ -207,11 +165,8 @@ function initializeCounters() {
                 clearInterval(timer);
             }
             
-            // Preservar el texto original pero con el número animado
-            const originalText = element.textContent;
-            const newText = originalText.replace(/\d+/, Math.floor(current));
-            element.textContent = newText;
-        }, 20);
+            element.textContent = Math.floor(current);
+        }, 30);
     };
 
     // Observar cuando los contadores entren en vista
@@ -225,7 +180,11 @@ function initializeCounters() {
     }, { threshold: 0.5 });
 
     counterElements.forEach(counter => {
-        counterObserver.observe(counter);
+        // Solo observar elementos que contengan números puros
+        const text = counter.textContent.trim();
+        if (!isNaN(parseInt(text))) {
+            counterObserver.observe(counter);
+        }
     });
 }
 

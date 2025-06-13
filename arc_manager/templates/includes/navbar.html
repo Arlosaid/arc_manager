@@ -1,19 +1,4 @@
-<!-- templates/includes/navbar.html -->
 <nav class="main-navbar" id="mainNavbar">
-    <!-- Logo/Marca a la izquierda -->
-    <!--
-    <a href="#" class="navbar-brand">
-        <div class="brand-logo">
-            {% if user.organization.logo %}
-                <img src="{{ user.organization.logo.url }}" alt="{{ user.organization.name }}">
-            {% else %}
-                {{ user.organization.name|default:"A"|slice:":1"|upper }}
-            {% endif %}
-        </div>
-        <span class="brand-text">{{ user.organization.name|default:"Acme Inc." }}</span>
-    </a>
-    -->
-
     <!-- Sección derecha solo con usuario -->
     <div class="navbar-right">        
         <!-- Menú de usuario minimalista -->
@@ -22,10 +7,10 @@
                 <div class="user-avatar-minimal">
                     <!-- Mostrar solo iniciales, sin imágenes -->
                     <div class="avatar-placeholder-minimal">
-                        {{ user.organization.name|default:"A"|slice:":1"|upper }}
+                        {{ user.name|default:"A"|slice:":1"|upper }}
                     </div>
                 </div>
-                <span class="company-name">{{ user.organization.name|default:"Acme Inc." }}</span>
+                <span class="company-name">{{ user.first_name|default:"Mi Empresa"|slice:":1"|upper }} {{ user.last_name|default:"Empresa" }}</span>
                 <i class="fas fa-chevron-down dropdown-arrow-minimal"></i>
             </button>
             
@@ -33,17 +18,13 @@
                 <!-- Avatar y información básica -->
                 <div class="dropdown-user-info">
                     <div class="dropdown-user-details">
-                        <div class="dropdown-org-name">{{ user.organization.name|default:"Acme Inc." }}</div>
-                        <div class="dropdown-user-role">Administrador</div>
+                        <div class="dropdown-org-name">{{ user.organization.name|default:"Tu empresa" }}</div>
+                        <div class="dropdown-user-role">{% if user.is_org_admin %}Administrador{% else %}Miembro{% endif %}</div>
                     </div>
                 </div>
                 
                 <!-- Opciones del menú con iconos y textos en español -->
-                <a class="dropdown-item" href="#">
-                    <i class="fas fa-cog"></i>
-                    Configuración
-                </a>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="{% url 'users:detail' user.pk %}">
                     <i class="fas fa-user"></i>
                     Mi Perfil
                 </a>

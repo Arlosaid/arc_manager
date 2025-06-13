@@ -72,7 +72,8 @@ class PlanForm(forms.ModelForm):
 class PublicPricingView(TemplateView):
     """Vista pública de precios para visitantes"""
     template_name = 'plans/public_pricing.html'
-    
+
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -261,54 +262,6 @@ class SubscriptionDashboardView(LoginRequiredMixin, TemplateView):
 
 
 
-
-
-# Vista para procesar pagos manuales (solo para staff)
-class ProcessPaymentView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    """Vista para que el staff procese pagos manuales"""
-    template_name = 'plans/process_payment.html'
-    
-    def test_func(self):
-        return self.request.user.is_staff
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Suscripciones con pagos pendientes
-        pending_subscriptions = Subscription.objects.filter(
-            payment_status='pending'
-        ).select_related('organization', 'plan')
-        
-        context['pending_subscriptions'] = pending_subscriptions
-        
-        return context
-    
-    def post(self, request, *args, **kwargs):
-        """Procesar pago manual"""
-        subscription_id = request.POST.get('subscription_id')
-        payment_reference = request.POST.get('payment_reference')
-        amount = request.POST.get('amount')
-        
-        try:
-            subscription = get_object_or_404(Subscription, id=subscription_id)
-            amount = float(amount)
-            
-            # Procesar pago
-            SubscriptionService.process_manual_payment(
-                subscription.organization,
-                amount,
-                payment_reference
-            )
-            
-            messages.success(
-                request,
-                f"Pago procesado para {subscription.organization.name}"
-            )
-            
-        except Exception as e:
-            messages.error(request, f"Error procesando pago: {str(e)}")
-        
-        return redirect('plans:process_payment')
 
 
 # Funciones auxiliares y API

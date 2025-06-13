@@ -14,9 +14,6 @@ urlpatterns = [
     # URLs para sistema de upgrade (solo para usuarios)
     path('request-upgrade/', views.RequestUpgradeView.as_view(), name='request_upgrade'),
     
-    # URLs para Staff (procesamiento manual de pagos)
-    path('payments/', views.ProcessPaymentView.as_view(), name='process_payment'),
-    
     # API endpoints
     path('api/check-limits/', views.check_subscription_limits, name='check_limits'),
     
