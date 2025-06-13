@@ -46,11 +46,13 @@ def my_organization(request):
         messages.info(request, "No estás asignado a ninguna organización.")
         return redirect('main:dashboard')
     
+    organization = request.user.organization
+    
     return render(request, 'orgs/my_organization.html', {
-        'organization': request.user.organization,
-        'users': request.user.organization.users.all(),
-        'admins': request.user.organization.get_admins(),
-        # Puedes agregar aquí active_users si lo necesitas
+        'organization': organization,
+        'users': organization.users.all(),
+        'admins': organization.get_admins(),
+        'active_users': organization.users.filter(is_active=True),
     })
 
 class OrganizationDetailView(LoginRequiredMixin, DetailView):

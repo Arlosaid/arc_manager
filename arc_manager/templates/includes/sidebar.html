@@ -32,42 +32,29 @@
                 </ul>
             </div>
 
-            <!-- Plans Section - Simplificado -->
+            <!-- Suscripción Section - Simplificado para SaaS -->
+            {% if user.is_authenticated %}
             <div class="nav-section">
                 <div class="section-header">
                     <h6 class="section-title">
-                        <i class="fas fa-box"></i>
-                        <span>Planes</span>
+                        <i class="fas fa-credit-card"></i>
+                        <span>Suscripción</span>
                     </h6>
                 </div>
                 <ul class="nav-list">
-                    <!-- Para usuarios autenticados -->
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link {% if '/plans/dashboard/' in request.path %}active{% endif %}" 
-                               href="{% url 'plans:subscription_dashboard' %}" data-tooltip="Mi Suscripción">
-                                <div class="nav-icon">
-                                    <i class="fas fa-credit-card"></i>
-                                </div>
-                                <span class="nav-text">Mi Suscripción</span>
-                                <div class="nav-indicator"></div>
-                            </a>
-                        </li>
-                    {% endif %}
-                    
-                    <!-- Para todos - Solo mostrar precios -->
                     <li class="nav-item">
-                        <a class="nav-link {% if '/plans/pricing/' in request.path %}active{% endif %}" 
-                           href="{% url 'plans:pricing' %}" data-tooltip="Precios">
+                        <a class="nav-link {% if 'plans:' in request.resolver_match.namespace|default:'' or 'subscription' in request.resolver_match.url_name|default:'' or '/plans/' in request.path %}active{% endif %}" 
+                           href="{% url 'plans:subscription_dashboard' %}" data-tooltip="Mi Suscripción">
                             <div class="nav-icon">
-                                <i class="fas fa-tags"></i>
+                                <i class="fas fa-chart-pie"></i>
                             </div>
-                            <span class="nav-text">Precios</span>
+                            <span class="nav-text">Mi Plan</span>
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
                 </ul>
             </div>
+            {% endif %}
 
             <!-- Administration Section -->
             {% if user.is_org_admin %}
@@ -80,7 +67,7 @@
                     </div>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a class="nav-link {% if 'users' in request.path %}active{% endif %}" 
+                            <a class="nav-link {% if 'users:' in request.resolver_match.namespace|default:'' or 'user' in request.resolver_match.url_name|default:'' or '/users/' in request.path %}active{% endif %}" 
                                href="{% url 'users:user_list' %}" data-tooltip="Usuarios">
                                 <div class="nav-icon">
                                     <i class="fas fa-users"></i>
@@ -92,8 +79,8 @@
                         
                         {% if user.organization %}
                             <li class="nav-item">
-                                <a class="nav-link {% if 'organizaciones' in request.path %}active{% endif %}" 
-                                   href="{% url 'orgs:detail' user.organization.pk %}" data-tooltip="Mi Organización">
+                                <a class="nav-link {% if 'orgs:' in request.resolver_match.namespace|default:'' or 'my_organization' in request.resolver_match.url_name|default:'' or '/mi-organizacion/' in request.path %}active{% endif %}" 
+                                   href="{% url 'orgs:my_organization' %}" data-tooltip="Mi Organización">
                                     <div class="nav-icon">
                                         <i class="fas fa-building"></i>
                                     </div>

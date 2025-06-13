@@ -32,37 +32,43 @@
     </div>
 
     <!-- Estadísticas -->
-    <div class="stats-grid-simple">
-        <div class="stat-card-simple metric-card">
-            <div class="stat-icon-simple users">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-details-simple">
-                <div class="stat-number-simple">{{ total_users|default:"1" }}/{{ max_users|default:"2" }}</div>
-                <div class="stat-label-simple">Total Usuarios</div>
-                <div class="stat-sublabel-simple">{{ remaining_slots|default:"1" }} espacios disponibles</div>
+    <div class="stats-grid-advanced">
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Total Usuarios</div>
+                    <div class="stat-value-advanced">{{ total_users|default:"1" }}/{{ max_users|default:"2" }}</div>
+                    <div class="stat-subtitle-advanced">{{ remaining_slots|default:"1" }} espacios disponibles</div>
+                </div>
             </div>
         </div>
         
-        <div class="stat-card-simple metric-card">
-            <div class="stat-icon-simple active">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stat-details-simple">
-                <div class="stat-number-simple">{{ active_users|default:"1" }}</div>
-                <div class="stat-label-simple">Usuarios Activos</div>
-                <div class="stat-sublabel-simple">Con acceso al sistema</div>
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced active">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Usuarios Activos</div>
+                    <div class="stat-value-advanced">{{ active_users|default:"1" }}</div>
+                    <div class="stat-subtitle-advanced">Con acceso al sistema</div>
+                </div>
             </div>
         </div>
 
-        <div class="stat-card-simple metric-card">
-            <div class="stat-icon-simple inactive">
-                <i class="fas fa-user-times"></i>
-            </div>
-            <div class="stat-details-simple">
-                <div class="stat-number-simple">{{ inactive_users|default:"0" }}</div>
-                <div class="stat-label-simple">Usuarios Inactivos</div>
-                <div class="stat-sublabel-simple">Acceso suspendido</div>
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced inactive">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Usuarios Inactivos</div>
+                    <div class="stat-value-advanced">{{ inactive_users|default:"0" }}</div>
+                    <div class="stat-subtitle-advanced">Acceso suspendido</div>
+                </div>
             </div>
         </div>
     </div>

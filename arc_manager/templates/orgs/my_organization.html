@@ -7,214 +7,158 @@
 <link rel="stylesheet" href="{% static 'css/organization_management.css' %}">
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/organization_management.js' %}"></script>
-{% endblock %}
-
 {% block content %}
-<div class="organization-container">
-    <!-- Header simplificado -->
-    <div class="org-header">
-        <div class="org-header-content">
-            <div class="org-info">
-                <div class="org-icon">
+<div class="page-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="header-icon">
                     <i class="fas fa-building"></i>
                 </div>
-                <div class="org-details">
-                    <h1>{{ organization.name }}</h1>
-                    {% if user.is_org_admin %}
-                        <div class="org-role">
-                            <i class="fas fa-crown"></i> Administrador
-                        </div>
-                    {% else %}
-                        <div class="org-role">
-                            <i class="fas fa-user"></i> Miembro
-                        </div>
-                    {% endif %}
-                </div>
+                <h1>{{ organization.name }}</h1>
             </div>
-            <div class="org-status">
-                {% if organization.is_active %}
-                    <i class="fas fa-check-circle"></i>
-                    <span>Activa</span>
+            <div class="d-flex align-items-center gap-3">
+                {% if user.is_org_admin %}
+                    <span class="role-badge admin">
+                        <i class="fas fa-crown"></i> Administrador
+                    </span>
                 {% else %}
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Inactiva</span>
+                    <span class="role-badge developer">
+                        <i class="fas fa-user"></i> Miembro
+                    </span>
+                {% endif %}
+                
+                {% if organization.is_active %}
+                    <span class="status-badge active">
+                        <i class="fas fa-check-circle"></i> Activa
+                    </span>
+                {% else %}
+                    <span class="status-badge inactive">
+                        <i class="fas fa-exclamation-triangle"></i> Inactiva
+                    </span>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Alerta de trial mejorada -->
-    {% if organization.is_trial and organization.trial_days_remaining %}
-        <div class="trial-warning-card {% if organization.trial_days_remaining <= 3 %}trial-urgent{% elif organization.trial_days_remaining <= 7 %}trial-warning{% endif %}" role="alert" aria-live="polite">
-            <div class="trial-icon">
-                {% if organization.trial_days_remaining <= 3 %}
-                    <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-                {% elif organization.trial_days_remaining <= 7 %}
-                    <i class="fas fa-clock" aria-hidden="true"></i>
-                {% else %}
-                    <i class="fas fa-fire" aria-hidden="true"></i>
-                {% endif %}
-            </div>
-            
-            {% if organization.trial_days_remaining <= 3 %}
-                <div class="trial-title">⚠️ Tu prueba expira pronto</div>
-                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
-                <div class="trial-subtitle">
-                    {% if organization.trial_days_remaining == 1 %}
-                        ¡Último día! Tu acceso se suspenderá mañana
-                    {% else %}
-                        Tu acceso se suspenderá en {{ organization.trial_days_remaining }} días
-                    {% endif %}
-                </div>
-                <div class="trial-consequences">
-                    Sin actualizar: perderás acceso a usuarios y funciones
-                </div>
-            {% elif organization.trial_days_remaining <= 7 %}
-                <div class="trial-title">⏰ Prueba terminando</div>
-                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
-                <div class="trial-subtitle">restantes de tu período de prueba</div>
-                <div class="trial-benefits">
-                    Actualiza ahora y mantén todos tus usuarios y datos
-                </div>
-            {% else %}
-                <div class="trial-title">🔥 Período de Prueba Activo</div>
-                <div class="trial-days">{{ organization.trial_days_remaining }} día{{ organization.trial_days_remaining|pluralize }}</div>
-                <div class="trial-subtitle">para explorar todas las funciones</div>
-                <div class="trial-benefits">
-                    Usuarios ilimitados • Soporte prioritario • Sin restricciones
-                </div>
-            {% endif %}
-            
-            <div class="trial-actions">
-                <a href="{% url 'plans:pricing' %}" class="btn-primary-improved" aria-label="{% if organization.trial_days_remaining <= 3 %}Actualizar plan ahora{% else %}Ver planes disponibles{% endif %}">
-                    <i class="fas fa-rocket" aria-hidden="true"></i>
-                    {% if organization.trial_days_remaining <= 3 %}
-                        Actualizar Ahora
-                    {% else %}
-                        Ver Planes
-                    {% endif %}
-                </a>
-                {% if organization.trial_days_remaining > 7 %}
-                    <a href="{% url 'plans:subscription_dashboard' %}" class="btn-secondary-trial" aria-label="Ver más información sobre suscripción">
-                        <i class="fas fa-info-circle" aria-hidden="true"></i>
-                        Más Info
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-    {% endif %}
-
-    <!-- Contenido principal -->
-    <div class="main-content-grid">
-        <!-- Plan actual -->
-        <div class="info-card plan-card">
-            <div class="card-header">
-                <div class="card-icon">
+    <!-- Estadísticas Principales -->
+    <div class="stats-grid-advanced">
+        <!-- Plan Actual -->
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced plan">
                     <i class="fas fa-box"></i>
                 </div>
-                <h3 class="card-title">Plan Actual</h3>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Plan Actual</div>
+                    <div class="stat-value-advanced">
+                        {% if organization.plan %}
+                            {{ organization.plan.display_name }}
+                        {% else %}
+                            Sin Plan
+                        {% endif %}
+                    </div>
+                    <div class="stat-subtitle-advanced">
+                        {% if organization.plan and organization.plan.price > 0 %}
+                            ${{ organization.plan.price|floatformat:0 }}/mes
+                        {% elif organization.plan %}
+                            Gratuito
+                        {% else %}
+                            No asignado
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% if organization.plan %}
-                <div class="plan-name">{{ organization.plan.display_name }}</div>
-                <div class="plan-price">
-                    {% if organization.plan.price > 0 %}
-                        ${{ organization.plan.price }}/mes
-                    {% else %}
-                        Gratuito
-                    {% endif %}
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Límite de usuarios</span>
-                    <span class="stat-value">{{ organization.get_max_users }}</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Estado</span>
-                    {% if organization.is_subscription_active %}
-                        <span class="stat-badge">Activa</span>
-                    {% else %}
-                        <span class="stat-badge danger">Inactiva</span>
-                    {% endif %}
-                </div>
-            {% else %}
-                <p style="color: #64748b; text-align: center;">No hay plan asignado</p>
-            {% endif %}
         </div>
 
-        <!-- Estadísticas de usuarios -->
-        <div class="info-card">
-            <div class="card-header">
-                <div class="card-icon">
+        <!-- Usuarios -->
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced users">
                     <i class="fas fa-users"></i>
                 </div>
-                <h3 class="card-title">Usuarios</h3>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Usuarios</div>
+                    <div class="stat-value-advanced">{{ organization.get_active_user_count }}/{{ organization.get_max_users|default:"∞" }}</div>
+                    <div class="stat-subtitle-advanced">{{ organization.get_active_user_count }} activos</div>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">Total</span>
-                <span class="stat-value">{{ organization.get_user_count }}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Activos</span>
-                <span class="stat-value">{{ organization.get_active_user_count }}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Administradores</span>
-                <span class="stat-value">{{ organization.get_admins.count }}</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Capacidad</span>
-                {% with max_users=organization.get_max_users %}
-                    {% if max_users > 0 %}
-                        {% widthratio organization.get_user_count max_users 100 as percentage %}
-                        {% if percentage >= 90 %}
-                            <span class="stat-badge danger">{{ percentage }}%</span>
-                        {% elif percentage >= 70 %}
-                            <span class="stat-badge warning">{{ percentage }}%</span>
-                        {% else %}
-                            <span class="stat-badge">{{ percentage }}%</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="stat-badge danger">N/A</span>
-                    {% endif %}
-                {% endwith %}
+        </div>
+
+        <!-- Estado de Suscripción -->
+        <div class="stat-card-advanced">
+            <div class="stat-header-advanced">
+                <div class="stat-icon-advanced subscription">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="stat-main-advanced">
+                    <div class="stat-title-advanced">Suscripción</div>
+                    <div class="stat-value-advanced">
+                        {% if organization.is_subscription_active %}Activa{% else %}Inactiva{% endif %}
+                    </div>
+                    <div class="stat-subtitle-advanced">
+                        {% if organization.is_subscription_active %}Funcionando correctamente{% else %}Necesita atención{% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Acciones rápidas -->
+    <!-- Acciones Rápidas -->
     {% if user.is_org_admin %}
-        <div class="quick-actions">
-            <a href="{% url 'users:user_list' %}" class="action-card" aria-label="Gestionar usuarios de la organización">
-                <div class="action-icon">
-                    <i class="fas fa-users" aria-hidden="true"></i>
-                </div>
-                <div class="action-title">Gestionar Usuarios</div>
-                <div class="action-description">Crear y administrar usuarios</div>
-            </a>
+        <div class="quick-actions-section">
+            <div class="section-header">
+                <h3><i class="fas fa-bolt"></i> Acciones Rápidas</h3>
+            </div>
             
-            <a href="{% url 'plans:subscription_dashboard' %}" class="action-card" aria-label="Ver dashboard de suscripción">
-                <div class="action-icon">
-                    <i class="fas fa-credit-card" aria-hidden="true"></i>
-                </div>
-                <div class="action-title">Suscripción</div>
-                <div class="action-description">Ver plan y facturación</div>
-            </a>
-            
-            <a href="{% url 'plans:pricing' %}" class="action-card" aria-label="Actualizar plan de suscripción">
-                <div class="action-icon">
-                    <i class="fas fa-rocket" aria-hidden="true"></i>
-                </div>
-                <div class="action-title">Actualizar Plan</div>
-                <div class="action-description">Explorar más opciones</div>
-            </a>
+            <div class="actions-grid">
+                <a href="{% url 'users:user_list' %}" class="action-card-modern">
+                    <div class="action-icon-modern users">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="action-text">
+                        <h4>Gestionar Usuarios</h4>
+                        <p>Crear, editar y administrar usuarios de la organización</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'plans:subscription_dashboard' %}" class="action-card-modern">
+                    <div class="action-icon-modern subscription">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="action-text">
+                        <h4>Mi Suscripción</h4>
+                        <p>Dashboard de plan y métricas de uso</p>
+                    </div>
+                </a>
+                
+                <a href="{% url 'plans:request_upgrade' %}" class="action-card-modern">
+                    <div class="action-icon-modern upgrade">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="action-text">
+                        <h4>Solicitar Upgrade</h4>
+                        <p>Mejorar plan y obtener más funciones</p>
+                    </div>
+                </a>
+            </div>
         </div>
     {% endif %}
 
-    <!-- Mensaje de soporte -->
-    <div class="support-message">
-        <i class="fas fa-info-circle"></i>
-        <span>Para cambios en la organización, contacta al soporte</span>
+    <!-- Mensaje de Soporte -->
+    <div class="support-card">
+        <div class="support-icon">
+            <i class="fas fa-headset"></i>
+        </div>
+        <div class="support-text">
+            <h4>¿Necesitas ayuda?</h4>
+            <p>Para cambios en la organización o soporte técnico, contacta: <span class="support-email">soporte@arcmanager.com</span></p>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/organization_management.js' %}"></script>
 {% endblock %} 

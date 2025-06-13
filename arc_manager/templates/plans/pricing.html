@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Planes y Precios - Arc Manager{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/pricing.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="pricing-container">
+    <!-- Header Section -->
+    <div class="pricing-header">
+        <div class="pricing-header-content">
+            <h1 class="pricing-title">Elige el plan perfecto para tu equipo</h1>
+            <p class="pricing-subtitle">
+                Gestiona tus proyectos de manera eficiente con Arc Manager. 
+                Comienza con 30 días gratis, sin compromiso.
+            </p>
+        </div>
+    </div>
+
+    <!-- Plans Grid -->
+    <div class="plans-grid">
+        <!-- Plan Trial -->
+        <div class="plan-card trial-plan">
+            <div class="plan-badge trial-badge">
+                <i class="fas fa-gift"></i>
+                Prueba Gratis
+            </div>
+            
+            <div class="plan-header">
+                <h3 class="plan-name">Prueba Gratuita</h3>
+                <div class="plan-price">
+                    <span class="price-amount">Gratis</span>
+                    <span class="price-period">30 días completos</span>
+                </div>
+                <p class="plan-description">
+                    Acceso completo para probar todas las funciones
+                </p>
+            </div>
+
+            <div class="plan-features">
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 2 usuarios</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 3 proyectos</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>1 GB de almacenamiento</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Soporte por email</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Acceso completo por 30 días</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="plan-cta">
+                <a href="{% url 'users:register' %}" class="cta-button trial-cta">
+                    <i class="fas fa-rocket"></i>
+                    Comenzar Prueba Gratis
+                </a>
+                <p class="cta-note">No se requiere tarjeta de crédito</p>
+            </div>
+        </div>
+
+        <!-- Plan Básico -->
+        <div class="plan-card basic-plan featured">
+            <div class="plan-badge featured-badge">
+                <i class="fas fa-star"></i>
+                Más Popular
+            </div>
+            
+            <div class="plan-header">
+                <h3 class="plan-name">Plan Básico</h3>
+                <div class="plan-price">
+                    <span class="price-amount">$299</span>
+                    <span class="price-currency">MXN</span>
+                    <span class="price-period">al mes</span>
+                </div>
+                <p class="plan-description">
+                    Ideal para pequeños equipos que inician
+                </p>
+            </div>
+
+            <div class="plan-features">
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 5 usuarios</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 10 proyectos</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>5 GB de almacenamiento</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Soporte por email</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Respaldos diarios</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Sin anuncios</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="plan-cta">
+                <a href="{% url 'plans:request_upgrade' %}" class="cta-button basic-cta">
+                    <i class="fas fa-arrow-up"></i>
+                    Comenzar Plan Básico
+                </a>
+                <p class="cta-note">Cancela cuando quieras</p>
+            </div>
+        </div>
+
+        <!-- Plan Premium -->
+        <div class="plan-card premium-plan">
+            <div class="plan-badge premium-badge">
+                <i class="fas fa-crown"></i>
+                Avanzado
+            </div>
+            
+            <div class="plan-header">
+                <h3 class="plan-name">Plan Premium</h3>
+                <div class="plan-price">
+                    <span class="price-amount">$599</span>
+                    <span class="price-currency">MXN</span>
+                    <span class="price-period">al mes</span>
+                </div>
+                <p class="plan-description">
+                    Para equipos en crecimiento con necesidades avanzadas
+                </p>
+            </div>
+
+            <div class="plan-features">
+                <ul class="features-list">
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 15 usuarios</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Hasta 50 proyectos</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>20 GB de almacenamiento</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Soporte prioritario</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Respaldos diarios</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Reportes avanzados</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Integraciones API</span>
+                    </li>
+                    <li class="feature-item">
+                        <i class="fas fa-check feature-check"></i>
+                        <span>Sin anuncios</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="plan-cta">
+                <a href="{% url 'plans:request_upgrade' %}" class="cta-button premium-cta">
+                    <i class="fas fa-crown"></i>
+                    Comenzar Plan Premium
+                </a>
+                <p class="cta-note">Ideal para equipos grandes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trust Indicators -->
+    <div class="trust-section">
+        <div class="trust-indicators">
+            <div class="trust-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>Datos seguros y encriptados</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-headset"></i>
+                <span>Soporte técnico incluido</span>
+            </div>
+            <div class="trust-item">
+                <i class="fas fa-sync-alt"></i>
+                <span>Actualización sin costo adicional</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+        <h2 class="faq-title">Preguntas Frecuentes</h2>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <h4 class="faq-question">¿Puedo cambiar de plan en cualquier momento?</h4>
+                <p class="faq-answer">
+                    Sí, puedes actualizar o degradar tu plan en cualquier momento. 
+                    Los cambios se aplicarán en tu próximo ciclo de facturación.
+                </p>
+            </div>
+            <div class="faq-item">
+                <h4 class="faq-question">¿Qué incluye el período de prueba?</h4>
+                <p class="faq-answer">
+                    El período de prueba incluye acceso completo a todas las funciones 
+                    por 30 días, sin restricciones y sin necesidad de tarjeta de crédito.
+                </p>
+            </div>
+            <div class="faq-item">
+                <h4 class="faq-question">¿Cómo funciona el proceso de pago?</h4>
+                <p class="faq-answer">
+                    Actualmente manejamos pagos manuales. Te contactaremos para 
+                    coordinar el método de pago que mejor te convenga.
+                </p>
+            </div>
+            <div class="faq-item">
+                <h4 class="faq-question">¿Hay descuentos por pago anual?</h4>
+                <p class="faq-answer">
+                    Próximamente ofreceremos descuentos especiales para pagos anuales. 
+                    Contáctanos para conocer ofertas especiales.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pricing.js' %}"></script>
+{% endblock %} 

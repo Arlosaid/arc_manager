@@ -63,10 +63,16 @@ class UserListView(LoginRequiredMixin, ListView):
         inactive_users = total_users - active_users
         percentage_active = round((active_users / total_users * 100) if total_users > 0 else 0)
         
+        # Obtener límites de la organización
+        max_users = user.organization.get_max_users() if user.organization else 0
+        remaining_slots = max(0, max_users - total_users) if max_users > 0 else 0
+        
         context['total_users'] = total_users
         context['active_users'] = active_users
         context['inactive_users'] = inactive_users
         context['percentage_active'] = percentage_active
+        context['max_users'] = max_users
+        context['remaining_slots'] = remaining_slots
         
         # Pasar búsqueda al contexto
         context['search'] = self.request.GET.get('search', '')
