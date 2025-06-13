@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Suscripción - Arc Manager{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/plans.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/plans.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-container subscription-dashboard">
+    <!-- HEADER SECTION -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="header-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h1>Mi Suscripción</h1>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO CARD DEL PLAN ACTUAL -->
+    <div class="plan-hero-card">
+        <div class="plan-hero-content">
+            <div class="plan-hero-left">
+                <div class="plan-icon-large {% if subscription.is_trial %}trial{% elif subscription.plan.name == 'basic' %}basic{% elif subscription.plan.name == 'premium' %}premium{% endif %}">
+                    {% if subscription.is_trial %}
+                        <i class="fas fa-gift"></i>
+                    {% elif subscription.plan.name == 'basic' %}
+                        <i class="fas fa-star"></i>
+                    {% elif subscription.plan.name == 'premium' %}
+                        <i class="fas fa-crown"></i>
+                    {% else %}
+                        <i class="fas fa-box"></i>
+                    {% endif %}
+                </div>
+                <div class="plan-hero-info">
+                    <h2 class="plan-name">{{ subscription.plan.display_name }}</h2>
+                    <div class="plan-price">
+                        {% if subscription.plan.price == 0 %}
+                            <span class="price-amount">Gratis</span>
+                        {% else %}
+                            <span class="price-symbol">$</span>
+                            <span class="price-amount">{{ subscription.plan.price|floatformat:0 }}</span>
+                            <span class="price-period">/mes</span>
+                        {% endif %}
+                    </div>
+                    <p class="plan-description">{{ subscription.plan.description|default:"Perfecto para tu organización" }}</p>
+                    
+                    <!-- BOTÓN INTEGRADO EN LA CARD -->
+                    {% if subscription.is_trial %}
+                        <a href="{% url 'plans:request_upgrade' %}" class="plan-upgrade-btn">
+                            <i class="fas fa-arrow-up"></i>
+                            Actualizar Plan
+                        </a>
+                    {% elif subscription.plan.name != 'premium' %}
+                        <a href="{% url 'plans:request_upgrade' %}" class="plan-upgrade-btn">
+                            <i class="fas fa-rocket"></i>
+                            Mejorar Plan
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="plan-hero-right">
+                <div class="subscription-status">
+                    <div class="status-indicator {% if subscription.is_active %}active{% else %}inactive{% endif %}">
+                        {% if subscription.is_active %}
+                            <i class="fas fa-check-circle"></i>
+                            <span>Activa</span>
+                        {% else %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Inactiva</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if subscription.is_trial %}
+                        <div class="trial-badge">
+                            <i class="fas fa-clock"></i>
+                            Período de Prueba
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="renewal-info">
+                    {% if subscription.is_trial %}
+                        <div class="trial-countdown">
+                            <div class="countdown-number">{{ subscription_status.trial_days_remaining }}</div>
+                            <div class="countdown-label">días restantes</div>
+                        </div>
+                    {% else %}
+                        <div class="next-billing">
+                            <div class="billing-label">Próxima facturación</div>
+                            <div class="billing-date">{{ subscription.next_billing_date|date:"d M Y"|default:"Contactar soporte" }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if subscription.is_trial and subscription_status.trial_days_remaining <= 7 %}
+            <div class="trial-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Tu período de prueba vence pronto. <a href="{% url 'plans:request_upgrade' %}">Actualiza ahora</a> para continuar sin interrupciones.</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- GRID PRINCIPAL - USANDO CLASE ESTÁNDAR -->
+    <div class="main-content-grid">
+        <!-- LADO IZQUIERDO -->
+        <div class="left-content">
+            <!-- ESTADÍSTICAS DE USO -->
+            <div class="usage-statistics">
+                <div class="section-header">
+                    <h3><i class="fas fa-chart-bar"></i> Uso Actual</h3>
+                    <div class="usage-period">Este mes</div>
+                </div>
+                
+                <div class="usage-grid">
+                    <!-- Usuarios -->
+                    <div class="usage-card">
+                        <div class="usage-card-header">
+                            <div class="usage-icon users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="usage-info">
+                                <h4>Usuarios</h4>
+                                <div class="usage-numbers">
+                                    <span class="current">{{ usage_stats.users.current }}</span>
+                                    <span class="separator">/</span>
+                                    <span class="limit">{{ usage_stats.users.limit }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" data-percentage="{{ usage_stats.users.percentage }}"></div>
+                            </div>
+                            <div class="usage-percentage">{{ usage_stats.users.percentage|floatformat:0 }}%</div>
+                        </div>
+                        
+                        <div class="usage-status {% if usage_stats.users.percentage >= 90 %}warning{% elif usage_stats.users.percentage >= 70 %}caution{% else %}good{% endif %}">
+                            {% if usage_stats.users.can_add %}
+                                <i class="fas fa-check-circle"></i>
+                                Puedes agregar {{ usage_stats.users.available }} usuario{{ usage_stats.users.available|pluralize }} más
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Límite alcanzado
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Proyectos -->
+                    <div class="usage-card">
+                        <div class="usage-card-header">
+                            <div class="usage-icon projects">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="usage-info">
+                                <h4>Proyectos</h4>
+                                <div class="usage-numbers">
+                                    <span class="current">{{ usage_stats.projects.current }}</span>
+                                    <span class="separator">/</span>
+                                    <span class="limit">{{ usage_stats.projects.limit }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" data-percentage="{{ usage_stats.projects.percentage }}"></div>
+                            </div>
+                            <div class="usage-percentage">{{ usage_stats.projects.percentage|floatformat:0 }}%</div>
+                        </div>
+                        
+                        <div class="usage-status {% if usage_stats.projects.percentage >= 90 %}warning{% elif usage_stats.projects.percentage >= 70 %}caution{% else %}good{% endif %}">
+                            {% if usage_stats.projects.can_add %}
+                                <i class="fas fa-check-circle"></i>
+                                {{ usage_stats.projects.available }} espacios disponibles
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Límite alcanzado
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Almacenamiento -->
+                    <div class="usage-card">
+                        <div class="usage-card-header">
+                            <div class="usage-icon storage">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="usage-info">
+                                <h4>Almacenamiento</h4>
+                                <div class="usage-numbers">
+                                    <span class="current">{{ usage_stats.storage.current_gb|floatformat:1 }}</span>
+                                    <span class="separator">/</span>
+                                    <span class="limit">{{ usage_stats.storage.limit }}</span>
+                                    <span class="unit">GB</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" data-percentage="{{ usage_stats.storage.percentage }}"></div>
+                            </div>
+                            <div class="usage-percentage">{{ usage_stats.storage.percentage|floatformat:0 }}%</div>
+                        </div>
+                        
+                        <div class="usage-status {% if usage_stats.storage.percentage >= 90 %}warning{% elif usage_stats.storage.percentage >= 70 %}caution{% else %}good{% endif %}">
+                            {% if usage_stats.storage.can_upload %}
+                                <i class="fas fa-check-circle"></i>
+                                {{ usage_stats.storage.available_gb|floatformat:1 }} GB disponibles
+                            {% else %}
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Almacenamiento lleno
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARACTERÍSTICAS DEL PLAN -->
+            <div class="plan-features">
+                <div class="section-header">
+                    <h3><i class="fas fa-list-check"></i> Características Incluidas</h3>
+                </div>
+                
+                <div class="features-grid">
+                    {% for feature in plan_features %}
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span class="feature-text">{{ feature }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if payment_history %}
+            <!-- HISTORIAL DE PAGOS -->
+            <div class="payment-history">
+                <div class="section-header">
+                    <h3><i class="fas fa-receipt"></i> Historial de Pagos</h3>
+                    <div class="history-period">Últimos pagos</div>
+                </div>
+                
+                <div class="payment-list">
+                    {% for payment in payment_history %}
+                        <div class="payment-item">
+                            <div class="payment-date">
+                                {{ payment.date|date:"d M Y" }}
+                            </div>
+                            <div class="payment-details">
+                                <div class="payment-description">
+                                    {{ payment.note|default:"Pago de suscripción" }}
+                                </div>
+                                <div class="payment-method">
+                                    <i class="fas fa-credit-card"></i>
+                                    {{ payment.method|capfirst|default:"Manual" }}
+                                </div>
+                            </div>
+                            <div class="payment-amount">
+                                ${{ payment.amount|floatformat:0 }}
+                            </div>
+                            <div class="payment-status success">
+                                <i class="fas fa-check-circle"></i>
+                                Pagado
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- SIDEBAR DERECHO -->
+        <div class="right-sidebar">
+            <!-- PLANES DISPONIBLES REDISEÑADOS -->
+            {% if available_plans and is_org_admin %}
+                <div class="plans-available-card">
+                    <div class="card-header">
+                        <div class="header-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Planes Disponibles</h3>
+                    </div>
+                    
+                    <div class="plans-list">
+                        {% for plan in available_plans %}
+                            <div class="plan-item">
+                                <div class="plan-header">
+                                    <h4>{{ plan.display_name }}</h4>
+                                    <div class="plan-price">
+                                        {% if plan.price == 0 %}
+                                            Gratis
+                                        {% else %}
+                                            ${{ plan.price|floatformat:0 }}/mes
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="plan-features-list">
+                                    <div class="feature-item">
+                                        <i class="fas fa-users"></i>
+                                        {{ plan.max_users }} usuarios
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-folder"></i>
+                                        {{ plan.max_projects }} proyectos
+                                    </div>
+                                    <div class="feature-item">
+                                        <i class="fas fa-database"></i>
+                                        {{ plan.storage_limit_gb }} GB
+                                    </div>
+                                </div>
+                                
+                                <a href="{% url 'plans:request_upgrade' %}" class="plan-select-button">
+                                    <i class="fas fa-rocket"></i>
+                                    Seleccionar Plan
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- SOPORTE -->
+            <div class="support-section">
+                <div class="support-card">
+                    <div class="support-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="support-content">
+                        <h4>¿Necesitas ayuda?</h4>
+                        <p>Nuestro equipo está aquí para ayudarte con cualquier pregunta sobre tu suscripción.</p>
+                        <div class="support-contacts">
+                            <a href="mailto:{{ support_info.email }}" class="support-contact">
+                                <i class="fas fa-envelope"></i>
+                                {{ support_info.email }}
+                            </a>
+                            <div class="support-hours">
+                                <i class="fas fa-clock"></i>
+                                {{ support_info.hours }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
