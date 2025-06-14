@@ -438,162 +438,80 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(UpgradeRequest)
 class UpgradeRequestAdmin(admin.ModelAdmin):
-    
-    class Media:
-        css = {
-            'all': ('admin/css/upgrade_admin.css',)
-        }
-        js = ('admin/js/upgrade_admin.js',)
     list_display = [
-        'edit_button', 'organization_name', 'current_plan_name', 'requested_plan_name', 
-        'status_display', 'amount_due', 'requested_date', 'action_buttons'
+        'organization_name', 'current_plan_name', 'requested_plan_name', 
+        'status_display', 'amount_due', 'requested_date', 'requested_by_link'
     ]
-    list_filter = [
-        'status', 'requested_date', 'approved_date', 'completed_date',
-        'current_plan', 'requested_plan', 'payment_method'
-    ]
-    search_fields = [
-        'organization__name', 'organization__slug',
-        'requested_by__email', 'requested_by__first_name', 'requested_by__last_name',
-        'payment_reference', 'request_notes'
-    ]
-    readonly_fields = [
-        'requested_date', 'price_difference_display', 'organization_link',
-        'requested_by_link', 'current_plan_link', 'requested_plan_link',
-        'status_help_text'
-    ]
-    date_hierarchy = 'requested_date'
-    ordering = ['-requested_date']
     
-    # Acciones personalizadas
-    actions = [
-        'approve_requests', 'reject_requests', 'mark_payment_received', 'complete_upgrades'
+    list_filter = [
+        'status', 'requested_date', 'current_plan__name', 'requested_plan__name'
     ]
+    
+    search_fields = [
+        'organization__name', 'organization__slug', 
+        'requested_by__email', 'requested_by__first_name', 'requested_by__last_name'
+    ]
+    
+    readonly_fields = [
+        'organization_link', 'requested_by_link', 'requested_date', 
+        'approved_date', 'price_difference_display', 'status_help_text'
+    ]
+    
+    actions = ['approve_requests', 'reject_requests']
     
     fieldsets = (
-        ('🚨 CAMBIAR ESTADO AQUÍ', {
-            'fields': (
-                'status', 'status_help_text'
-            ),
-            'description': '⬇️ ESTE ES EL CAMPO PRINCIPAL: Cambia el estado y guarda para ejecutar acciones automáticas (emails, actualización de planes, etc.)',
+        ('🚨 ACCIONES RÁPIDAS', {
+            'fields': ('status', 'status_help_text'),
+            'description': '⚡ Cambio rápido de estado con acciones automáticas',
             'classes': ('wide',)
         }),
         ('📋 Información de la Solicitud', {
             'fields': (
                 'organization_link', 'requested_by_link',
-                'requested_date', 'approved_date', 'completed_date'
+                'requested_date', 'approved_date'
             ),
             'description': 'Información básica de la solicitud'
         }),
-        ('Detalles del Upgrade', {
+        ('💰 Detalles del Upgrade', {
             'fields': (
-                'current_plan_link', 'requested_plan_link', 
+                'current_plan', 'requested_plan', 
                 'amount_due', 'price_difference_display'
             ),
             'description': 'Información de los planes y costos'
         }),
-        ('Información de Pago', {
-            'fields': (
-                'payment_method', 'payment_reference', 'payment_proof_info'
-            ),
-            'description': 'Detalles del pago'
-        }),
-        ('Notas y Comentarios', {
+        ('📝 Notas y Comentarios', {
             'fields': (
                 'request_notes', 'admin_notes', 'rejection_reason'
             ),
             'description': 'Comentarios y notas del proceso'
         }),
-        ('Usuarios Involucrados', {
+        ('👥 Usuarios Involucrados', {
             'fields': ('requested_by', 'approved_by'),
             'classes': ('collapse',)
         }),
-        ('Información de Contacto', {
+        ('📞 Información de Contacto', {
             'fields': ('contact_info',),
             'classes': ('collapse',)
         }),
     )
     
-    def edit_button(self, obj):
-        """Botón claro para editar"""
-        url = reverse('admin:plans_upgraderequest_change', args=[obj.pk])
-        return format_html(
-            '<a href="{}" class="button" style="background: #417690; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px;">✏️ EDITAR</a>',
-            url
-        )
-    edit_button.short_description = 'Acciones'
-    edit_button.allow_tags = True
-
     def organization_name(self, obj):
-        """Nombre de la organización sin enlace confuso"""
+        """Nombre de la organización"""
         return obj.organization.name
     organization_name.short_description = 'Organización'
     
     def current_plan_name(self, obj):
-        """Nombre del plan actual sin enlace"""
+        """Nombre del plan actual"""
         return obj.current_plan.display_name
     current_plan_name.short_description = 'Plan Actual'
     
     def requested_plan_name(self, obj):
-        """Nombre del plan solicitado sin enlace"""
+        """Nombre del plan solicitado"""
         return format_html(
             '<strong style="color: blue;">{}</strong>',
             obj.requested_plan.display_name
         )
     requested_plan_name.short_description = 'Plan Solicitado'
-    
-    def action_buttons(self, obj):
-        """Botones de acción rápida según el estado"""
-        buttons = []
-        
-        if obj.status == 'pending':
-            # Botón para aprobar
-            buttons.append(
-                '<span style="background: orange; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟠 PENDIENTE</span>'
-            )
-            buttons.append(
-                '<br><small style="color: gray;">Haz clic en EDITAR para aprobar</small>'
-            )
-        elif obj.status == 'approved':
-            buttons.append(
-                '<span style="background: blue; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🔵 APROBADA</span>'
-            )
-            buttons.append(
-                '<br><small style="color: gray;">Esperando pago del cliente</small>'
-            )
-        elif obj.status == 'payment_pending':
-            buttons.append(
-                '<span style="background: purple; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟣 VERIFICAR PAGO</span>'
-            )
-            buttons.append(
-                '<br><small style="color: gray;">Haz clic en EDITAR para completar</small>'
-            )
-        elif obj.status == 'completed':
-            buttons.append(
-                '<span style="background: green; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">🟢 COMPLETADA</span>'
-            )
-        
-        return format_html(''.join(buttons))
-    action_buttons.short_description = 'Estado y Acciones'
-    action_buttons.allow_tags = True
-    
-    def organization_link(self, obj):
-        """Link a la organización (solo para fieldsets)"""
-        url = reverse('admin:orgs_organization_change', args=[obj.organization.pk])
-        return format_html('<a href="{}">{}</a>', url, obj.organization.name)
-    organization_link.short_description = 'Ver Organización'
-    
-    def current_plan_link(self, obj):
-        """Link al plan actual"""
-        url = reverse('admin:plans_plan_change', args=[obj.current_plan.pk])
-        return format_html('<a href="{}" style="color: gray;">{}</a>', url, obj.current_plan.display_name)
-    current_plan_link.short_description = 'Plan Actual'
-    
-    def requested_plan_link(self, obj):
-        """Link al plan solicitado"""
-        url = reverse('admin:plans_plan_change', args=[obj.requested_plan.pk])
-        return format_html('<a href="{}" style="color: blue; font-weight: bold;">{}</a>', url, obj.requested_plan.display_name)
-    requested_plan_link.short_description = 'Plan Solicitado'
     
     def requested_by_link(self, obj):
         """Link al usuario que solicitó"""
@@ -605,9 +523,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         """Muestra el estado con colores"""
         colors = {
             'pending': 'orange',
-            'approved': 'blue',
-            'payment_pending': 'purple',
-            'completed': 'green',
+            'approved': 'green',
             'rejected': 'red',
             'cancelled': 'gray'
         }
@@ -630,30 +546,32 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
     def status_help_text(self, obj):
         """Muestra ayuda sobre los estados"""
         help_texts = {
-            'pending': '🟠 Pendiente: Cambiar a "Aprobada" para enviar instrucciones de pago por email',
-            'approved': '🔵 Aprobada: El usuario recibió instrucciones de pago. Cambiar a "Pago Reportado" cuando confirme el pago',
-            'payment_pending': '🟣 Pago Reportado: Verificar el comprobante y cambiar a "Completada" para activar el nuevo plan',
-            'completed': '🟢 Completada: El upgrade fue exitoso y el plan está activo',
-            'rejected': '🔴 Rechazada: La solicitud fue denegada',
-            'cancelled': '⚫ Cancelada: La solicitud fue cancelada'
+            'pending': '🟠 Pendiente: El usuario ya recibió instrucciones de pago. Cambiar a "Aprobada" cuando confirme el pago.',
+            'approved': '🟢 Aprobada: El upgrade fue aplicado y el usuario notificado.',
+            'rejected': '🔴 Rechazada: La solicitud fue denegada.',
+            'cancelled': '⚫ Cancelada: La solicitud fue cancelada.'
         }
         
         current_help = help_texts.get(obj.status, '')
         
         # Agregar pasos siguientes
-        next_steps = {
-            'pending': '<br><strong>Acción:</strong> Cambiar estado a "Aprobada - Pendiente de Pago"',
-            'approved': '<br><strong>Esperar:</strong> El usuario reportará su pago',
-            'payment_pending': '<br><strong>Acción:</strong> Verificar comprobante y cambiar a "Completada"',
-            'completed': '<br><strong>Estado final:</strong> Proceso terminado exitosamente',
-            'rejected': '<br><strong>Estado final:</strong> Solicitud denegada',
-            'cancelled': '<br><strong>Estado final:</strong> Solicitud cancelada'
-        }
+        if obj.status == 'pending':
+            current_help += '<br><strong>📧 Acción:</strong> Cuando recibas el comprobante de pago, cambia a "Aprobada"'
+        elif obj.status == 'approved':
+            current_help += '<br><strong>✅ Completado:</strong> El plan está activo y el usuario fue notificado'
+        elif obj.status in ['rejected', 'cancelled']:
+            current_help += '<br><strong>🔚 Estado final:</strong> Proceso terminado'
         
-        return format_html(current_help + next_steps.get(obj.status, ''))
+        return format_html(current_help)
     status_help_text.short_description = 'Guía de Estados'
     
-    # Acciones personalizadas
+    def organization_link(self, obj):
+        """Link a la organización"""
+        url = reverse('admin:orgs_organization_change', args=[obj.organization.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.organization.name)
+    organization_link.short_description = 'Ver Organización'
+    
+    # Acciones simplificadas
     def approve_requests(self, request, queryset):
         """Aprobar solicitudes seleccionadas"""
         approved_count = 0
@@ -661,7 +579,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             try:
                 upgrade_request.approve(
                     approved_by_user=request.user,
-                    admin_notes=f"Aprobado masivamente por {request.user.username}"
+                    admin_notes=f"Aprobado por {request.user.username} desde el admin"
                 )
                 approved_count += 1
             except Exception as e:
@@ -674,7 +592,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         if approved_count > 0:
             self.message_user(
                 request,
-                f"Se aprobaron {approved_count} solicitudes. Los usuarios recibirán emails con instrucciones de pago.",
+                f"✅ Se aprobaron {approved_count} solicitudes. Los planes fueron actualizados y los usuarios notificados.",
                 messages.SUCCESS
             )
     approve_requests.short_description = "✅ Aprobar solicitudes seleccionadas"
@@ -686,7 +604,7 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
             try:
                 upgrade_request.reject(
                     rejected_by_user=request.user,
-                    reason="Rechazado masivamente por el administrador"
+                    reason="Rechazado desde el panel de administración"
                 )
                 rejected_count += 1
             except Exception as e:
@@ -699,56 +617,10 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         if rejected_count > 0:
             self.message_user(
                 request,
-                f"Se rechazaron {rejected_count} solicitudes.",
+                f"❌ Se rechazaron {rejected_count} solicitudes. Los usuarios fueron notificados.",
                 messages.SUCCESS
             )
     reject_requests.short_description = "❌ Rechazar solicitudes seleccionadas"
-    
-    def mark_payment_received(self, request, queryset):
-        """Marcar pago como recibido"""
-        marked_count = 0
-        for upgrade_request in queryset.filter(status='approved'):
-            try:
-                upgrade_request.mark_payment_received(
-                    payment_reference=f"Marcado por admin - {timezone.now().strftime('%Y%m%d_%H%M')}"
-                )
-                marked_count += 1
-            except Exception as e:
-                self.message_user(
-                    request,
-                    f"Error al marcar pago de {upgrade_request.organization.name}: {str(e)}",
-                    messages.ERROR
-                )
-        
-        if marked_count > 0:
-            self.message_user(
-                request,
-                f"Se marcaron {marked_count} pagos como recibidos.",
-                messages.SUCCESS
-            )
-    mark_payment_received.short_description = "💰 Marcar pago recibido"
-    
-    def complete_upgrades(self, request, queryset):
-        """Completar upgrades con pago verificado"""
-        completed_count = 0
-        for upgrade_request in queryset.filter(status='payment_pending'):
-            try:
-                upgrade_request.complete_upgrade(completed_by_user=request.user)
-                completed_count += 1
-            except Exception as e:
-                self.message_user(
-                    request,
-                    f"Error al completar upgrade de {upgrade_request.organization.name}: {str(e)}",
-                    messages.ERROR
-                )
-        
-        if completed_count > 0:
-            self.message_user(
-                request,
-                f"Se completaron {completed_count} upgrades. Los planes han sido actualizados.",
-                messages.SUCCESS
-            )
-    complete_upgrades.short_description = "🎉 Completar upgrades"
     
     def save_model(self, request, obj, form, change):
         """Manejar cambios de estado cuando se edita individualmente"""
@@ -764,56 +636,29 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
         
         new_status = obj.status
         
-        # Pre-configurar campos según el cambio de estado
-        if change and original_status != new_status:
-            if new_status == 'approved' and original_status == 'pending':
-                obj.approved_by = request.user
-                obj.approved_date = timezone.now()
-                obj.admin_notes = f"Aprobado por {request.user.username} desde el admin"
-                
-            elif new_status == 'completed':
-                obj.completed_date = timezone.now()
-                
-            elif new_status == 'rejected' and original_status == 'pending':
-                obj.approved_by = request.user
-                obj.approved_date = timezone.now()
-                if not obj.rejection_reason:
-                    obj.rejection_reason = "Rechazado desde el panel de administración"
-        
-        # Guardar el objeto
+        # Guardar el objeto primero
         super().save_model(request, obj, form, change)
         
         # Ejecutar acciones post-guardado
         if change and original_status and original_status != new_status:
             try:
                 if new_status == 'approved' and original_status == 'pending':
-                    # Enviar email de aprobación
-                    obj._send_payment_instructions()
+                    # Aprobar la solicitud
+                    obj.approve(
+                        approved_by_user=request.user,
+                        admin_notes=f"Aprobado por {request.user.username} desde el admin"
+                    )
                     messages.success(
                         request,
-                        f"✅ Solicitud aprobada. Se enviaron las instrucciones de pago a {obj.organization.name}."
+                        f"✅ Solicitud aprobada. {obj.organization.name} ahora tiene el plan {obj.requested_plan.display_name}."
                     )
                     
-                elif new_status == 'completed':
-                    # Completar el upgrade - ESTA ES LA PARTE IMPORTANTE
-                    try:
-                        subscription = obj.complete_upgrade(completed_by_user=request.user)
-                        messages.success(
-                            request,
-                            f"🎉 ¡Upgrade completado! {obj.organization.name} ahora tiene el plan {obj.requested_plan.display_name}."
-                        )
-                    except Exception as e:
-                        messages.error(
-                            request,
-                            f"❌ Error al completar el upgrade: {str(e)}"
-                        )
-                        # Revertir el estado si falla
-                        obj.status = original_status
-                        obj.save()
-                        
                 elif new_status == 'rejected' and original_status == 'pending':
-                    # Enviar email de rechazo
-                    obj._send_rejection_email()
+                    # Rechazar la solicitud
+                    obj.reject(
+                        rejected_by_user=request.user,
+                        reason="Rechazado desde el panel de administración"
+                    )
                     messages.warning(
                         request,
                         f"❌ Solicitud rechazada. Se notificó a {obj.organization.name}."

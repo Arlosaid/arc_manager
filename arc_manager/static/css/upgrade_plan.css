@@ -592,7 +592,7 @@
 }
 
 .upgrade-page .info-icon.payment {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
 .upgrade-page .info-icon.activation {
@@ -1391,27 +1391,187 @@
 }
 
 .pending-status-badge {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    padding: 0.75rem 1.25rem;
-    border-radius: 50px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-    animation: statusGlow 2s ease-in-out infinite alternate;
-    position: relative;
-    z-index: 2;
+    gap: 5px;
+    transition: all 0.3s ease;
 }
 
-@keyframes statusGlow {
-    0% {
-        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+.pending-status-badge.pending {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    animation: pulse-info 2s infinite;
+}
+
+.pending-status-badge.approved {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.pending-status-badge.payment_pending {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    animation: pulse-info 2s infinite;
+}
+
+.pending-status-badge.completed {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
+
+/* Animaciones para estados activos */
+@keyframes pulse-warning {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
     }
-    100% {
-        box-shadow: 0 6px 25px rgba(245, 158, 11, 0.6);
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+}
+
+@keyframes pulse-info {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+    }
+}
+
+/* Mejoras en la timeline */
+.timeline-item.completed .timeline-icon {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+    animation: none;
+}
+
+.timeline-item.active .timeline-icon {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+    animation: pulse-blue 1.5s infinite;
+}
+
+@keyframes pulse-blue {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    }
+    50% { 
+        box-shadow: 0 0 0 8px rgba(0, 123, 255, 0);
+    }
+}
+
+/* Precio del plan solicitado */
+.plan-price-requested {
+    font-size: 14px;
+    color: #28a745;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Estilos específicos por estado de la solicitud */
+.pending-request-card[data-status="pending"] {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.pending-request-card[data-status="approved"] {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(135deg, #e8f5e8 0%, #ffffff 100%);
+}
+
+.pending-request-card[data-status="payment_pending"] {
+    border-left: 4px solid #007bff;
+    background: linear-gradient(135deg, #e3f2fd 0%, #ffffff 100%);
+}
+
+.pending-request-card[data-status="completed"] {
+    border-left: 4px solid #17a2b8;
+    background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
+}
+
+/* Mejorar el botón de dashboard cuando es success */
+.btn-dashboard.success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.btn-dashboard.success:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Mejorar info-box por estado */
+.info-box-icon {
+    transition: all 0.3s ease;
+}
+
+.pending-request-card[data-status="approved"] .info-box-icon {
+    color: #28a745;
+    animation: bounce 2s infinite;
+}
+
+.pending-request-card[data-status="payment_pending"] .info-box-icon {
+    color: #007bff;
+    animation: spin-slow 3s linear infinite;
+}
+
+.pending-request-card[data-status="completed"] .info-box-icon {
+    color: #17a2b8;
+    animation: celebrate 1s ease-in-out 3;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes celebrate {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .pending-status-badge {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    
+    .pending-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .pending-title-section {
+        margin: 10px 0;
+    }
+    
+    .plan-price-requested {
+        font-size: 12px;
     }
 }
 
@@ -1513,8 +1673,8 @@
 }
 
 .timeline-icon.active {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    animation: activeSpin 2s linear infinite;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    animation: activePulse 2s ease-in-out infinite;
 }
 
 .timeline-icon.pending {
@@ -1522,20 +1682,20 @@
 }
 
 @keyframes completedPulse {
-    0%, 100% {
+    0%, 100% { 
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
-    50% {
+    50% { 
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
     }
 }
 
-@keyframes activeSpin {
-    0% {
-        transform: rotate(0deg);
+@keyframes activePulse {
+    0%, 100% { 
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
-    100% {
-        transform: rotate(360deg);
+    50% { 
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
     }
 }
 
@@ -1667,7 +1827,7 @@
     transform: translateX(3px);
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE PARA PENDING REQUEST */
 @media (max-width: 768px) {
     .pending-header {
         flex-direction: column;

@@ -35,18 +35,50 @@
 
         {% if has_pending_request %}
             <!-- SOLICITUD PENDIENTE MODERNA -->
-            <div class="pending-request-card">
+            <div class="pending-request-card" data-status="{{ pending_request.status }}">
                 <div class="pending-header">
                     <div class="pending-icon">
-                        <i class="fas fa-hourglass-half"></i>
+                        {% if pending_request.status == 'pending' %}
+                            <i class="fas fa-hourglass-half"></i>
+                        {% elif pending_request.status == 'approved' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif pending_request.status == 'payment_pending' %}
+                            <i class="fas fa-credit-card"></i>
+                        {% elif pending_request.status == 'completed' %}
+                            <i class="fas fa-trophy"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
                     </div>
                     <div class="pending-title-section">
-                        <h3 class="pending-title">¡Solicitud de Upgrade Pendiente!</h3>
-                        <p class="pending-subtitle">Tu solicitud está siendo procesada por nuestro equipo</p>
+                        {% if pending_request.status == 'pending' %}
+                            <h3 class="pending-title">¡Solicitud de Upgrade Pendiente!</h3>
+                            <p class="pending-subtitle">Tu solicitud está siendo procesada por nuestro equipo</p>
+                        {% elif pending_request.status == 'approved' %}
+                            <h3 class="pending-title">¡Solicitud Aprobada!</h3>
+                            <p class="pending-subtitle">Tu solicitud ha sido aprobada. Sigue las instrucciones de pago</p>
+                        {% elif pending_request.status == 'payment_pending' %}
+                            <h3 class="pending-title">Pago en Verificación</h3>
+                            <p class="pending-subtitle">Estamos verificando tu pago. Pronto tendrás tu nuevo plan</p>
+                        {% elif pending_request.status == 'completed' %}
+                            <h3 class="pending-title">¡Upgrade Completado!</h3>
+                            <p class="pending-subtitle">Tu plan ha sido actualizado exitosamente</p>
+                        {% endif %}
                     </div>
-                    <div class="pending-status-badge">
-                        <i class="fas fa-clock"></i>
-                        <span>{{ pending_request.get_status_display }}</span>
+                    <div class="pending-status-badge {{ pending_request.status }}">
+                        {% if pending_request.status == 'pending' %}
+                            <i class="fas fa-clock"></i>
+                            <span>En Proceso</span>
+                        {% elif pending_request.status == 'approved' %}
+                            <i class="fas fa-check"></i>
+                            <span>Aprobada</span>
+                        {% elif pending_request.status == 'payment_pending' %}
+                            <i class="fas fa-search"></i>
+                            <span>Verificando Pago</span>
+                        {% elif pending_request.status == 'completed' %}
+                            <i class="fas fa-star"></i>
+                            <span>Completada</span>
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -59,12 +91,13 @@
                             <div class="plan-details-small">
                                 <h5>Plan Solicitado</h5>
                                 <p class="plan-name-requested">{{ pending_request.requested_plan.display_name }}</p>
+                                <p class="plan-price-requested">${{ pending_request.requested_plan.price }}/mes</p>
                             </div>
                         </div>
                         
                         <div class="request-timeline">
-                            <div class="timeline-item">
-                                <div class="timeline-icon completed">
+                            <div class="timeline-item {% if pending_request.status != 'pending' %}completed{% endif %}">
+                                <div class="timeline-icon {% if pending_request.status != 'pending' %}completed{% else %}active{% endif %}">
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div class="timeline-content">
@@ -75,44 +108,102 @@
                                 </div>
                             </div>
                             
-                            <div class="timeline-item">
-                                <div class="timeline-icon active">
+                            <div class="timeline-item {% if pending_request.status == 'approved' %}completed{% elif pending_request.status == 'pending' %}active{% endif %}">
+                                <div class="timeline-icon {% if pending_request.status == 'approved' %}completed{% elif pending_request.status == 'pending' %}active{% else %}pending{% endif %}">
                                     <i class="fas fa-cogs"></i>
                                 </div>
                                 <div class="timeline-content">
-                                    <h6>En Proceso</h6>
-                                    <p>Revisando tu solicitud</p>
+                                    <h6>Revisión</h6>
+                                    {% if pending_request.status == 'approved' %}
+                                        <p>Aprobada el {{ pending_request.approved_date|date:"d/m/Y" }}</p>
+                                    {% elif pending_request.status == 'pending' %}
+                                        <p>En proceso de revisión</p>
+                                        <small>Ya recibiste las instrucciones de pago por email</small>
+                                    {% else %}
+                                        <p>Revisada</p>
+                                    {% endif %}
                                 </div>
                             </div>
                             
-                            <div class="timeline-item">
-                                <div class="timeline-icon pending">
-                                    <i class="fas fa-envelope"></i>
+                            <!-- Paso 3: Plan Activo (solo si está aprobado) -->
+                            {% if pending_request.status == 'approved' %}
+                            <div class="timeline-item completed">
+                                <div class="timeline-icon completed">
+                                    <i class="fas fa-check-circle"></i>
                                 </div>
                                 <div class="timeline-content">
-                                    <h6>Contacto</h6>
-                                    <p>Te contactaremos pronto</p>
+                                    <h6>Plan Activo</h6>
+                                    <p>¡Tu nuevo plan está activo!</p>
                                 </div>
                             </div>
+                            {% else %}
+                            <div class="timeline-item">
+                                <div class="timeline-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6>Plan Activo</h6>
+                                    <p>Tu plan se activará cuando sea aprobado</p>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="pending-info-box">
                         <div class="info-box-icon">
-                            <i class="fas fa-info-circle"></i>
+                            {% if pending_request.status == 'pending' %}
+                                <i class="fas fa-info-circle"></i>
+                            {% elif pending_request.status == 'approved' %}
+                                <i class="fas fa-credit-card"></i>
+                            {% elif pending_request.status == 'payment_pending' %}
+                                <i class="fas fa-search"></i>
+                            {% elif pending_request.status == 'completed' %}
+                                <i class="fas fa-party-horn"></i>
+                            {% endif %}
                         </div>
                         <div class="info-box-content">
-                            <h6>¿Qué sigue?</h6>
-                            <p>Nuestro equipo revisará tu solicitud y te contactará en las próximas <strong>24-48 horas</strong> con los detalles de pago y activación.</p>
+                            {% if pending_request.status == 'pending' %}
+                                <h6>¿Qué sigue?</h6>
+                                <p>
+                                    Ya recibiste las <strong>instrucciones de pago por email</strong> 📧. 
+                                    Una vez que envíes tu comprobante de pago, nuestro equipo lo revisará y 
+                                    <strong>aprobará tu solicitud</strong> activando inmediatamente tu nuevo plan.
+                                </p>
+                                <p><strong>Tiempo estimado:</strong> 24-48 horas después de enviar tu comprobante.</p>
+                            {% elif pending_request.status == 'approved' %}
+                                <h6>¡Felicidades! Tu plan está activo 🎉</h6>
+                                <p>
+                                    Tu solicitud fue <strong>aprobada</strong> y tu nuevo plan 
+                                    <strong>{{ pending_request.requested_plan.display_name }}</strong> 
+                                    ya está activo. Puedes disfrutar de todas las funcionalidades inmediatamente.
+                                </p>
+                            {% elif pending_request.status == 'rejected' %}
+                                <h6>Solicitud Rechazada ❌</h6>
+                                <p>
+                                    Lamentablemente tu solicitud fue rechazada. 
+                                    {% if pending_request.rejection_reason %}
+                                        <br><strong>Motivo:</strong> {{ pending_request.rejection_reason }}
+                                    {% endif %}
+                                    <br>Puedes contactarnos para más información o realizar una nueva solicitud.
+                                </p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
                 
                 <div class="pending-footer">
-                    <a href="{% url 'plans:subscription_dashboard' %}" class="btn-dashboard">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>Volver al Dashboard</span>
-                    </a>
+                    {% if pending_request.status == 'completed' %}
+                        <a href="{% url 'plans:subscription_dashboard' %}" class="btn-dashboard success">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Ver Mi Plan Actualizado</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'plans:subscription_dashboard' %}" class="btn-dashboard">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Volver al Dashboard</span>
+                        </a>
+                    {% endif %}
                     <div class="pending-support">
                         <span>¿Tienes preguntas?</span>
                         <a href="#" class="support-link">

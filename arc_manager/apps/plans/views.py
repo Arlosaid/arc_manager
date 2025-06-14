@@ -16,6 +16,7 @@ from django.conf import settings
 from django import forms
 from django.db import models
 from datetime import timedelta
+from django.utils.dateparse import parse_datetime
 
 from .models import Plan, Subscription, UpgradeRequest
 from .services import SubscriptionService
@@ -185,7 +186,20 @@ class SubscriptionDashboardView(LoginRequiredMixin, TemplateView):
         # Historial de pagos simplificado (últimos 5)
         payment_history = []
         if subscription.metadata and subscription.metadata.get('payment_history'):
-            payment_history = subscription.metadata['payment_history'][-5:]
+            raw_history = subscription.metadata['payment_history'][-5:]
+            for payment in raw_history:
+                # Convertir fecha ISO string a datetime object
+                if isinstance(payment.get('date'), str):
+                    try:
+                        payment['date'] = parse_datetime(payment['date'])
+                    except (ValueError, TypeError):
+                        # Si falla, usar fecha actual
+                        payment['date'] = timezone.now()
+                elif not payment.get('date'):
+                    payment['date'] = timezone.now()
+                
+                payment_history.append(payment)
+            
             payment_history.reverse()  # Más recientes primero
         context['payment_history'] = payment_history
         
@@ -371,7 +385,7 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
         # Verificar si ya hay un request pendiente
         if UpgradeRequest.objects.filter(
             organization=organization,
-            status__in=['pending', 'approved', 'payment_pending']
+            status__in=['pending', 'approved']
         ).exists():
             messages.warning(request, "Ya tienes una solicitud de upgrade pendiente.")
             return redirect('plans:request_upgrade')
@@ -406,10 +420,14 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
                     }
                 )
                 
+                # Enviar automáticamente las instrucciones de pago
+                upgrade_request._send_payment_instructions()
+                
                 messages.success(
                     request, 
                     f"Tu solicitud de upgrade a {requested_plan.display_name} ha sido enviada. "
-                    "Recibirás una notificación cuando sea revisada por nuestro equipo."
+                    "Revisa tu email para encontrar las instrucciones de pago. "
+                    "Una vez que envíes tu comprobante, procesaremos tu solicitud."
                 )
                 
                 return redirect('plans:subscription_dashboard')
