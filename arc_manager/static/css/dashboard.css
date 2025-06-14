@@ -114,29 +114,37 @@ body {
 }
 
 .time-greeting {
-    font-size: 1.125rem; /* Ligeramente más grande */
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.85); /* Blanco con transparencia */
-    margin-bottom: var(--spacing-sm);
+    font-size: 1.25rem; /* Más grande */
+    font-weight: 600; /* Más bold */
+    color: rgba(255, 255, 255, 0.95); /* Más opaco */
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .user-name {
-    font-size: 3rem !important; /* 48px, más grande */
-    font-weight: 800 !important;
+    font-size: 3.5rem !important; /* 56px, aún más grande */
+    font-weight: 900 !important; /* Más bold */
     color: var(--color-surface) !important;
-    margin: 0 0 var(--spacing-sm) 0 !important;
+    margin: var(--spacing-sm) 0 var(--spacing-md) 0 !important;
     line-height: 1.1 !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    background: none !important;
-    -webkit-text-fill-color: unset !important;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    letter-spacing: -0.02em !important; /* Mejor espaciado */
+    position: relative !important;
 }
 
 .welcome-subtitle {
-    font-size: 1.125rem;
-    color: rgba(255, 255, 255, 0.9); /* Color más claro para fondo oscuro */
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
+    font-size: 1.25rem; /* Más grande */
+    font-weight: 500; /* Más peso */
+    color: rgba(255, 255, 255, 0.95); /* Más opaco */
+    max-width: 700px;
+    margin: var(--spacing-sm) auto 0 auto;
+    font-style: italic; /* Cursiva para darle elegancia */
+    letter-spacing: 0.01em;
 }
 
 /* Rejilla de métricas */
@@ -296,6 +304,31 @@ body {
     text-decoration: underline;
 }
 
+.add-new-btn {
+    background-color: var(--color-primary);
+    color: var(--color-surface);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+    border: 1px solid transparent;
+}
+
+.add-new-btn:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.add-new-btn i {
+    font-size: 0.8rem;
+}
+
 .action-btn-primary {
     background-color: var(--color-primary);
     color: white;
@@ -378,6 +411,12 @@ body {
     gap: var(--spacing-md);
 }
 
+@media (min-width: 768px) {
+    .projects-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 .project-card {
     display: flex;
     flex-direction: column;
@@ -385,6 +424,7 @@ body {
     border-radius: var(--border-radius);
     overflow: hidden;
     transition: var(--transition-normal);
+    flex-grow: 1;
 }
 
 .project-card:hover {
@@ -424,6 +464,8 @@ body {
     color: var(--color-success);
     background-color: color-mix(in srgb, var(--color-success) 15%, transparent);
 }
+
+
 
 /* Actividad reciente */
 .activity-feed {
@@ -505,46 +547,50 @@ body {
 
 /* Diseño responsivo - NUEVO ORDEN */
 @media (min-width: 1024px) {
+    .dashboard-main-grid {
+        grid-template-columns: repeat(12, 1fr);
+    }
     .featured-projects-panel {
-        grid-column: span 7 / span 7;
-    }
-    .tasks-panel {
-        grid-column: span 5 / span 5;
-    }
-    .activity-panel {
         grid-column: span 12 / span 12;
     }
-    .dashboard-main-grid {
-        grid-template-columns: repeat(3, 1fr);
+    .tasks-panel,
+    .recent-documents-panel {
+        grid-column: span 6 / span 6;
     }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1023px) and (min-width: 768px) {
     .dashboard-main-grid {
         grid-template-columns: 1fr 1fr;
     }
-    .featured-projects-panel,
-    .tasks-panel {
-        grid-column: span 1 / span 1;
-    }
-    .activity-panel {
+    .featured-projects-panel {
         grid-column: span 2 / span 2;
+    }
+    .tasks-panel,
+    .recent-documents-panel {
+        grid-column: span 1 / span 1;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .dashboard-premium {
         padding: var(--spacing-md);
     }
     .user-name {
-        font-size: 2rem !important;
+        font-size: 2.5rem !important;
+    }
+    .time-greeting {
+        font-size: 1.125rem;
+    }
+    .welcome-subtitle {
+        font-size: 1.125rem;
     }
     .dashboard-main-grid {
         grid-template-columns: 1fr;
     }
     .featured-projects-panel,
-    .activity-panel,
-    .tasks-panel {
+    .tasks-panel,
+    .recent-documents-panel {
         grid-column: span 1 / span 1;
     }
 }

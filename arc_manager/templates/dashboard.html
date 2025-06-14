@@ -4,7 +4,7 @@
 {% block title %}Dashboard - Arc Manager{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/dashboard.css' %}?v=11" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}?v=12" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
@@ -14,9 +14,9 @@
     <div class="dashboard-header-premium">
         <div class="welcome-section">
             <div class="welcome-content">
-                <div class="time-greeting" id="time-greeting">Buenos días</div>
+                <div class="time-greeting">¡Hola de nuevo!</div>
                 <h1 class="user-name">{{ user.first_name|default:"Roberto" }} {{ user.last_name|default:"Dela" }}</h1>
-                <p class="welcome-subtitle">Todo listo para un día productivo. ¡Vamos a empezar!</p>
+                <p class="welcome-subtitle">Construyendo el futuro, un proyecto a la vez</p>
             </div>
         </div>
     </div>
@@ -59,11 +59,14 @@
         <div class="featured-projects-panel panel">
             <div class="panel-header">
                 <h3><i class="fas fa-star"></i> Proyectos Destacados</h3>
-                <a href="#" class="view-all-btn">Ver Todos</a>
+                <div class="panel-header-actions">
+                    <a href="#" class="add-new-btn"><i class="fas fa-plus"></i> Nuevo</a>
+                    <a href="#" class="view-all-btn">Ver Todos</a>
+                </div>
             </div>
             <div class="projects-container">
                 <div class="project-card">
-                    <img src="https://images.unsplash.com/photo-1511920170033-f83297293791?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 1" class="project-image">
+                    <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 1" class="project-image">
                     <div class="project-info">
                         <h4 class="project-name">Desarrollo Torre Central</h4>
                         <div class="progress-bar-container">
@@ -73,7 +76,7 @@
                     </div>
                 </div>
                 <div class="project-card">
-                    <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 2" class="project-image">
+                    <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 2" class="project-image">
                     <div class="project-info">
                         <h4 class="project-name">Remodelación Oficinas</h4>
                         <div class="progress-bar-container">
@@ -85,11 +88,16 @@
             </div>
         </div>
 
+
+
         <!-- Panel de tareas -->
         <div class="tasks-panel panel">
             <div class="panel-header">
                 <h3><i class="fas fa-check-circle"></i> Tareas Pendientes</h3>
-                <a href="#" class="view-all-btn">Ver Todas</a>
+                <div class="panel-header-actions">
+                    <a href="#" class="add-new-btn"><i class="fas fa-plus"></i> Nueva</a>
+                    <a href="#" class="view-all-btn">Ver Todos</a>
+                </div>
             </div>
             <ul class="task-list">
                 {% if tasks %}
@@ -124,7 +132,10 @@
         <div class="recent-documents-panel panel">
             <div class="panel-header">
                 <h3><i class="fas fa-file-alt"></i> Documentos Recientes</h3>
-                <a href="#" class="view-all-btn">Ver Todos</a>
+                <div class="panel-header-actions">
+                    <a href="#" class="add-new-btn"><i class="fas fa-plus"></i> Subir</a>
+                    <a href="#" class="view-all-btn">Ver Todos</a>
+                </div>
             </div>
             <ul class="document-list">
                 <li class="document-item">
