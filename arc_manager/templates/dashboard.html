@@ -5,197 +5,151 @@
 
 {% block extra_css %}
 <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
-<style>
-.dashboard-mosaic {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    grid-template-rows: 220px 120px 120px;
-    gap: 1.5rem;
-    grid-template-areas:
-        "main main kpi1 kpi2"
-        "main main kpi3 action"
-        "illu promo promo promo";
-}
-@media (max-width: 1200px) {
-    .dashboard-mosaic {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto;
-        grid-template-areas:
-            "main main"
-            "kpi1 kpi2"
-            "kpi3 action"
-            "illu promo";
-    }
-}
-.dashboard-card-lg { grid-area: main; }
-.dashboard-card-md.kpi1 { grid-area: kpi1; }
-.dashboard-card-md.kpi2 { grid-area: kpi2; }
-.dashboard-card-md.kpi3 { grid-area: kpi3; }
-.dashboard-card-md.action { grid-area: action; }
-.dashboard-card-md.illu { grid-area: illu; }
-.dashboard-card-md.promo { grid-area: promo; }
-.dashboard-card-lg, .dashboard-card-md, .dashboard-card-sm {
-    border-radius: 18px;
-    box-shadow: 0 4px 24px 0 rgba(60,72,88,0.10);
-    background: #fff;
-    padding: 2rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-width: 0;
-}
-.dashboard-card-md {
-    min-height: 120px;
-    justify-content: center;
-}
-.kpi-card {
-    color: #fff;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 1.5rem 1.2rem;
-}
-.kpi-card.bg-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.kpi-card.bg-success { background: linear-gradient(135deg, #10b981, #059669); }
-.kpi-card.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.kpi-value { font-size: 2.2rem; font-weight: 700; }
-.kpi-label { font-size: 1.1rem; opacity: 0.85; }
-.action-card { background: #1e293b; color: #fff; align-items: flex-start; }
-.action-card .btn { margin-top: 1rem; }
-.illu-card { background: linear-gradient(135deg, #f1f5f9 60%, #a5b4fc 100%); display: flex; align-items: center; }
-.illu-card img { width: 80px; height: 80px; margin-right: 1.5rem; }
-.promo-card { background: linear-gradient(135deg, #fef9c3 60%, #fbbf24 100%); color: #92400e; display: flex; align-items: center; }
-.promo-card .promo-img { width: 60px; height: 60px; margin-right: 1.2rem; }
-.dashboard-card-sm { border-radius: 14px; box-shadow: 0 2px 8px 0 rgba(60,72,88,0.10); background: #fff; padding: 1.2rem 1rem; margin-bottom: 1rem; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <nav style="font-size:0.95rem; color:#64748b;">
-                <span><i class="fas fa-home"></i> &nbsp;Account &gt; Overview</span>
-            </nav>
-            <h1 class="dashboard-title mb-1">Dashboard</h1>
+<div class="dashboard-premium">
+    <!-- Header con bienvenida personalizada -->
+    <div class="dashboard-header-premium">
+        <div class="welcome-section">
+            <div class="welcome-content">
+                <div class="time-greeting">
+                    <span id="greeting-text">Buenos días</span>
+                </div>
+                <h1 class="user-name">{{ user.full_name|default:user.first_name|default:user.email|default:"Usuario" }}</h1>
+                <p class="welcome-subtitle">Aquí tienes un resumen de tu actividad.</p>
+            </div>
         </div>
-        <a href="#" class="btn btn-light" style="font-weight:600;">Create New</a>
+        
+        {# Acciones rápidas eliminadas para reducir redundancia; accesibles desde el sidebar #}
     </div>
-    <div class="dashboard-mosaic">
-        <!-- Tarjeta grande con gráfico -->
-        <div class="dashboard-card-lg">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+
+    <!-- Métricas principales -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-content">
+                <div class="metric-icon"><i class="fas fa-users"></i></div>
                 <div>
-                    <h4 style="font-weight:700;">Weekly Sales Stats</h4>
-                    <div style="color:#64748b; font-size:1.05rem;">890,344 Sales</div>
-                </div>
-                <i class="fas fa-ellipsis-v" style="color:#64748b;"></i>
-            </div>
-            <div class="mb-3">
-                <div class="d-flex align-items-center mb-2">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">Top Authors</div>
-                        <div style="color:#64748b; font-size:0.97rem;">Mark, Rowling, Esther</div>
-                    </div>
-                    <div style="margin-left:auto; font-weight:600; color:#10b981;">+82$</div>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">Popular Authors</div>
-                        <div style="color:#64748b; font-size:0.97rem;">Randy, Steve, Mike</div>
-                    </div>
-                    <div style="margin-left:auto; font-weight:600; color:#3b82f6;">+280$</div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111624.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">New Users</div>
-                        <div style="color:#64748b; font-size:0.97rem;">John, Pat, Jimmy</div>
-                    </div>
-                    <div style="margin-left:auto; font-weight:600; color:#6366f1;">+4500$</div>
+                    <div class="metric-value" data-target="{{ total_users|default:0 }}">0</div>
+                    <div class="metric-label">Usuarios Totales</div>
                 </div>
             </div>
-            <div style="height:60px;">
-                <canvas id="mainChart"></canvas>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-content">
+                <div class="metric-icon"><i class="fas fa-building"></i></div>
+                <div>
+                    <div class="metric-value" data-target="{{ total_organizations|default:0 }}">0</div>
+                    <div class="metric-label">Organizaciones</div>
+                </div>
             </div>
         </div>
-        <!-- KPI Cards -->
-        <div class="dashboard-card-md kpi-card bg-primary kpi1 metric-card" data-tooltip="Número total de ventas de autores en el último periodo">
-            <div class="dashboard-card-icon bg-primary">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="kpi-value">3,900</div>
-            <div class="kpi-label">Author Sales</div>
-            <div class="trend-indicator positive">
-                <i class="fas fa-arrow-up"></i>
-                +12% desde el mes pasado
+
+        <div class="metric-card">
+            <div class="metric-content">
+                <div class="metric-icon"><i class="fas fa-crown"></i></div>
+                <div>
+                    <div class="metric-value" data-target="{{ total_subscriptions|default:0 }}">0</div>
+                    <div class="metric-label">Suscripciones</div>
+                </div>
             </div>
         </div>
-        <div class="dashboard-card-md kpi-card bg-success kpi2 metric-card" data-tooltip="Estadísticas completas de rendimiento de autores">
-            <div class="dashboard-card-icon bg-success">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="kpi-value">4.9M</div>
-            <div class="kpi-label">Author Stats</div>
-            <div style="width:100%; background:#fff3; border-radius:6px; height:7px; margin-top:0.7rem;">
-                <div style="width:70%; height:100%; background:#fff; border-radius:6px;"></div>
-            </div>
-            <div class="trend-indicator positive">
-                <i class="fas fa-check-circle"></i>
-                Rendimiento excelente
-            </div>
-        </div>
-        <div class="dashboard-card-md kpi-card bg-warning kpi3 metric-card" data-tooltip="Porcentaje de éxito en las operaciones del sistema">
-            <div class="dashboard-card-icon bg-warning">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-            <div class="kpi-value">75%</div>
-            <div class="kpi-label">Success Rate</div>
-            <div class="trend-indicator neutral">
-                <i class="fas fa-minus-circle"></i>
-                Estable
-            </div>
-        </div>
-        <!-- Acción destacada -->
-        <div class="dashboard-card-md action-card action">
-            <h4 style="font-weight:700;">Create CRM Reports</h4>
-            <p style="font-size:1.05rem; opacity:0.85;">Cause marketing is marketing done by a for-profit business that seeks to increase profits to better society</p>
-            <button class="btn btn-danger">Create Campaign</button>
-        </div>
-        <!-- Ilustración -->
-        <div class="dashboard-card-md illu-card illu">
-            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Ilustración" />
-            <div>
-                <div style="font-weight:600; font-size:1.1rem;">Company</div>
-                <div style="color:#64748b; font-size:0.97rem;">Crecimiento de usuarios y ventas</div>
-            </div>
-        </div>
-        <!-- Promo -->
-        <div class="dashboard-card-md promo-card promo">
-            <img class="promo-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" alt="Promo" />
-            <div>
-                <div style="font-weight:600; font-size:1.1rem;">30% Off Themes</div>
-                <div style="font-size:0.97rem;">Get your discounted themes of the month<br>Instant rewards, everyday</div>
+
+        <div class="metric-card">
+            <div class="metric-content">
+                <div class="metric-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div>
+                    <div class="metric-value" data-target="15420">0</div>
+                    <div class="metric-label">Ingresos (€)</div>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Fila inferior: tarjetas pequeñas -->
-    <div class="d-flex flex-wrap mt-4" style="gap:1.5rem;">
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">3:30PM - 4:20PM</div>
-            <div style="font-size:1.05rem;">Create a headline that is informative and will capture readers</div>
+
+    <!-- Sección principal con proyectos y actividades -->
+    <div class="dashboard-main-grid">
+        <!-- Proyectos Destacados -->
+        <div class="featured-projects-panel">
+            <div class="panel-header">
+                <h3>Proyectos Destacados</h3>
+                <a href="#" class="view-all-btn">Ver Todos <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="projects-container">
+                <div class="project-card">
+                    <img src="https://images.unsplash.com/photo-1511920170033-f83297293791?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 1" class="project-image">
+                    <div class="project-info">
+                        <h4 class="project-name">Desarrollo Torre Central</h4>
+                        <p class="project-status">En progreso</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 2" class="project-image">
+                    <div class="project-info">
+                        <h4 class="project-name">Remodelación Oficinas</h4>
+                        <p class="project-status">Completado</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <img src="https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=400&fit=max" alt="Proyecto 3" class="project-image">
+                    <div class="project-info">
+                        <h4 class="project-name">Nuevo Complejo Residencial</h4>
+                        <p class="project-status">Planificación</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">03 May 2020</div>
-            <div style="font-size:1.05rem;">Great blog posts don't just happen. Even the best bloggers need it</div>
+
+        <!-- Panel de actividades -->
+        <div class="activity-panel">
+            <div class="panel-header">
+                <h3>Actividad Reciente</h3>
+                <button class="refresh-btn" id="refresh-activities" title="Refrescar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div class="activity-feed">
+                {% for activity in recent_activities %}
+                <div class="activity-item">
+                    <div class="activity-avatar">
+                        <i class="{{ activity.icon }}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">{{ activity.title }}</div>
+                        <div class="activity-description">{{ activity.description }}</div>
+                    </div>
+                    <div class="activity-time">{{ activity.time|timesince }} ago</div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay actividades recientes</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">UI Conference</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">10AM Jan, 2021</div>
-            <div style="font-size:1.05rem;">AirWays - A Front-end solution for airlines build with ReactJS</div>
+
+        <!-- Panel de tareas -->
+        <div class="tasks-panel">
+            <div class="panel-header">
+                <h3>Tareas Pendientes</h3>
+                <a href="#" class="view-all-btn">Ver Todas <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <ul class="task-list">
+                {% for task in tasks|slice:":6" %}
+                <li class="task-item {% if task.completed %}completed{% endif %}">
+                    <span class="task-title">{{ task.title }}</span>
+                    {% if task.due_date %}
+                    <span class="task-due">{{ task.due_date|date:"d M" }}</span>
+                    {% endif %}
+                </li>
+                {% empty %}
+                <li class="empty-state">
+                    <i class="fas fa-check-circle"></i> ¡Sin tareas pendientes!
+                </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </div>
@@ -203,34 +157,18 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/dashboard-data.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+
 <script>
-// Gráfico de línea de ejemplo
-var ctx = document.getElementById('mainChart');
-if (ctx) {
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-                label: 'Ventas',
-                data: [120, 190, 300, 250, 220, 320, 400],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59,130,246,0.08)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { display: false },
-                y: { display: false }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-}
+// Inicializar datos del dashboard con información del servidor
+document.addEventListener('DOMContentLoaded', function() {
+    // La lógica de inicialización principal ahora está dentro de dashboard.js
+    window.serverData = {
+        totalUsers: {{ total_users|default:0 }},
+        totalOrganizations: {{ total_organizations|default:0 }},
+        totalSubscriptions: {{ total_subscriptions|default:0 }},
+    };
+});
 </script>
 {% endblock %} 
