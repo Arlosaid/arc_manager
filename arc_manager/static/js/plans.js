@@ -366,6 +366,307 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ========================================
+// TRIAL NOTIFICATION COMPONENT FUNCTIONALITY - MEJORADO
+// ========================================
+
+// Configuration
+const REMIND_LATER_DURATION = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+const STORAGE_KEY = 'trial_notification_hidden_until';
+
+// Agregar inicialización del banner a la función principal
+const originalInitialize = initializeSubscriptionDashboard;
+initializeSubscriptionDashboard = function() {
+    originalInitialize();
+    initializeTrialNotification();
+};
+
+/**
+ * Initialize the trial notification component
+ */
+function initializeTrialNotification() {
+    const notification = document.getElementById('trial-notification') || 
+                        document.getElementById('renewal-notification');
+    
+    if (!notification) return;
+    
+    // Check if notification should be hidden
+    if (shouldHideNotification()) {
+        hideNotification(notification, false);
+        return;
+    }
+    
+    // Add event listeners
+    setupEventListeners(notification);
+    
+    // Show notification with animation
+    showNotification(notification);
+    
+    // Animate counter if it's a trial notification
+    if (notification.id === 'trial-notification') {
+        animateCounter();
+    }
+}
+
+/**
+ * Check if notification should be hidden based on "remind later" setting
+ */
+function shouldHideNotification() {
+    const hiddenUntil = localStorage.getItem(STORAGE_KEY);
+    if (!hiddenUntil) return false;
+    
+    const hiddenUntilTime = parseInt(hiddenUntil, 10);
+    const currentTime = Date.now();
+    
+    if (currentTime < hiddenUntilTime) {
+        return true;
+    } else {
+        // Clear expired storage
+        localStorage.removeItem(STORAGE_KEY);
+        return false;
+    }
+}
+
+/**
+ * Setup event listeners for the notification
+ */
+function setupEventListeners(notification) {
+    // Remind later button
+    const remindLaterBtn = notification.querySelector('.remind-later-btn');
+    if (remindLaterBtn) {
+        remindLaterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            remindLater();
+        });
+    }
+    
+    // Upgrade button tracking
+    const upgradeBtn = notification.querySelector('.upgrade-btn');
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', function() {
+            // Optional: Track upgrade button clicks
+            console.log('Upgrade button clicked');
+            // You can add analytics tracking here
+        });
+    }
+}
+
+/**
+ * Handle "remind later" functionality
+ */
+function remindLater() {
+    const notification = document.getElementById('trial-notification') || 
+                        document.getElementById('renewal-notification');
+    
+    if (!notification) return;
+    
+    // Store the time when notification should be shown again
+    const hideUntil = Date.now() + REMIND_LATER_DURATION;
+    localStorage.setItem(STORAGE_KEY, hideUntil.toString());
+    
+    // Hide notification with animation
+    hideNotification(notification, true);
+    
+    // Show confirmation message
+    showRemindLaterConfirmation();
+}
+
+/**
+ * Hide notification with smooth animation
+ */
+function hideNotification(notification, animate = true) {
+    if (!notification) return;
+    
+    if (animate) {
+        notification.style.transition = 'all 0.4s ease-out';
+        notification.style.transform = 'translateY(-20px)';
+        notification.style.opacity = '0';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 400);
+    } else {
+        notification.style.display = 'none';
+    }
+}
+
+/**
+ * Show notification with smooth animation
+ */
+function showNotification(notification) {
+    if (!notification) return;
+    
+    notification.style.display = 'block';
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+    
+    // Force reflow
+    notification.offsetHeight;
+    
+    notification.style.transition = 'all 0.6s ease-out';
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+}
+
+/**
+ * Show confirmation message for "remind later"
+ */
+function showRemindLaterConfirmation() {
+    // Create temporary toast notification
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    toast.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        animation: fadeInSlideDown 0.3s ease-out;
+    `;
+    
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2 text-success"></i>
+            <div>
+                <strong>¡Perfecto!</strong><br>
+                <small>Te recordaremos mañana sobre tu prueba gratuita.</small>
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = 'fadeOutSlideUp 0.3s ease-out';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }
+    }, 4000);
+}
+
+/**
+ * Animate counter from 0 to actual days remaining
+ */
+function animateCounter() {
+    const badgeElement = document.querySelector('.trial-countdown-container .badge');
+    if (!badgeElement) return;
+    
+    const finalNumber = parseInt(badgeElement.textContent);
+    if (isNaN(finalNumber)) return;
+    
+    let currentNumber = 0;
+    const increment = finalNumber / 30; // 30 steps for smooth animation
+    const duration = 1000; // 1 second total
+    const stepTime = duration / 30;
+    
+    // Set initial value
+    badgeElement.textContent = '0';
+    
+    const timer = setInterval(() => {
+        currentNumber += increment;
+        
+        if (currentNumber >= finalNumber) {
+            badgeElement.textContent = finalNumber;
+            badgeElement.classList.add('counter-animate');
+            clearInterval(timer);
+            
+            // Remove animation class after it completes
+            setTimeout(() => {
+                badgeElement.classList.remove('counter-animate');
+            }, 100);
+        } else {
+            badgeElement.textContent = Math.floor(currentNumber);
+            
+            // Add small pop animation every 5 steps
+            if (Math.floor(currentNumber) % 5 === 0) {
+                badgeElement.classList.add('counter-animate');
+                setTimeout(() => {
+                    badgeElement.classList.remove('counter-animate');
+                }, 100);
+            }
+        }
+    }, stepTime);
+}
+
+/**
+ * Utility function to check trial urgency and update UI accordingly
+ */
+function updateTrialUrgency(daysRemaining) {
+    const notification = document.getElementById('trial-notification');
+    if (!notification) return;
+    
+    const badge = notification.querySelector('.badge');
+    const icon = notification.querySelector('.trial-icon');
+    
+    // Remove existing urgency classes
+    notification.classList.remove('bg-primary', 'bg-warning', 'bg-danger');
+    badge?.classList.remove('bg-light', 'text-primary', 'text-warning', 'text-danger', 'countdown-pulse');
+    icon?.classList.remove('pulse-animation');
+    
+    // Apply appropriate classes based on days remaining
+    if (daysRemaining >= 8) {
+        notification.classList.add('bg-primary', 'bg-gradient');
+        badge?.classList.add('bg-light', 'text-primary');
+    } else if (daysRemaining >= 3) {
+        notification.classList.add('bg-warning', 'bg-gradient');
+        badge?.classList.add('bg-light', 'text-warning');
+    } else {
+        notification.classList.add('bg-danger', 'bg-gradient');
+        badge?.classList.add('bg-light', 'text-danger', 'countdown-pulse');
+        icon?.classList.add('pulse-animation');
+    }
+}
+
+/**
+ * Reset "remind later" setting (useful for testing or admin purposes)
+ */
+function resetRemindLater() {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+}
+
+// Add CSS for toast animations
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `
+    @keyframes fadeInSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeOutSlideUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+`;
+document.head.appendChild(toastStyle);
+
+// Create TrialNotification object for external use
+window.TrialNotification = {
+    remindLater,
+    resetRemindLater,
+    updateTrialUrgency,
+    hideNotification,
+    showNotification,
+    animateCounter
+};
+
 // Exportar funciones para uso global si es necesario
 window.PlansAPI = PlansAPI;
 window.PlanUtils = PlanUtils;
