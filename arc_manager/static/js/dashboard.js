@@ -40,7 +40,7 @@ class Dashboard {
         }, options);
 
         // Observar elementos que necesiten animación al aparecer en viewport
-        document.querySelectorAll('.metric-card, .project-card, .activity-item, .task-item').forEach(el => {
+        document.querySelectorAll('.metric-card, .project-card-enhanced, .activity-item, .task-item, .document-item').forEach(el => {
             this.observer.observe(el);
         });
     }
@@ -294,7 +294,7 @@ class Dashboard {
     }
 
     setupProjectCards() {
-        const projectCards = document.querySelectorAll('.project-card');
+        const projectCards = document.querySelectorAll('.project-card-enhanced');
         
         projectCards.forEach((card, index) => {
             card.addEventListener('mouseenter', () => {
@@ -375,6 +375,38 @@ class Dashboard {
                 this.toggleTask(item);
             });
         });
+        
+        // Configurar interacciones de documentos
+        this.setupDocumentItems();
+    }
+    
+    setupDocumentItems() {
+        const documentItems = document.querySelectorAll('.document-item');
+        
+        documentItems.forEach((item, index) => {
+            if (!this.isReducedMotion) {
+                item.style.animationDelay = `${1.6 + (index * 0.1)}s`;
+            }
+            
+            item.addEventListener('click', () => {
+                this.highlightDocument(item);
+            });
+        });
+    }
+    
+    highlightDocument(item) {
+        if (this.isReducedMotion) return;
+        
+        // Efecto de highlight temporal para documentos
+        item.style.background = 'rgba(59, 130, 246, 0.1)';
+        item.style.borderColor = 'var(--color-primary)';
+        item.style.transform = 'scale(1.02)';
+        
+        setTimeout(() => {
+            item.style.background = '';
+            item.style.borderColor = '';
+            item.style.transform = '';
+        }, 800);
     }
 
     toggleTask(item) {
@@ -413,7 +445,7 @@ class Dashboard {
     initializeScrollAnimations() {
         if (this.isReducedMotion) return;
         
-        const animatedElements = document.querySelectorAll('.metric-card, .featured-projects-panel, .activity-panel, .tasks-panel');
+        const animatedElements = document.querySelectorAll('.metric-card, .projects-section, .activity-section, .sidebar-section');
         
         const scrollObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
