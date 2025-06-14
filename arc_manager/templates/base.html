@@ -12,14 +12,14 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Estilos base -->
-    <link href="{% static 'css/base.css' %}" rel="stylesheet">
+    <!-- Estilos base con cache-busting -->
+    <link href="{% static 'css/base.css' %}?v=1.1" rel="stylesheet">
     
-    <!-- Navbar CSS específico -->
-    <link href="{% static 'css/navbar.css' %}" rel="stylesheet">
+    <!-- Navbar CSS específico con cache-busting -->
+    <link href="{% static 'css/navbar.css' %}?v=1.1" rel="stylesheet">
     
-    <!-- Sidebar CSS específico -->
-    <link href="{% static 'css/sidebar.css' %}" rel="stylesheet">
+    <!-- Sidebar CSS específico con cache-busting -->
+    <link href="{% static 'css/sidebar.css' %}?v=1.1" rel="stylesheet">
     
     <!-- Estilos adicionales específicos por página -->
     {% block extra_css %}{% endblock %}
