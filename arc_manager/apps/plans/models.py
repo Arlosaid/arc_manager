@@ -420,13 +420,11 @@ class Subscription(models.Model):
         return self.status        
 
 class UpgradeRequest(models.Model):
-    """Modelo para gestionar solicitudes de upgrade de manera controlada"""
+    """Modelo simplificado para gestionar solicitudes de upgrade"""
     
     STATUS_CHOICES = [
         ('pending', 'Pendiente de Aprobación'),
-        ('approved', 'Aprobada - Pendiente de Pago'),
-        ('payment_pending', 'Pago Reportado - En Verificación'), 
-        ('completed', 'Completada'),
+        ('approved', 'Aprobada'),
         ('rejected', 'Rechazada'),
         ('cancelled', 'Cancelada'),
     ]
@@ -455,7 +453,6 @@ class UpgradeRequest(models.Model):
     status = models.CharField("Estado", max_length=20, choices=STATUS_CHOICES, default='pending')
     requested_date = models.DateTimeField("Fecha de Solicitud", auto_now_add=True)
     approved_date = models.DateTimeField("Fecha de Aprobación", null=True, blank=True)
-    completed_date = models.DateTimeField("Fecha de Completado", null=True, blank=True)
     
     # Usuarios involucrados
     requested_by = models.ForeignKey(
@@ -474,10 +471,7 @@ class UpgradeRequest(models.Model):
     
     # Información de pago
     amount_due = models.DecimalField("Monto a Pagar", max_digits=10, decimal_places=2)
-    payment_method = models.CharField("Método de Pago Preferido", max_length=50, blank=True)
-    payment_reference = models.CharField("Referencia de Pago", max_length=100, blank=True)
-    payment_proof_info = models.CharField("Información del Comprobante", max_length=200, blank=True, 
-                                        help_text="Descripción del comprobante de pago enviado por email o WhatsApp")
+    payment_method = models.CharField("Método de Pago Preferido", max_length=50, blank=True, default='transferencia')
     
     # Notas y comentarios
     request_notes = models.TextField("Notas de la Solicitud", blank=True)
@@ -501,15 +495,19 @@ class UpgradeRequest(models.Model):
         return self.requested_plan.price - self.current_plan.price
     
     def approve(self, approved_by_user, admin_notes=""):
-        """Aprobar la solicitud de upgrade"""
+        """Aprobar la solicitud de upgrade y aplicar el cambio directamente"""
         self.status = 'approved'
         self.approved_by = approved_by_user
         self.approved_date = timezone.now()
         self.admin_notes = admin_notes
-        self.save()
         
-        # Enviar email con información de pago
-        self._send_payment_instructions()
+        # Aplicar el upgrade directamente
+        self._apply_upgrade()
+        
+        # Enviar confirmación
+        self._send_approval_email()
+        
+        self.save()
     
     def reject(self, rejected_by_user, reason=""):
         """Rechazar la solicitud de upgrade"""
@@ -522,31 +520,19 @@ class UpgradeRequest(models.Model):
         # Enviar email de rechazo
         self._send_rejection_email()
     
-    def mark_payment_received(self, payment_reference="", payment_proof=None):
-        """Marcar que se recibió el pago"""
-        self.status = 'payment_pending'
-        self.payment_reference = payment_reference
-        if payment_proof:
-            self.payment_proof_info = payment_proof
+    def cancel(self, cancelled_by_user, reason=""):
+        """Cancelar la solicitud"""
+        self.status = 'cancelled'
+        self.approved_by = cancelled_by_user
+        self.admin_notes = f"Cancelada: {reason}"
         self.save()
-        
-        # Notificar al admin para verificar pago
-        self._notify_payment_received()
     
-    def complete_upgrade(self, completed_by_user):
-        """Completar el upgrade aplicando el nuevo plan"""
-        # Validar que se puede completar (más flexible)
-        if self.status in ['completed']:
-            raise ValueError("Esta solicitud ya está completada")
-        
-        if self.status not in ['payment_pending', 'approved', 'completed']:
-            # Permitir completar desde diferentes estados para flexibilidad
-            pass
-        
-        # Actualizar la suscripción
+    def _apply_upgrade(self):
+        """Aplicar el upgrade directamente a la suscripción"""
         subscription = self.organization.subscription
         old_plan = subscription.plan
         
+        # Cambiar el plan
         subscription.plan = self.requested_plan
         subscription.payment_status = 'paid'
         subscription.last_payment_date = timezone.now()
@@ -562,37 +548,18 @@ class UpgradeRequest(models.Model):
         payment_history.append({
             'date': timezone.now().isoformat(),
             'amount': float(self.amount_due),
-            'method': self.payment_method or 'transferencia',
-            'reference': self.payment_reference or f'Admin-{timezone.now().strftime("%Y%m%d_%H%M")}',
-            'status': 'paid',
+            'method': self.payment_method,
+            'status': 'approved_by_admin',
             'upgrade_request_id': self.id,
             'old_plan': old_plan.display_name,
             'new_plan': self.requested_plan.display_name,
-            'processed_by': completed_by_user.username
+            'processed_by': self.approved_by.username if self.approved_by else 'admin'
         })
         subscription.metadata['payment_history'] = payment_history
         subscription.save()
-        
-        # Marcar como completado (solo si no está ya completado)
-        if self.status != 'completed':
-            self.status = 'completed'
-            self.completed_date = timezone.now()
-            self.save()
-        
-        # Enviar confirmación
-        self._send_completion_email()
-        
-        return subscription
-    
-    def cancel(self, cancelled_by_user, reason=""):
-        """Cancelar la solicitud"""
-        self.status = 'cancelled'
-        self.approved_by = cancelled_by_user
-        self.admin_notes = f"Cancelada: {reason}"
-        self.save()
     
     def _send_payment_instructions(self):
-        """Enviar instrucciones de pago al usuario"""
+        """Enviar instrucciones de pago al usuario (solo cuando se crea la solicitud)"""
         from django.core.mail import send_mail
         from django.conf import settings
         
@@ -605,11 +572,11 @@ class UpgradeRequest(models.Model):
             'concept': f'Upgrade Plan - {self.organization.slug}'
         })
         
-        subject = f'✅ Solicitud de Upgrade Aprobada - {self.requested_plan.display_name}'
+        subject = f'💰 Instrucciones de Pago - Upgrade a {self.requested_plan.display_name}'
         message = f"""
 ¡Hola!
 
-Tu solicitud de upgrade ha sido APROBADA 🎉
+Has solicitado un upgrade de plan. Aquí tienes la información para realizar el pago:
 
 DETALLES DEL UPGRADE:
 ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -630,11 +597,11 @@ INFORMACIÓN PARA EL PAGO:
 PRÓXIMOS PASOS:
 ━━━━━━━━━━━━━━━━━━━━━━━━
 1. Realiza la transferencia bancaria
-2. Guarda tu comprobante de pago
-3. Reporta tu pago en tu dashboard
-4. Nosotros verificaremos y activaremos tu nuevo plan
+2. Envía tu comprobante de pago por email o WhatsApp
+3. Nosotros revisaremos y aprobaremos tu solicitud
+4. Tu plan se activará automáticamente
 
-⚠️ IMPORTANTE: Una vez que reportes tu pago, verificaremos la información y activaremos tu nuevo plan en máximo 24 horas.
+Una vez que recibamos tu comprobante de pago, activaremos tu nuevo plan inmediatamente.
 
 ¿Tienes dudas? Contáctanos:
 📧 soporte@tudominio.com
@@ -657,6 +624,40 @@ PRÓXIMOS PASOS:
                 fail_silently=True
             )
     
+    def _send_approval_email(self):
+        """Enviar email de aprobación y activación"""
+        from django.core.mail import send_mail
+        from django.conf import settings
+        
+        subject = f'🎉 ¡Upgrade Aprobado y Activado! - {self.requested_plan.display_name}'
+        message = f"""
+¡Felicidades! 🎉
+
+Tu solicitud de upgrade ha sido APROBADA y tu nuevo plan está ACTIVO.
+
+DETALLES:
+━━━━━━━━━━━━━━━━━━━━━━━━
+• Organización: {self.organization.name}
+• Plan anterior: {self.current_plan.display_name}
+• Plan actual: {self.requested_plan.display_name}
+• Fecha de activación: {self.approved_date.strftime('%d/%m/%Y %H:%M')}
+
+Ya puedes acceder a todas las funcionalidades de tu nuevo plan.
+
+¡Gracias por confiar en nosotros!
+        """
+        
+        admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
+        
+        if admin_emails:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
+                recipient_list=admin_emails,
+                fail_silently=True
+            )
+    
     def _send_rejection_email(self):
         """Enviar email de rechazo"""
         from django.core.mail import send_mail
@@ -669,6 +670,7 @@ Hola,
 Lamentamos informarte que tu solicitud de upgrade ha sido rechazada.
 
 DETALLES:
+━━━━━━━━━━━━━━━━━━━━━━━━
 • Organización: {self.organization.name}
 • Plan solicitado: {self.requested_plan.display_name}
 • Motivo: {self.rejection_reason or 'No se proporcionó motivo específico'}
@@ -689,67 +691,4 @@ Puedes realizar una nueva solicitud cuando hayas resuelto los puntos mencionados
                 from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
                 recipient_list=admin_emails,
                 fail_silently=True
-            )
-    
-    def _send_completion_email(self):
-        """Enviar email de upgrade completado"""
-        from django.core.mail import send_mail
-        from django.conf import settings
-        
-        subject = f'🎉 ¡Upgrade Completado! - {self.requested_plan.display_name}'
-        message = f"""
-¡Felicidades! 🎉
-
-Tu upgrade ha sido completado exitosamente.
-
-DETALLES:
-• Organización: {self.organization.name}
-• Plan anterior: {self.current_plan.display_name}
-• Plan actual: {self.requested_plan.display_name}
-• Fecha de activación: {self.completed_date.strftime('%d/%m/%Y %H:%M')}
-
-Ya puedes acceder a todas las funcionalidades de tu nuevo plan.
-
-¡Gracias por confiar en nosotros!
-        """
-        
-        admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
-        
-        if admin_emails:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                recipient_list=admin_emails,
-                fail_silently=True
-            )
-    
-    def _notify_payment_received(self):
-        """Notificar al admin que se recibió un reporte de pago"""
-        from django.core.mail import send_mail
-        from django.conf import settings
-        
-        subject = f'💰 Pago Reportado - Verificar: {self.organization.name}'
-        message = f"""
-Se ha reportado un pago para verificación:
-
-DETALLES DEL UPGRADE:
-• Organización: {self.organization.name}
-• Plan: {self.current_plan.display_name} → {self.requested_plan.display_name}
-• Monto: ${self.amount_due}
-• Referencia reportada: {self.payment_reference}
-
-Por favor verifica el pago y completa el upgrade en el panel de administración.
-
-URL: {getattr(settings, 'SITE_URL', 'http://localhost:8000')}/admin/plans/upgraderequest/{self.id}/change/
-        """
-        
-        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@tudominio.com')
-        
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-            recipient_list=[admin_email],
-            fail_silently=True
-        )        
+            )        

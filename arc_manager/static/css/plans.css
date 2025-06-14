@@ -61,6 +61,7 @@
     --trial-warning-gradient: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
     --trial-urgency-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
     --renewal-info-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
 }
 
 /* ===== LAYOUT PRINCIPAL - USANDO ESTÁNDARES DE BASE.CSS ===== */
@@ -176,6 +177,7 @@
 .subscription-dashboard .trial-banner-warning { background: var(--trial-warning-gradient); }
 .subscription-dashboard .trial-banner-urgency { background: var(--trial-urgency-gradient); }
 .subscription-dashboard .renewal-banner { background: var(--renewal-info-gradient); }
+.subscription-dashboard .success-banner { background: var(--success-gradient); }
 
 /* Contenedor del Icono del Banner */
 .subscription-dashboard .banner-icon-container {
@@ -776,7 +778,7 @@
     color: var(--success-color);
 }
 
-/* ===== PLANES DISPONIBLES REDISEÑADOS ===== */
+/* ===== TARJETA DE PLANES DISPONIBLES (MORADA) ===== */
 .subscription-dashboard .plans-available-card {
     background: linear-gradient(135deg, #6A3093 0%, #A044FF 50%, #FF6B9D 100%) !important;
     border-radius: 20px !important;
@@ -814,6 +816,8 @@
         opacity: 0.4;
     }
 }
+
+
 
 .subscription-dashboard .plans-available-card .card-header {
     display: flex;
@@ -1122,3 +1126,471 @@
         font-size: 0.7rem;
     }
 }
+
+/* ===== BANNER DE ÉXITO PARA PLAN BÁSICO ===== */
+.subscription-dashboard .success-banner .banner-icon {
+    color: white !important;
+}
+
+.subscription-dashboard .plan-info-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subscription-dashboard .plan-price-display {
+    text-align: center;
+    color: white;
+}
+
+.subscription-dashboard .plan-price-display .price-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.subscription-dashboard .plan-price-display .price-period {
+    font-size: 0.875rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+/* ===== HISTORIAL DE PAGOS MEJORADO ===== */
+.subscription-dashboard .payment-history-section {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    padding: var(--space-6);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.subscription-dashboard .payment-history-section:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.subscription-dashboard .payment-history-container {
+    margin-top: var(--space-4);
+}
+
+.subscription-dashboard .payment-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.subscription-dashboard .payment-history-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-4);
+    align-items: center;
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.subscription-dashboard .payment-history-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.subscription-dashboard .payment-date-container {
+    text-align: center;
+    min-width: 60px;
+}
+
+.subscription-dashboard .payment-month {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.subscription-dashboard .payment-year {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.subscription-dashboard .payment-details-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.subscription-dashboard .payment-description {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.subscription-dashboard .payment-method-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subscription-dashboard .payment-method-info i {
+    color: var(--info-color);
+}
+
+.subscription-dashboard .payment-amount-container {
+    text-align: right;
+    min-width: 80px;
+}
+
+.subscription-dashboard .payment-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.subscription-dashboard .payment-status {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.subscription-dashboard .payment-status.success {
+    color: var(--success-color);
+}
+
+.subscription-dashboard .payment-status.success i {
+    color: var(--success-color);
+}
+
+/* ===== TARJETA DE PLAN BÁSICO ACTIVO (VERDE ESTÉTICO) ===== */
+.subscription-dashboard .plans-available-card.basic-plan-active {
+    background: linear-gradient(135deg, #065F46 0%, #047857 100%) !important;
+    color: white !important;
+    border-radius: 20px !important;
+    box-shadow: 
+        0 20px 40px rgba(6, 95, 70, 0.3),
+        0 0 30px rgba(4, 120, 87, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 25px 50px rgba(6, 95, 70, 0.4),
+        0 0 40px rgba(4, 120, 87, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Efecto de partículas animadas para tarjeta verde */
+.subscription-dashboard .plans-available-card.basic-plan-active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    animation: subtle-pan-green 20s linear infinite;
+    z-index: 1;
+}
+
+@keyframes subtle-pan-green {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
+
+
+/* Header del plan básico activo */
+.subscription-dashboard .plans-available-card.basic-plan-active .card-header h3 {
+    color: white !important;
+    position: relative;
+    z-index: 2;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Icono del plan básico - estético y con gradiente */
+.subscription-dashboard .plans-available-card.basic-plan-active .header-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #34D399, #10B981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    box-shadow: 
+        0 8px 16px rgba(52, 211, 153, 0.4),
+        0 0 20px rgba(16, 185, 129, 0.3);
+    animation: icon-glow-green 2s ease-in-out infinite alternate;
+    position: relative;
+    z-index: 2;
+}
+
+@keyframes icon-glow-green {
+    0% {
+        box-shadow: 
+            0 8px 16px rgba(52, 211, 153, 0.4),
+            0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    100% {
+        box-shadow: 
+            0 8px 20px rgba(52, 211, 153, 0.6),
+            0 0 30px rgba(16, 185, 129, 0.5);
+    }
+}
+
+.subscription-dashboard .basic-plan-active .plan-item {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Elementos de la tarjeta del plan básico activo */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-header h4 {
+    color: white !important;
+    text-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+/* FECHA DE VIGENCIA - DISEÑO LIMPIO Y LEGIBLE */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-description {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: white !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: var(--space-4) var(--space-5) !important;
+    border-radius: var(--border-radius) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    margin: var(--space-4) 0 !important;
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+}
+
+/* Precio del plan básico activo */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-price {
+    color: #34D399 !important;
+    font-weight: 800 !important;
+    position: relative;
+    z-index: 2;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+}
+
+/* Características del plan básico activo */
+.subscription-dashboard .plans-available-card.basic-plan-active .feature-item {
+    color: rgba(255, 255, 255, 0.95) !important;
+    position: relative;
+    z-index: 2;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active .feature-item i {
+    color: #34D399 !important;
+    text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);
+}
+
+/* Botón del plan activo */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-active-button {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    cursor: default;
+    position: relative;
+    z-index: 2;
+    color: white !important;
+    font-weight: 600;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-active-button:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: none;
+}
+
+/* Contenedor para todos los elementos */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-item {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* ===== INFORMACIÓN GENERAL PARA TARJETAS ===== */
+.subscription-dashboard .plans-available-card .plan-expiry-info {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: var(--border-radius) !important;
+    padding: var(--space-4) !important;
+    margin: var(--space-4) 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    text-align: center !important;
+    position: relative;
+    z-index: 2;
+}
+
+/* ===== INFORMACIÓN DE FECHA DE VIGENCIA PARA PLAN BÁSICO ===== */
+.subscription-dashboard .plans-available-card.basic-plan-active .plan-expiry-info {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: var(--border-radius) !important;
+    padding: var(--space-4) !important;
+    margin: var(--space-4) 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    text-align: center !important;
+    position: relative;
+    z-index: 2;
+}
+
+.subscription-dashboard .plans-available-card .expiry-alert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.subscription-dashboard .plans-available-card .expiry-alert i {
+    font-size: 1rem;
+}
+
+.subscription-dashboard .plans-available-card .expiry-date {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #FFB74D;
+    text-shadow: 0 0 10px rgba(255, 183, 77, 0.5);
+}
+
+/* Solo para plan básico - colores verdes brillantes */
+.subscription-dashboard .plans-available-card.basic-plan-active .expiry-date {
+    color: #34D399;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+}
+
+/* Estados de la alerta de vigencia */
+.subscription-dashboard .plans-available-card .expiry-alert.critical {
+    color: #FEF2F2 !important;
+    animation: critical-text-pulse 1.5s ease-in-out infinite alternate;
+}
+
+.subscription-dashboard .plans-available-card .expiry-alert.warning {
+    color: #FEF3C7 !important;
+}
+
+.subscription-dashboard .plans-available-card .expiry-alert.normal {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+@keyframes critical-text-pulse {
+    0% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+/* ===== ESTADO DE ÚLTIMO DÍA DE VIGENCIA (CRÍTICO) ===== */
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day {
+    background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+    animation: critical-pulse 2s ease-in-out infinite alternate;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+    animation: critical-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes critical-pulse {
+    0% {
+        box-shadow: var(--shadow-lg), 0 0 20px rgba(220, 38, 38, 0.5);
+    }
+    100% {
+        box-shadow: var(--shadow-xl), 0 0 30px rgba(220, 38, 38, 0.8);
+    }
+}
+
+@keyframes critical-glow {
+    0% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.4;
+        transform: scale(1.1);
+    }
+}
+
+/* Fecha de vigencia en último día - muy llamativa */
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .plan-expiry-info {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 2px solid #FEF2F2 !important;
+    animation: critical-text 1s ease-in-out infinite alternate;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .expiry-alert.critical {
+    color: #DC2626 !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .expiry-date {
+    color: #DC2626 !important;
+    font-size: 1.25rem !important;
+    font-weight: 900 !important;
+}
+
+@keyframes critical-text {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.02);
+    }
+}
+
+/* Precio y características en último día */
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .plan-price {
+    color: #FEF2F2 !important;
+    font-weight: 900 !important;
+}
+
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .feature-item i {
+    color: #FEF2F2 !important;
+}
+
+/* Botón en último día */
+.subscription-dashboard .plans-available-card.basic-plan-active.last-day .plan-active-button {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #DC2626 !important;
+    border: 2px solid rgba(255, 255, 255, 1) !important;
+    font-weight: 800 !important;
+}
+
+/* ===== LIMPIEZA DE ESTILOS ANTIGUOS NO UTILIZADOS ===== */
+/* Estos estilos se han movido a las clases correctas arriba */
+
+/* Icono del plan básico igual al banner-icon del trial */
+.subscription-dashboard .plans-available-card.basic-plan-active .header-icon i {
+    color: white !important;
+    font-size: 1.5rem;
+    transition: var(--transition);
+    position: relative;
+    z-index: 3;
+}
+
+/* ===== ESTILOS ANTIGUOS ELIMINADOS - SOLO USAR LAS CLASES CORRECTAS ===== */
+/* Todos estos estilos han sido reemplazados por los específicos de .plans-available-card.basic-plan-active */
+
+/* ===== ESTILOS ANTIGUOS ELIMINADOS - YA NO SE USAN ===== */
+/* Todos estos estilos antiguos han sido reemplazados por los nuevos específicos */
