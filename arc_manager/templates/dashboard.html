@@ -4,233 +4,246 @@
 {% block title %}Dashboard - Arc Manager{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
-<style>
-.dashboard-mosaic {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    grid-template-rows: 220px 120px 120px;
-    gap: 1.5rem;
-    grid-template-areas:
-        "main main kpi1 kpi2"
-        "main main kpi3 action"
-        "illu promo promo promo";
-}
-@media (max-width: 1200px) {
-    .dashboard-mosaic {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto;
-        grid-template-areas:
-            "main main"
-            "kpi1 kpi2"
-            "kpi3 action"
-            "illu promo";
-    }
-}
-.dashboard-card-lg { grid-area: main; }
-.dashboard-card-md.kpi1 { grid-area: kpi1; }
-.dashboard-card-md.kpi2 { grid-area: kpi2; }
-.dashboard-card-md.kpi3 { grid-area: kpi3; }
-.dashboard-card-md.action { grid-area: action; }
-.dashboard-card-md.illu { grid-area: illu; }
-.dashboard-card-md.promo { grid-area: promo; }
-.dashboard-card-lg, .dashboard-card-md, .dashboard-card-sm {
-    border-radius: 18px;
-    box-shadow: 0 4px 24px 0 rgba(60,72,88,0.10);
-    background: #fff;
-    padding: 2rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-width: 0;
-}
-.dashboard-card-md {
-    min-height: 120px;
-    justify-content: center;
-}
-.kpi-card {
-    color: #fff;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 1.5rem 1.2rem;
-}
-.kpi-card.bg-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.kpi-card.bg-success { background: linear-gradient(135deg, #10b981, #059669); }
-.kpi-card.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.kpi-value { font-size: 2.2rem; font-weight: 700; }
-.kpi-label { font-size: 1.1rem; opacity: 0.85; }
-.action-card { background: #1e293b; color: #fff; align-items: flex-start; }
-.action-card .btn { margin-top: 1rem; }
-.illu-card { background: linear-gradient(135deg, #f1f5f9 60%, #a5b4fc 100%); display: flex; align-items: center; }
-.illu-card img { width: 80px; height: 80px; margin-right: 1.5rem; }
-.promo-card { background: linear-gradient(135deg, #fef9c3 60%, #fbbf24 100%); color: #92400e; display: flex; align-items: center; }
-.promo-card .promo-img { width: 60px; height: 60px; margin-right: 1.2rem; }
-.dashboard-card-sm { border-radius: 14px; box-shadow: 0 2px 8px 0 rgba(60,72,88,0.10); background: #fff; padding: 1.2rem 1rem; margin-bottom: 1rem; }
-</style>
+<link href="{% static 'css/dashboard.css' %}?v=26" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <nav style="font-size:0.95rem; color:#64748b;">
-                <span><i class="fas fa-home"></i> &nbsp;Account &gt; Overview</span>
-            </nav>
-            <h1 class="dashboard-title mb-1">Dashboard</h1>
-        </div>
-        <a href="#" class="btn btn-light" style="font-weight:600;">Create New</a>
-    </div>
-    <div class="dashboard-mosaic">
-        <!-- Tarjeta grande con gráfico -->
-        <div class="dashboard-card-lg">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h4 style="font-weight:700;">Weekly Sales Stats</h4>
-                    <div style="color:#64748b; font-size:1.05rem;">890,344 Sales</div>
+<!-- Usar el container estándar de base.css -->
+<div class="page-container">
+    <div class="dashboard-premium">
+        <!-- Header simplificado con bienvenida y stats principales -->
+        <header class="dashboard-header-premium">
+            <div class="welcome-section">
+                <div class="welcome-content">
+                    <div class="time-greeting">¡Bienvenido de vuelta!</div>
+                    <h1 class="user-name">{{ user.first_name|default:"Roberto" }} {{ user.last_name|default:"Dela" }}</h1>
+                    <p class="welcome-subtitle">Tienes 2 proyectos activos y 3 planos pendientes de revisión.<br/>¡Sigue adelante con tu progreso semanal!</p>
                 </div>
-                <i class="fas fa-ellipsis-v" style="color:#64748b;"></i>
-            </div>
-            <div class="mb-3">
-                <div class="d-flex align-items-center mb-2">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">Top Authors</div>
-                        <div style="color:#64748b; font-size:0.97rem;">Mark, Rowling, Esther</div>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">75%</div>
+                        <div class="stat-label">Progreso General</div>
                     </div>
-                    <div style="margin-left:auto; font-weight:600; color:#10b981;">+82$</div>
-                </div>
-                <div class="d-flex align-items-center mb-2">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">Popular Authors</div>
-                        <div style="color:#64748b; font-size:0.97rem;">Randy, Steve, Mike</div>
+                    <div class="stat-item">
+                        <div class="stat-value">2</div>
+                        <div class="stat-label">Proyectos Activos</div>
                     </div>
-                    <div style="margin-left:auto; font-weight:600; color:#3b82f6;">+280$</div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111624.png" width="32" height="32" style="margin-right:0.7rem;" />
-                    <div>
-                        <div style="font-weight:600;">New Users</div>
-                        <div style="color:#64748b; font-size:0.97rem;">John, Pat, Jimmy</div>
+                    <div class="stat-item">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Planos Pendientes</div>
                     </div>
-                    <div style="margin-left:auto; font-weight:600; color:#6366f1;">+4500$</div>
                 </div>
             </div>
-            <div style="height:60px;">
-                <canvas id="mainChart"></canvas>
+        </header>
+
+        <!-- Métricas principales compactas -->
+        <section class="metrics-section">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-project-diagram"></i></div>
+                    <div class="metric-content">
+                        <div class="metric-value" data-target="{{ active_projects_count|default:2 }}">2</div>
+                        <div class="metric-label">Proyectos Activos</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-check-double"></i></div>
+                    <div class="metric-content">
+                        <div class="metric-value" data-target="{{ tasks_completed_week|default:5 }}">5</div>
+                        <div class="metric-label">Tareas Completadas</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-file-upload"></i></div>
+                    <div class="metric-content">
+                        <div class="metric-value" data-target="{{ total_documents_uploaded|default:12 }}">12</div>
+                        <div class="metric-label">Documentos Técnicos</div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fas fa-drafting-compass"></i></div>
+                    <div class="metric-content">
+                        <div class="metric-value" data-target="{{ blueprints_reviewed|default:8 }}">8</div>
+                        <div class="metric-label">Planos Revisados</div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <!-- KPI Cards -->
-        <div class="dashboard-card-md kpi-card bg-primary kpi1 metric-card" data-tooltip="Número total de ventas de autores en el último periodo">
-            <div class="dashboard-card-icon bg-primary">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="kpi-value">3,900</div>
-            <div class="kpi-label">Author Sales</div>
-            <div class="trend-indicator positive">
-                <i class="fas fa-arrow-up"></i>
-                +12% desde el mes pasado
-            </div>
-        </div>
-        <div class="dashboard-card-md kpi-card bg-success kpi2 metric-card" data-tooltip="Estadísticas completas de rendimiento de autores">
-            <div class="dashboard-card-icon bg-success">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="kpi-value">4.9M</div>
-            <div class="kpi-label">Author Stats</div>
-            <div style="width:100%; background:#fff3; border-radius:6px; height:7px; margin-top:0.7rem;">
-                <div style="width:70%; height:100%; background:#fff; border-radius:6px;"></div>
-            </div>
-            <div class="trend-indicator positive">
-                <i class="fas fa-check-circle"></i>
-                Rendimiento excelente
-            </div>
-        </div>
-        <div class="dashboard-card-md kpi-card bg-warning kpi3 metric-card" data-tooltip="Porcentaje de éxito en las operaciones del sistema">
-            <div class="dashboard-card-icon bg-warning">
-                <i class="fas fa-chart-pie"></i>
-            </div>
-            <div class="kpi-value">75%</div>
-            <div class="kpi-label">Success Rate</div>
-            <div class="trend-indicator neutral">
-                <i class="fas fa-minus-circle"></i>
-                Estable
-            </div>
-        </div>
-        <!-- Acción destacada -->
-        <div class="dashboard-card-md action-card action">
-            <h4 style="font-weight:700;">Create CRM Reports</h4>
-            <p style="font-size:1.05rem; opacity:0.85;">Cause marketing is marketing done by a for-profit business that seeks to increase profits to better society</p>
-            <button class="btn btn-danger">Create Campaign</button>
-        </div>
-        <!-- Ilustración -->
-        <div class="dashboard-card-md illu-card illu">
-            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Ilustración" />
-            <div>
-                <div style="font-weight:600; font-size:1.1rem;">Company</div>
-                <div style="color:#64748b; font-size:0.97rem;">Crecimiento de usuarios y ventas</div>
-            </div>
-        </div>
-        <!-- Promo -->
-        <div class="dashboard-card-md promo-card promo">
-            <img class="promo-img" src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" alt="Promo" />
-            <div>
-                <div style="font-weight:600; font-size:1.1rem;">30% Off Themes</div>
-                <div style="font-size:0.97rem;">Get your discounted themes of the month<br>Instant rewards, everyday</div>
-            </div>
-        </div>
-    </div>
-    <!-- Fila inferior: tarjetas pequeñas -->
-    <div class="d-flex flex-wrap mt-4" style="gap:1.5rem;">
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">3:30PM - 4:20PM</div>
-            <div style="font-size:1.05rem;">Create a headline that is informative and will capture readers</div>
-        </div>
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">Meeting Schedule</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">03 May 2020</div>
-            <div style="font-size:1.05rem;">Great blog posts don't just happen. Even the best bloggers need it</div>
-        </div>
-        <div class="dashboard-card-sm" style="flex:1 1 260px; min-width:220px;">
-            <div style="color:#64748b; font-size:0.98rem; font-weight:600;">UI Conference</div>
-            <div style="color:#7c3aed; font-weight:700; margin:0.5rem 0;">10AM Jan, 2021</div>
-            <div style="font-size:1.05rem;">AirWays - A Front-end solution for airlines build with ReactJS</div>
+        </section>
+
+        <!-- Layout principal sin sidebar -->
+        <div class="dashboard-single-layout">
+            <!-- Área principal -->
+            <main class="dashboard-main-content">
+                <!-- Proyectos Activos - COMPACTO -->
+                <section class="projects-section-compact">
+                    <div class="section-header-mini">
+                        <h3><i class="fas fa-building"></i> Proyectos Activos</h3>
+                        <div class="section-actions-mini">
+                            <a href="#" class="btn-add-project"><i class="fas fa-plus"></i> Nuevo Proyecto</a>
+                            <a href="#" class="btn-mini-secondary">Ver Todos</a>
+                        </div>
+                    </div>
+                    
+                    <div class="projects-grid-mini">
+                        <div class="project-card-mini">
+                            <div class="project-image-mini">
+                                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max" alt="Torre Central">
+                                <div class="project-status-mini in-progress">En Desarrollo</div>
+                            </div>
+                            <div class="project-info-mini">
+                                <h4>Torre Central</h4>
+                                <p>Complejo habitacional 15 pisos</p>
+                                <div class="project-progress-mini">
+                                    <div class="progress-bar-mini">
+                                        <div class="progress-fill-mini" style="width: 75%;"></div>
+                                    </div>
+                                    <span class="progress-text-mini">75%</span>
+                                </div>
+                                <div class="project-meta-mini">
+                                    <span><i class="fas fa-calendar-alt"></i> 3 meses</span>
+                                    <span><i class="fas fa-users"></i> 8 miembros</span>
+                                </div>
+                                <div class="project-actions-mini">
+                                    <a href="#" class="btn-project-primary">Abrir Proyecto</a>
+                                    <a href="#" class="btn-project-secondary">Ver Planos</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="project-card-mini">
+                            <div class="project-image-mini">
+                                <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max" alt="Oficinas">
+                                <div class="project-status-mini completed">Finalizado</div>
+                            </div>
+                            <div class="project-info-mini">
+                                <h4>Remodelación Oficinas</h4>
+                                <p>Renovación integral espacios</p>
+                                <div class="project-progress-mini">
+                                    <div class="progress-bar-mini">
+                                        <div class="progress-fill-mini completed" style="width: 100%;"></div>
+                                    </div>
+                                    <span class="progress-text-mini">100%</span>
+                                </div>
+                                <div class="project-meta-mini">
+                                    <span><i class="fas fa-check-circle"></i> Completado</span>
+                                    <span><i class="fas fa-award"></i> Entregado</span>
+                                </div>
+                                <div class="project-actions-mini">
+                                    <a href="#" class="btn-project-primary">Ver Detalles</a>
+                                    <a href="#" class="btn-project-secondary">Ver Renders</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tareas y Documentos - ULTRA COMPACTO -->
+                <div class="dashboard-summary-grid">
+                    <!-- Tareas Recientes - Lista Compacta -->
+                    <section class="summary-section-mini">
+                        <div class="section-header-mini">
+                            <h3><i class="fas fa-tasks"></i> Tareas Recientes</h3>
+                            <a href="#" class="btn-mini-link">Ver todas</a>
+                        </div>
+                        <div class="summary-list-mini">
+                            <div class="summary-item-mini">
+                                <div class="priority-dot high"></div>
+                                <div class="item-content-mini">
+                                    <h5>Revisión Estructural Nivel 10-15</h5>
+                                    <p>Torre Central • Vence en 3 días</p>
+                                    <div class="progress-inline-mini">
+                                        <div class="progress-bar-inline" style="width: 65%;"></div>
+                                        <span>65%</span>
+                                    </div>
+                                </div>
+                                <div class="assignee-mini">
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Carlos">
+                                </div>
+                            </div>
+
+                            <div class="summary-item-mini">
+                                <div class="priority-dot medium"></div>
+                                <div class="item-content-mini">
+                                    <h5>Selección Materiales Interior</h5>
+                                    <p>Oficinas • En progreso</p>
+                                    <div class="progress-inline-mini">
+                                        <div class="progress-bar-inline" style="width: 85%;"></div>
+                                        <span>85%</span>
+                                    </div>
+                                </div>
+                                <div class="assignee-mini">
+                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b332c1c7?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Ana">
+                                </div>
+                            </div>
+
+                            <div class="summary-item-mini">
+                                <div class="priority-dot low"></div>
+                                <div class="item-content-mini">
+                                    <h5>Actualización Normativa BIM</h5>
+                                    <p>General • Sin fecha límite</p>
+                                    <div class="progress-inline-mini">
+                                        <div class="progress-bar-inline" style="width: 25%;"></div>
+                                        <span>25%</span>
+                                    </div>
+                                </div>
+                                <div class="assignee-mini">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Miguel">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Documentos Recientes - Lista Compacta -->
+                    <section class="summary-section-mini">
+                        <div class="section-header-mini">
+                            <h3><i class="fas fa-folder-open"></i> Documentos Recientes</h3>
+                            <a href="#" class="btn-mini-link">Ver biblioteca</a>
+                        </div>
+                        <div class="summary-list-mini">
+                            <div class="summary-item-mini">
+                                <div class="doc-icon-mini pdf">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                                <div class="item-content-mini">
+                                    <h5>Planos Estructurales</h5>
+                                    <p>Torre Central • 2.4 MB • Hace 2 horas</p>
+                                </div>
+                                <div class="doc-status-text approved">Aprobado</div>
+                            </div>
+
+                            <div class="summary-item-mini">
+                                <div class="doc-icon-mini dwg">
+                                    <i class="fas fa-drafting-compass"></i>
+                                </div>
+                                <div class="item-content-mini">
+                                    <h5>Detalles Arquitectónicos</h5>
+                                    <p>Oficinas • 5.8 MB • Ayer</p>
+                                </div>
+                                <div class="doc-status-text review">En Revisión</div>
+                            </div>
+
+                            <div class="summary-item-mini">
+                                <div class="doc-icon-mini excel">
+                                    <i class="fas fa-file-excel"></i>
+                                </div>
+                                <div class="item-content-mini">
+                                    <h5>Presupuesto Q2 2024</h5>
+                                    <p>General • 1.2 MB • Hace 3 días</p>
+                                </div>
+                                <div class="doc-status-text pending">Pendiente</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+
+            </main>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Gráfico de línea de ejemplo
-var ctx = document.getElementById('mainChart');
-if (ctx) {
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-                label: 'Ventas',
-                data: [120, 190, 300, 250, 220, 320, 400],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59,130,246,0.08)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 0
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { display: false },
-                y: { display: false }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
-}
-</script>
+<script src="{% static 'js/dashboard.js' %}?v=11"></script>
 {% endblock %} 
