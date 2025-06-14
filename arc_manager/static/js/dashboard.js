@@ -40,7 +40,7 @@ class Dashboard {
         }, options);
 
         // Observar elementos que necesiten animación al aparecer en viewport
-        document.querySelectorAll('.metric-card, .project-card-enhanced, .activity-item, .task-item, .document-item').forEach(el => {
+        document.querySelectorAll('.metric-card, .project-card-compact, .task-card-compact, .document-card-compact, .activity-item').forEach(el => {
             this.observer.observe(el);
         });
     }
@@ -168,33 +168,15 @@ class Dashboard {
         this.setupRefreshButton();
         this.setupCardInteractions();
         this.setupProjectCards();
+        this.setupTaskCards();
+        this.setupDocumentCards();
         this.setupActivityItems();
-        this.setupTaskItems();
+        // Sidebar del dashboard eliminado
     }
 
     setupRefreshButton() {
-        const refreshBtn = document.getElementById('refresh-activities');
-        if (!refreshBtn) return;
-
-        let rotation = 0;
-        
-        refreshBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Efecto de rotación
-            rotation += 360;
-            const icon = refreshBtn.querySelector('i');
-            if (icon) {
-                icon.style.transition = 'transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-                icon.style.transform = `rotate(${rotation}deg)`;
-            }
-
-            // Efecto de ripple
-            this.createRippleEffect(refreshBtn, e);
-            
-            // Simular actualización de actividades
-            this.refreshActivities();
-        });
+        // Botón de actualizar actividades removido
+        return;
     }
 
     createRippleEffect(element, event) {
@@ -294,7 +276,7 @@ class Dashboard {
     }
 
     setupProjectCards() {
-        const projectCards = document.querySelectorAll('.project-card-enhanced');
+        const projectCards = document.querySelectorAll('.project-card-compact');
         
         projectCards.forEach((card, index) => {
             card.addEventListener('mouseenter', () => {
@@ -304,19 +286,88 @@ class Dashboard {
             card.addEventListener('mouseleave', () => {
                 this.animateProjectCard(card, 'leave');
             });
-            
-            // Efecto staggered inicial
-            if (!this.isReducedMotion) {
-                card.style.animationDelay = `${0.8 + (index * 0.1)}s`;
-            }
         });
     }
 
     animateProjectCard(card, action) {
         if (this.isReducedMotion) return;
         
-        const image = card.querySelector('.project-image');
-        const name = card.querySelector('.project-name');
+        const image = card.querySelector('.project-image-compact');
+        const name = card.querySelector('.project-name-compact');
+        
+        if (action === 'enter') {
+            if (image) {
+                image.style.filter = 'brightness(1.1) saturate(1.2)';
+            }
+            if (name) {
+                name.style.letterSpacing = '0.5px';
+            }
+        } else {
+            if (image) {
+                image.style.filter = '';
+            }
+            if (name) {
+                name.style.letterSpacing = '';
+            }
+        }
+    }
+
+    setupTaskCards() {
+        const taskCards = document.querySelectorAll('.task-card-compact');
+        
+        taskCards.forEach((card, index) => {
+            card.addEventListener('mouseenter', () => {
+                this.animateTaskCard(card, 'enter');
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                this.animateTaskCard(card, 'leave');
+            });
+        });
+    }
+
+    animateTaskCard(card, action) {
+        if (this.isReducedMotion) return;
+        
+        const image = card.querySelector('.task-image-compact');
+        const name = card.querySelector('.task-name-compact');
+        
+        if (action === 'enter') {
+            if (image) {
+                image.style.filter = 'brightness(1.1) saturate(1.2)';
+            }
+            if (name) {
+                name.style.letterSpacing = '0.5px';
+            }
+        } else {
+            if (image) {
+                image.style.filter = '';
+            }
+            if (name) {
+                name.style.letterSpacing = '';
+            }
+        }
+    }
+
+    setupDocumentCards() {
+        const documentCards = document.querySelectorAll('.document-card-compact');
+        
+        documentCards.forEach((card, index) => {
+            card.addEventListener('mouseenter', () => {
+                this.animateDocumentCard(card, 'enter');
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                this.animateDocumentCard(card, 'leave');
+            });
+        });
+    }
+
+    animateDocumentCard(card, action) {
+        if (this.isReducedMotion) return;
+        
+        const image = card.querySelector('.document-image-compact');
+        const name = card.querySelector('.document-name-compact');
         
         if (action === 'enter') {
             if (image) {
@@ -339,11 +390,6 @@ class Dashboard {
         const activityItems = document.querySelectorAll('.activity-item');
         
         activityItems.forEach((item, index) => {
-            // Animación de entrada escalonada
-            if (!this.isReducedMotion) {
-                item.style.animationDelay = `${1.1 + (index * 0.1)}s`;
-            }
-            
             item.addEventListener('click', () => {
                 this.highlightActivity(item);
             });
@@ -363,68 +409,7 @@ class Dashboard {
         }, 1000);
     }
 
-    setupTaskItems() {
-        const taskItems = document.querySelectorAll('.task-item');
-        
-        taskItems.forEach((item, index) => {
-            if (!this.isReducedMotion) {
-                item.style.animationDelay = `${1.4 + (index * 0.1)}s`;
-            }
-            
-            item.addEventListener('click', () => {
-                this.toggleTask(item);
-            });
-        });
-        
-        // Configurar interacciones de documentos
-        this.setupDocumentItems();
-    }
-    
-    setupDocumentItems() {
-        const documentItems = document.querySelectorAll('.document-item');
-        
-        documentItems.forEach((item, index) => {
-            if (!this.isReducedMotion) {
-                item.style.animationDelay = `${1.6 + (index * 0.1)}s`;
-            }
-            
-            item.addEventListener('click', () => {
-                this.highlightDocument(item);
-            });
-        });
-    }
-    
-    highlightDocument(item) {
-        if (this.isReducedMotion) return;
-        
-        // Efecto de highlight temporal para documentos
-        item.style.background = 'rgba(59, 130, 246, 0.1)';
-        item.style.borderColor = 'var(--color-primary)';
-        item.style.transform = 'scale(1.02)';
-        
-        setTimeout(() => {
-            item.style.background = '';
-            item.style.borderColor = '';
-            item.style.transform = '';
-        }, 800);
-    }
-
-    toggleTask(item) {
-        const title = item.querySelector('.task-title');
-        if (!title) return;
-        
-        item.classList.toggle('completed');
-        
-        if (!this.isReducedMotion) {
-            // Efecto de check
-            if (item.classList.contains('completed')) {
-                item.style.transform = 'scale(0.98)';
-                setTimeout(() => {
-                    item.style.transform = '';
-                }, 150);
-            }
-        }
-    }
+    // Funciones del sidebar del dashboard eliminadas
 
     // ===== EFECTOS DE PARALLAX SUTIL =====
     initializeParallax() {
@@ -443,21 +428,9 @@ class Dashboard {
 
     // ===== ANIMACIONES AL SCROLL =====
     initializeScrollAnimations() {
-        if (this.isReducedMotion) return;
-        
-        const animatedElements = document.querySelectorAll('.metric-card, .projects-section, .activity-section, .sidebar-section');
-        
-        const scrollObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('scroll-revealed');
-                }
-            });
-        }, { threshold: 0.1 });
-        
-        animatedElements.forEach(el => {
-            scrollObserver.observe(el);
-        });
+        // REMOVIDO: Esta función causaba problemas de visibilidad en el sidebar
+        // Los elementos ahora son visibles por defecto sin necesidad de animaciones de scroll
+        return;
     }
 
     // ===== EFECTOS DE HOVER DINÁMICOS =====
@@ -661,20 +634,7 @@ const additionalStyles = `
     background: radial-gradient(circle at var(--glow-x) var(--glow-y), rgba(37, 99, 235, 0.1) 0%, transparent 50%);
 }
 
-.scroll-revealed {
-    animation: revealFromBelow 0.8s ease-out both;
-}
-
-@keyframes revealFromBelow {
-    from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
+/* REMOVIDO: animación scroll-revealed que causaba problemas de visibilidad */
 
 .typing-complete::after {
     content: '';
