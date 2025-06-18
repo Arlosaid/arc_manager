@@ -3,11 +3,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf.urls.static import static
+from django.http import JsonResponse
 
 def root_redirect(request):
     if not request.user.is_authenticated:
         return redirect('accounts:login')
     return redirect('main:dashboard')
+
+def health_check(request):
+    """Endpoint para health check de AWS Beanstalk"""
+    return JsonResponse({'status': 'healthy', 'service': 'arc-manager'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,6 +21,7 @@ urlpatterns = [
     path('organizaciones/', include('apps.orgs.urls')),
     path('users/', include('apps.users.urls')),
     path('planes/', include('apps.plans.urls')),
+    path('health/', health_check, name='health_check'),  # Health check para AWS
     path('', root_redirect),  # Redirección de la raíz al final
 ]
 

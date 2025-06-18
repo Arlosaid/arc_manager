@@ -9,12 +9,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^nqywk9lip*o%!y_jo3w)--_+yo5c&m-q^sw3dk*8(_k@%o4j4'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^nqywk9lip*o%!y_jo3w)--_+yo5c&m-q^sw3dk*8(_k@%o4j4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+# Configuración mejorada para AWS Beanstalk
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Simplificar para deployment
+if '*' in ALLOWED_HOSTS or os.environ.get('AWS_EXECUTION_ENV'):
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +43,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir archivos estáticos
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -118,11 +123,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import dj_database_url
+
+# Configuración de base de datos con PostgreSQL
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///' + str(BASE_DIR / 'db.sqlite3'))
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(DATABASE_URL)
 }
 
 
@@ -165,6 +171,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Configuración de WhiteNoise para archivos estáticos
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -312,3 +321,85 @@ ADMIN_EMAIL = 'admin@tudominio.com'
 
 # URL del sitio para enlaces en emails
 SITE_URL = 'http://localhost:8000' if DEBUG else 'https://tudominio.com'
+
+# ========================================
+# CONFIGURACIONES ESPECÍFICAS PARA AWS BEANSTALK
+# ========================================
+
+# Detectar si estamos en AWS Beanstalk
+IS_AWS_ENVIRONMENT = os.environ.get('AWS_EXECUTION_ENV') is not None
+
+if IS_AWS_ENVIRONMENT:
+    # Configuraciones específicas para producción en AWS
+    
+    # Forzar HTTPS en producción
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Configuración de cookies seguras
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Configuración de archivos estáticos para AWS
+    # Si usas S3 para archivos estáticos, descomenta y configura:
+    # AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    # AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    # AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    # AWS_S3_REGION_NAME = os.environ.get('AWS_REGION', 'us-east-1')
+    # AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    # STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    
+    # Configuración de logging para AWS CloudWatch
+    LOGGING['handlers']['cloudwatch'] = {
+        'level': 'INFO',
+        'class': 'logging.StreamHandler',
+        'formatter': 'verbose',
+    }
+    LOGGING['loggers']['django']['handlers'].append('cloudwatch')
+    
+    # Email con Amazon SES (descomenta si lo usas)
+    # EMAIL_BACKEND = 'django_ses.SESBackend'
+    # AWS_SES_REGION_NAME = os.environ.get('AWS_REGION', 'us-east-1')
+    # AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+    
+    # Configuración de base de datos para RDS
+    if 'RDS_HOSTNAME' in os.environ:
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+            'OPTIONS': {
+                'connect_timeout': 60,
+                'sslmode': 'require',
+            },
+        }
+    
+    # Configuración de cache con ElastiCache Redis (opcional)
+    if os.environ.get('REDIS_ENDPOINT'):
+        CACHES = {
+            'default': {
+                'BACKEND': 'django_redis.cache.RedisCache',
+                'LOCATION': f"redis://{os.environ.get('REDIS_ENDPOINT')}:6379/1",
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                }
+            }
+        }
+    
+    # Configuración para health check de Beanstalk
+    HEALTH_CHECK_URL = '/health/'
+    
+    print("🚀 Configuración AWS Beanstalk activada")
+
+else:
+    print("🏠 Ejecutándose en ambiente local")
+
+# Health check endpoint para AWS Beanstalk
+def health_check(request):
+    """Endpoint simple para health check de AWS"""
+    from django.http import JsonResponse
+    return JsonResponse({'status': 'healthy', 'service': 'arc-manager'})
