@@ -1,0 +1,52 @@
+# Git y archivos de control de versiones
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+.env/
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Archivos de configuración local
+.env
+.env.local
+local_settings.py
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Archivos de despliegue
+docker-compose*.yml
+*.zip
+deploy*.sh
+deploy*.ps1
+
+# Documentación
+README*.md
+docs/
+*.md
+
+# Tests
+tests/
+*_test.py
+test_*
+
+# Elastic Beanstalk (no se necesitan en el container)
+.elasticbeanstalk/
+arc_manager_deploy.zip 
