@@ -17,6 +17,7 @@ from django import forms
 from django.db import models
 from datetime import timedelta
 from django.utils.dateparse import parse_datetime
+import logging
 
 from .models import Plan, Subscription, UpgradeRequest
 from .services import SubscriptionService
@@ -433,7 +434,13 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
                 return redirect('plans:subscription_dashboard')
                 
         except Exception as e:
-            messages.error(request, f"Error al crear la solicitud: {str(e)}")
+            # Log detallado del error para desarrolladores
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error al crear solicitud de upgrade para organización {organization.id}: {str(e)}", exc_info=True)
+            
+            # Siempre mostrar mensaje amigable, nunca errores técnicos
+            messages.error(request, "Ha ocurrido un error al procesar tu solicitud de upgrade. Por favor, contacta con soporte técnico.")
+            
             return redirect('plans:request_upgrade')
 
 

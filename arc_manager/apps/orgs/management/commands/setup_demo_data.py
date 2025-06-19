@@ -90,24 +90,22 @@ class Command(BaseCommand):
                     'max_users': random.randint(10, 30)
                 }
             
-            slug = slugify(data['name'])
-            # Asegurar slug único
-            counter = 1
-            original_slug = slug
-            while Organization.objects.filter(slug=slug).exists():
-                slug = f"{original_slug}-{counter}"
-                counter += 1
-
-            org = Organization.objects.create(
+            org, created = Organization.objects.get_or_create(
                 name=data['name'],
-                slug=slug,
-                description=data['description'],
-                max_users=data['max_users'],
-                is_active=True
+                defaults={
+                    'description': data['description'],
+                    'is_active': True
+                }
             )
+            
             created_orgs.append(org)
             
-            self.stdout.write(f'  ✓ {org.name} (slug: {org.slug})')
+            if created:
+                status = "CREADA"
+            else:
+                status = "YA EXISTÍA"
+            
+            self.stdout.write(f'  ✓ {org.name} (ID: {org.id}) - {status}')
 
         self.stdout.write(f'\nCreando usuarios para cada organización...')
         
@@ -125,24 +123,31 @@ class Command(BaseCommand):
                 
                 # Generar email único
                 nombre_parts = nombre_completo.lower().split()
-                base_email = f"{nombre_parts[0]}.{nombre_parts[-1]}@{org.slug}.com"
+                base_email = f"{nombre_parts[0]}.{nombre_parts[-1]}@{org.id}.demo"
                 email = base_email
                 counter = 1
                 while User.objects.filter(email=email).exists():
-                    email = f"{nombre_parts[0]}.{nombre_parts[-1]}{counter}@{org.slug}.com"
+                    email = f"{nombre_parts[0]}.{nombre_parts[-1]}{counter}@{org.id}.demo"
                     counter += 1
 
                 # Determinar si será admin (primer usuario de cada org)
                 is_admin = (i == 0)
                 
-                user = User.objects.create_user(
-                    email=email,
-                    username=nombre_completo,
-                    password='demo123',  # Contraseña simple para demo
-                    organization=org,
-                    is_org_admin=is_admin,
-                    is_active=True
+                user, created = User.objects.get_or_create(
+                    username=f'{nombre_parts[0].lower()}_{nombre_parts[-1].lower()}_org{org.id}',
+                    defaults={
+                        'email': email,
+                        'first_name': nombre_parts[0],
+                        'last_name': nombre_parts[-1],
+                        'is_active': True,
+                        'is_org_admin': is_admin,
+                        'organization': org
+                    }
                 )
+                
+                if created:
+                    user.set_password('demo123')
+                    user.save()
                 
                 role = "Admin" if is_admin else "Usuario"
                 self.stdout.write(f'    ✓ {user.username} ({user.email}) - {role}')

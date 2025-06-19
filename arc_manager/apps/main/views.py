@@ -12,8 +12,10 @@ from django.conf import settings
 import boto3
 from botocore.exceptions import ClientError
 import os
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 @login_required
@@ -267,15 +269,33 @@ def test_ses_view(request):
             }
             
         except ClientError as e:
-            results['ses_test'] = {
+            logger.error(f"Error de credenciales AWS: {str(e)}")
+            return JsonResponse({
                 'success': False,
-                'error': f'Error de credenciales AWS: {str(e)}'
-            }
+                'error': 'Error de configuración. Por favor, contacta con soporte técnico.'
+            })
         except Exception as e:
-            results['ses_test'] = {
+            logger.error(f"Error conectando con SES: {str(e)}")
+            return JsonResponse({
                 'success': False,
-                'error': f'Error conectando con SES: {str(e)}'
-            }
+                'error': 'Error de conexión. Por favor, contacta con soporte técnico.'
+            })
+        
+        # Test básico de identidades
+        try:
+            response = ses_client.get_send_quota()
+            return JsonResponse({
+                'success': True,
+                'status': 'SES está configurado correctamente',
+                'quota': response['Max24HourSend'],
+                'sent': response['SentLast24Hours']
+            })
+        except Exception as e:
+            logger.error(f"Error obteniendo quota SES: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Error verificando configuración. Por favor, contacta con soporte técnico.'
+            })
     else:
         results['ses_test'] = {
             'success': False,
@@ -314,9 +334,13 @@ ARC Manager Team
         }
         
     except Exception as e:
+        # Log detallado del error para desarrolladores
+        logger.error(f"Error enviando email: {str(e)}")
+        
+        # Siempre respuesta amigable, nunca errores técnicos
         results['email_test'] = {
             'success': False,
-            'error': f'Error enviando email: {str(e)}'
+            'error': 'Error enviando email. Por favor, contacta con soporte técnico.'
         }
     
     return JsonResponse(results, indent=2)

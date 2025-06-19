@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from datetime import timedelta
 from .models import Plan, Subscription
+import logging
 
 class SubscriptionService:
     """Servicio para gestionar suscripciones"""
@@ -173,19 +174,23 @@ class SubscriptionService:
     @staticmethod
     def _send_expiration_email(subscription, days_remaining, urgent=False):
         """Envía email de notificación de expiración"""
-        organization = subscription.organization
-        plan = subscription.plan
+        logger = logging.getLogger(__name__)
         
-        # Obtener email del admin de la organización
-        admin_users = organization.users.filter(is_org_admin=True, is_active=True)
-        if not admin_users.exists():
-            return False
-        
-        subject_prefix = "🚨 URGENTE" if urgent else "📅 Recordatorio"
-        
-        subject = f"{subject_prefix}: Tu suscripción a {plan.display_name} expira en {days_remaining} días"
-        
-        message = f"""
+        try:
+            organization = subscription.organization
+            plan = subscription.plan
+            
+            # Obtener email del admin de la organización
+            admin_users = organization.users.filter(is_org_admin=True, is_active=True)
+            if not admin_users.exists():
+                logger.warning(f"No se encontraron administradores activos para enviar notificación de expiración en {organization.name}")
+                return False
+            
+            subject_prefix = "🚨 URGENTE" if urgent else "📅 Recordatorio"
+            
+            subject = f"{subject_prefix}: Tu suscripción a {plan.display_name} expira en {days_remaining} días"
+            
+            message = f"""
 Hola,
 
 Tu suscripción al {plan.display_name} para la organización "{organization.name}" expirará en {days_remaining} días.
@@ -201,19 +206,21 @@ Para renovar tu suscripción, contacta a nuestro equipo de ventas o accede a tu 
 
 El equipo de {getattr(settings, 'SITE_NAME', 'ARC Manager')}
 """
-        
-        try:
+            
             for admin in admin_users:
                 send_mail(
                     subject=subject,
                     message=message,
                     from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
                     recipient_list=[admin.email],
-                    fail_silently=False
+                    fail_silently=True
                 )
+            
+            logger.info(f"Notificación de expiración enviada a {admin_users.count()} administradores de {organization.name}")
             return True
+            
         except Exception as e:
-            print(f"Error enviando email de expiración: {e}")
+            logger.error(f"Error enviando email de expiración para {organization.name if 'organization' in locals() else 'organización desconocida'}: {str(e)}", exc_info=True)
             return False
     
     @staticmethod

@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import logging
+from django.conf import settings
 
 from .forms import SimpleUserCreateForm, SimpleUserEditForm
 
@@ -119,22 +120,26 @@ class SimpleUserCreateView(LoginRequiredMixin, View):
                         f'Se han enviado las credenciales por correo electrónico.'
                     )
                 else:
+                    # Siempre mostrar mensaje amigable, errores técnicos solo en logs
                     messages.warning(
                         request,
                         f'Usuario {user.username or user.email} creado exitosamente, '
                         f'pero no se pudo enviar el correo electrónico. '
-                        f'Credenciales: {user.email} / {temp_password}'
-                        f'<br><strong>Posible causa:</strong> Amazon SES en modo Sandbox - '
-                        f'solo permite envíos a emails verificados. '
-                        f'<a href="https://console.aws.amazon.com/ses/home#verified-senders-email:" target="_blank">Verificar email en SES</a>'
+                        f'Por favor, proporciona las credenciales manualmente: {user.email}'
                     )
-                    logger.warning(f"Error enviando email a usuario creado: {user.email}")
+                    
+                    # Log detallado para desarrolladores (incluir contraseña temporal)
+                    logger.warning(f"Error enviando email a usuario creado: {user.email} - Contraseña temporal: {temp_password}")
                 
                 return redirect('users:user_list')
                 
             except Exception as e:
+                # Log detallado del error para desarrolladores
                 logger.error(f"Error al crear usuario: {str(e)}", exc_info=True)
-                messages.error(request, f"Error al crear el usuario: {str(e)}")
+                
+                # Siempre mostrar mensaje amigable, nunca errores técnicos
+                messages.error(request, "Ha ocurrido un error al crear el usuario. Por favor, contacta con soporte técnico.")
+                    
         else:
             # Log solo errores críticos
             if form.non_field_errors():
@@ -291,8 +296,11 @@ class UserDeleteAjaxView(LoginRequiredMixin, View):
             })
             
         except Exception as e:
+            # Log detallado del error para desarrolladores
             logger.error(f"Error al eliminar usuario: {str(e)}")
+            
+            # Siempre respuesta amigable, nunca errores técnicos
             return JsonResponse({
                 'success': False,
-                'error': f'Error al eliminar el usuario: {str(e)}'
-            })
+                'error': 'Error al eliminar el usuario. Por favor, contacta con soporte técnico.'
+            }, status=500)
