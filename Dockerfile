@@ -34,14 +34,11 @@ WORKDIR /app/arc_manager
 
 # Crear script de inicio
 RUN echo '#!/bin/bash\n\
-echo "🔄 Aplicando migraciones..."\n\
-python manage.py migrate --noinput\n\
-echo "📦 Recopilando archivos estáticos..."\n\
-python manage.py collectstatic --noinput\n\
-echo "👤 Creando superusuario..."\n\
-python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser(\"admin\", \"admin@example.com\", \"admin123\") if not User.objects.filter(is_superuser=True).exists() else print(\"✅ Superuser exists\")" || echo "Superuser creation skipped"\n\
-echo "📋 Configurando planes..."\n\
-python manage.py setup_mvp_plans || echo "Plans setup skipped"\n\
+echo "🔍 Creando base de datos si no existe..."\n\
+python manage.py create_database || echo "⚠️ Error creando DB - puede que ya exista"\n\
+echo "🔄 Configurando aplicación completa..."\n\
+python manage.py setup_database --force || echo "⚠️ Error configurando DB - continuando"\n\
+echo "✅ Proceso de inicialización completado"\n\
 echo "🚀 Iniciando servidor..."\n\
 exec gunicorn --bind 0.0.0.0:8000 --workers 2 --timeout 120 core.wsgi:application' > /app/start.sh && chmod +x /app/start.sh
 

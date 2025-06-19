@@ -300,12 +300,24 @@ if DEBUG:
     # Para desarrollo: mostrar emails en la consola
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     EMAIL_HOST = 'localhost'
-    DEFAULT_FROM_EMAIL = 'ARCH MANAGER <noreply@archmanager.local>'
+    DEFAULT_FROM_EMAIL = 'ARC MANAGER <noreply@archmanager.local>'
 else:
     # Para producción: usar Amazon SES
     EMAIL_BACKEND = 'django_ses.SESBackend'
-    AWS_ACCESS_KEY_ID = 'your-access-key'
-    AWS_SECRET_ACCESS_KEY = 'your-secret-key'
+    
+    # Configuración AWS SES
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION', 'us-east-1')
+    AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+    
+    # Configuración adicional para SES
+    AWS_SES_AUTO_THROTTLE = 0.5  # Controlar la velocidad de envío
+    AWS_SES_CONFIGURATION_SET = os.environ.get('AWS_SES_CONFIGURATION_SET')  # Opcional
+    
+    # Email verificado en SES
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@tudominio.com')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 # Configuración para el sistema de pagos
 PAYMENT_BANK_INFO = {
@@ -358,25 +370,31 @@ if IS_AWS_ENVIRONMENT:
     }
     LOGGING['loggers']['django']['handlers'].append('cloudwatch')
     
-    # Email con Amazon SES (descomenta si lo usas)
-    # EMAIL_BACKEND = 'django_ses.SESBackend'
-    # AWS_SES_REGION_NAME = os.environ.get('AWS_REGION', 'us-east-1')
-    # AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+    # Email con Amazon SES - ACTIVADO PARA PRODUCCIÓN
+    EMAIL_BACKEND = 'django_ses.SESBackend'
+    AWS_SES_REGION_NAME = os.environ.get('AWS_SES_REGION', 'us-east-1')
+    AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+    AWS_SES_AUTO_THROTTLE = 0.5
+    
+    # Override del email por defecto para AWS
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@tudominio.com')
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
     
     # Configuración de base de datos para RDS
-    if 'RDS_HOSTNAME' in os.environ:
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ['RDS_DB_NAME'],
-            'USER': os.environ['RDS_USERNAME'],
-            'PASSWORD': os.environ['RDS_PASSWORD'],
-            'HOST': os.environ['RDS_HOSTNAME'],
-            'PORT': os.environ['RDS_PORT'],
-            'OPTIONS': {
-                'connect_timeout': 60,
-                'sslmode': 'require',
-            },
-        }
+    # NOTA: La configuración de RDS ya se maneja por DATABASE_URL arriba
+    # if 'RDS_HOSTNAME' in os.environ:
+    #     DATABASES['default'] = {
+    #         'ENGINE': 'django.db.backends.postgresql',
+    #         'NAME': os.environ['RDS_DB_NAME'],
+    #         'USER': os.environ['RDS_USERNAME'],
+    #         'PASSWORD': os.environ['RDS_PASSWORD'],
+    #         'HOST': os.environ['RDS_HOSTNAME'],
+    #         'PORT': os.environ['RDS_PORT'],
+    #         'OPTIONS': {
+    #             'connect_timeout': 60,
+    #             'sslmode': 'require',
+    #         },
+    #     }
     
     # Configuración de cache con ElastiCache Redis (opcional)
     if os.environ.get('REDIS_ENDPOINT'):

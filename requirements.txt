@@ -19,5 +19,9 @@ gunicorn==21.2.0
 # Variables de entorno (opcional)
 python-dotenv==1.0.0
 
+# Amazon SES para correos
+boto3==1.34.0
+django-ses==3.5.2
+
 # Desarrollo (opcionales)
 django-debug-toolbar==4.2.0

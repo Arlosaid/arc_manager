@@ -124,6 +124,9 @@ class SimpleUserCreateView(LoginRequiredMixin, View):
                         f'Usuario {user.username or user.email} creado exitosamente, '
                         f'pero no se pudo enviar el correo electrónico. '
                         f'Credenciales: {user.email} / {temp_password}'
+                        f'<br><strong>Posible causa:</strong> Amazon SES en modo Sandbox - '
+                        f'solo permite envíos a emails verificados. '
+                        f'<a href="https://console.aws.amazon.com/ses/home#verified-senders-email:" target="_blank">Verificar email en SES</a>'
                     )
                     logger.warning(f"Error enviando email a usuario creado: {user.email}")
                 

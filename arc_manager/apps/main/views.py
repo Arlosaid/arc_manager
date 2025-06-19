@@ -6,6 +6,12 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from apps.plans.models import Plan, Subscription, UpgradeRequest
 from apps.orgs.models import Organization
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.conf import settings
+import boto3
+from botocore.exceptions import ClientError
+import os
 
 User = get_user_model()
 
@@ -203,3 +209,114 @@ def dashboard(request):
     }
     
     return render(request, 'dashboard.html', context)
+
+def test_ses_view(request):
+    """Vista para probar SES desde el navegador"""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'Solo administradores pueden probar SES'}, status=403)
+    
+    email_destino = request.GET.get('email')
+    if not email_destino:
+        return JsonResponse({'error': 'Parámetro email requerido'}, status=400)
+    
+    results = {
+        'configuration': {},
+        'ses_test': {},
+        'email_test': {}
+    }
+    
+    # 1. Verificar configuración
+    aws_key = os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    aws_region = os.environ.get('AWS_SES_REGION', 'us-east-1')
+    default_email = os.environ.get('DEFAULT_FROM_EMAIL')
+    debug_mode = settings.DEBUG
+    
+    results['configuration'] = {
+        'aws_key_configured': bool(aws_key),
+        'aws_secret_configured': bool(aws_secret),
+        'aws_region': aws_region,
+        'default_from_email': default_email,
+        'debug_mode': debug_mode,
+        'email_backend': settings.EMAIL_BACKEND
+    }
+    
+    # 2. Probar conexión con SES
+    if aws_key and aws_secret:
+        try:
+            ses_client = boto3.client(
+                'ses',
+                aws_access_key_id=aws_key,
+                aws_secret_access_key=aws_secret,
+                region_name=aws_region
+            )
+            
+            # Verificar emails verificados
+            response = ses_client.list_verified_email_addresses()
+            verified_emails = response.get('VerifiedEmailAddresses', [])
+            
+            # Verificar cuotas
+            quota_response = ses_client.get_send_quota()
+            
+            results['ses_test'] = {
+                'success': True,
+                'verified_emails': verified_emails,
+                'sent_last_24h': quota_response.get('SentLast24Hours', 0),
+                'max_24h': quota_response.get('Max24HourSend', 0),
+                'max_per_second': quota_response.get('MaxSendRate', 0)
+            }
+            
+        except ClientError as e:
+            results['ses_test'] = {
+                'success': False,
+                'error': f'Error de credenciales AWS: {str(e)}'
+            }
+        except Exception as e:
+            results['ses_test'] = {
+                'success': False,
+                'error': f'Error conectando con SES: {str(e)}'
+            }
+    else:
+        results['ses_test'] = {
+            'success': False,
+            'error': 'Credenciales AWS no configuradas'
+        }
+    
+    # 3. Probar envío de email
+    try:
+        send_mail(
+            subject='🧪 Prueba SES desde EBS - ARC Manager',
+            message=f'''
+¡Hola!
+
+Este email fue enviado desde tu aplicación ARC Manager ejecutándose en Amazon Elastic Beanstalk.
+
+✅ La configuración de SES está funcionando correctamente en producción.
+
+Detalles técnicos:
+- Email Backend: {settings.EMAIL_BACKEND}
+- Región SES: {aws_region}
+- Email origen: {default_email}
+- Debug Mode: {debug_mode}
+- Timestamp: {__import__('datetime').datetime.now()}
+
+--
+ARC Manager Team
+            ''',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email_destino],
+            fail_silently=False,
+        )
+        
+        results['email_test'] = {
+            'success': True,
+            'message': f'Email enviado exitosamente a {email_destino}'
+        }
+        
+    except Exception as e:
+        results['email_test'] = {
+            'success': False,
+            'error': f'Error enviando email: {str(e)}'
+        }
+    
+    return JsonResponse(results, indent=2)
