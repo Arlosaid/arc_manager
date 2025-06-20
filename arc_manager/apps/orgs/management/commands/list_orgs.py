@@ -64,9 +64,59 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('No hay organizaciones registradas.'))
             return
 
-        for org in organizations:
-            self.show_organization_summary(org, detailed)
-
+        if detailed:
+            for org in organizations:
+                status = "ACTIVA" if org.is_active else "INACTIVA"
+                
+                self.stdout.write(f'\n🏢 ORGANIZACIÓN: {org.name}')
+                self.stdout.write(f'🔗 ID: {org.id}')
+                self.stdout.write(f'📝 Descripción: {org.description or "Sin descripción"}')
+                self.stdout.write(f'📊 Estado: {status}')
+                self.stdout.write(f'📅 Fecha de creación: {org.created_at.strftime("%d/%m/%Y %H:%M:%S")}')
+                self.stdout.write(f'🔄 Última actualización: {org.updated_at.strftime("%d/%m/%Y %H:%M:%S")}')
+                
+                # Límites y capacidad
+                self.stdout.write(f'👥 Usuarios: {org.get_user_count()}/{org.get_max_users()}')
+                capacity_info = org.can_add_user_detailed()
+                self.stdout.write(f'   📈 Activos: {capacity_info["active_users"]}')
+                self.stdout.write(f'   📉 Inactivos: {capacity_info["inactive_users"]}')
+                self.stdout.write(f'   🎯 Espacios disponibles: {capacity_info["available_slots"]}')
+                
+                # Lista de usuarios detallada
+                users = org.users.all().order_by('-is_active', 'username')
+                if users:
+                    self.stdout.write(f'\n👤 USUARIOS DE LA ORGANIZACIÓN:')
+                    for user in users:
+                        status_icon = "✅" if user.is_active else "❌"
+                        admin_text = " (ADMIN)" if user.is_org_admin else ""
+                        self.stdout.write(f'   {status_icon} {user.get_full_name()} - {user.username}{admin_text}')
+                        self.stdout.write(f'      📧 Email: {user.email}')
+                        if user.last_login:
+                            self.stdout.write(f'      🕐 Último acceso: {user.last_login.strftime("%d/%m/%Y %H:%M")}')
+                        else:
+                            self.stdout.write(f'      🕐 Último acceso: Nunca')
+                else:
+                    self.stdout.write(f'   ⚠️ Sin usuarios registrados')
+        else:
+            for org in organizations:
+                status = "✅ ACTIVA" if org.is_active else "❌ INACTIVA"
+                status_icon = "✅" if org.is_active else "❌"
+                
+                self.stdout.write(f'\n{status_icon} {org.name} (ID: {org.id})')
+                self.stdout.write(f'   📝 Descripción: {org.description or "Sin descripción"}')
+                self.stdout.write(f'   👥 Usuarios: {org.get_user_count()}/{org.get_max_users()}')
+                self.stdout.write(f'   📊 Estado: {status}')
+                self.stdout.write(f'   📅 Creada: {org.created_at.strftime("%d/%m/%Y %H:%M")}')
+                
+                # Información de usuarios
+                users = org.users.all()
+                if users:
+                    self.stdout.write(f'   👤 Usuarios registrados:')
+                    for user in users:
+                        user_status = "✅" if user.is_active else "❌"
+                        admin_badge = " 👑" if user.is_org_admin else ""
+                        self.stdout.write(f'     {user_status} {user.get_full_name()} ({user.username}){admin_badge}')
+                        
         # Mostrar usuarios sin organización si los hay
         if users_without_org > 0:
             self.stdout.write(self.style.WARNING('\n👤 USUARIOS SIN ORGANIZACIÓN'))

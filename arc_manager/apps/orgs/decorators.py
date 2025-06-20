@@ -58,12 +58,20 @@ def require_org_admin(view_func):
                     'permission_denied': True
                 }, status=403)
             
-            messages.error(request, "Necesitas permisos de administrador de organización.")
-            return redirect('main:home')
+            # Para requests normales, usar PermissionDenied en lugar de mensaje
+            raise PermissionDenied("Necesitas permisos de administrador de organización.")
         
         if not request.user.organization and not request.user.is_superuser:
-            messages.error(request, "No tienes una organización asignada.")
-            return redirect('main:home')
+            # Para requests AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No tienes una organización asignada.',
+                    'no_organization': True
+                }, status=403)
+            
+            # Para requests normales, usar PermissionDenied
+            raise PermissionDenied("No tienes una organización asignada.")
         
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -77,8 +85,15 @@ def require_active_subscription(view_func):
             return view_func(request, *args, **kwargs)
         
         if not request.user.organization:
-            messages.error(request, "No tienes una organización asignada.")
-            return redirect('main:home')
+            # Para requests AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No tienes una organización asignada.',
+                    'no_organization': True
+                }, status=403)
+            
+            raise PermissionDenied("No tienes una organización asignada.")
         
         subscription = request.user.organization.get_subscription()
         if not subscription or not subscription.is_active:
@@ -92,6 +107,7 @@ def require_active_subscription(view_func):
                     'subscription_required': True
                 }, status=403)
             
+            # Solo mostrar mensaje para suscripciones, ya que es información específica
             messages.error(request, error_message)
             return redirect('plans:subscription_dashboard')
         
@@ -108,13 +124,27 @@ def require_plan_feature(feature_name):
                 return view_func(request, *args, **kwargs)
             
             if not request.user.organization:
-                messages.error(request, "No tienes una organización asignada.")
-                return redirect('main:home')
+                # Para requests AJAX
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'No tienes una organización asignada.',
+                        'no_organization': True
+                    }, status=403)
+                
+                raise PermissionDenied("No tienes una organización asignada.")
             
             subscription = request.user.organization.get_subscription()
             if not subscription:
-                messages.error(request, "No tienes una suscripción activa.")
-                return redirect('plans:subscription_dashboard')
+                # Para requests AJAX
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'No tienes una suscripción activa.',
+                        'subscription_required': True
+                    }, status=403)
+                
+                raise PermissionDenied("No tienes una suscripción activa.")
             
             # Verificar si el plan incluye la característica
             plan_features = subscription.plan.get_feature_list()
@@ -130,6 +160,7 @@ def require_plan_feature(feature_name):
                         'current_plan': subscription.plan.display_name
                     }, status=403)
                 
+                # Solo mostrar mensaje para características específicas del plan
                 messages.error(request, error_message + " Considera actualizar tu plan.")
                 return redirect('plans:subscription_dashboard')
             
@@ -162,8 +193,8 @@ def validate_organization_context(view_func):
                         'organization_mismatch': True
                     }, status=403)
                 
-                messages.error(request, error_message)
-                return redirect('main:home')
+                # Para requests normales, usar PermissionDenied
+                raise PermissionDenied(error_message)
         
         return view_func(request, *args, **kwargs)
     return wrapper 

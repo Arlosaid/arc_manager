@@ -12,13 +12,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^nqywk9lip*o%!y_jo3w)--_+yo5c&m-q^sw3dk*8(_k@%o4j4')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Configuración mejorada para AWS Beanstalk
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 # Simplificar para deployment
 if '*' in ALLOWED_HOSTS or os.environ.get('AWS_EXECUTION_ENV'):
     ALLOWED_HOSTS = ['*']
+
+# En producción, asegurar que DEBUG esté en False
+if os.environ.get('AWS_EXECUTION_ENV') or os.environ.get('PRODUCTION'):
+    DEBUG = False
 
 
 # Application definition
@@ -54,6 +58,7 @@ MIDDLEWARE = [
     'apps.accounts.middleware.LoginRequiredMiddleware',
     'apps.accounts.middleware.SuperuserRestrictMiddleware',
     'apps.orgs.middleware.OrganizationContextMiddleware',
+    'apps.accounts.middleware.ErrorHandlingMiddleware',  # Agregar al final
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -216,6 +221,26 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # La sesión termina cuando se cierra e
 SESSION_COOKIE_AGE = 1209600  # Tiempo de vida máximo de la sesión (2 semanas en segundos)
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra ataques CSRF
 
+# Configuración del sistema de mensajes
+# Opción 1: Usar CookieStorage (mensajes se almacenan en cookies, más limitado)
+# MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
+# Opción 2: Usar FallbackStorage (por defecto, recomendado)
+MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
+
+# Opción 3: SessionStorage (actual - mensajes persisten entre páginas)
+# MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Tags de mensajes personalizados para Bootstrap
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -232,6 +257,9 @@ LOGGING = {
     'filters': {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
         },
         'ignore_static_requests': {
             '()': 'django.utils.log.CallbackFilter',
@@ -251,6 +279,12 @@ LOGGING = {
             'filename': os.path.join(BASE_DIR, 'logs/debug.log'),
             'formatter': 'verbose',
         },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/errors.log'),
+            'formatter': 'verbose',
+        },
         'security_file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -259,20 +293,43 @@ LOGGING = {
         },
         'mail_admins': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose',
+        },
+        'production_file': {
+            'level': 'WARNING',
+            'filters': ['require_debug_false'],
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/production.log'),
             'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'file', 'production_file'],
             'level': 'INFO',
             'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['error_file', 'mail_admins', 'production_file'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         'django.security': {
             'handlers': ['security_file', 'mail_admins'],
             'level': 'INFO',
             'propagate': False,
+        },
+        'apps': {  # Para todos los logs de nuestras apps
+            'handlers': ['console', 'error_file', 'production_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'apps.plans': {  # Específico para planes donde ocurre el error
+            'handlers': ['console', 'error_file', 'production_file'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
     },
 }

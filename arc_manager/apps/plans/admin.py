@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib import messages
 from datetime import timedelta
 from .models import Plan, Subscription, UpgradeRequest
+import logging
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
@@ -583,10 +584,14 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                 )
                 approved_count += 1
             except Exception as e:
-                self.message_user(
+                # Log detallado del error para desarrolladores
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al aprobar solicitud de {upgrade_request.organization.name}: {str(e)}", exc_info=True)
+                
+                # Siempre mostrar mensaje amigable, nunca errores técnicos
+                messages.error(
                     request,
-                    f"Error al aprobar solicitud de {upgrade_request.organization.name}: {str(e)}",
-                    messages.ERROR
+                    "❌ Error al aprobar solicitud. Por favor, contacta con soporte técnico."
                 )
         
         if approved_count > 0:
@@ -608,9 +613,14 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                 )
                 rejected_count += 1
             except Exception as e:
+                # Log detallado del error para desarrolladores
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al rechazar solicitud de {upgrade_request.organization.name}: {str(e)}", exc_info=True)
+                
+                # Siempre mostrar mensaje amigable, nunca errores técnicos
                 self.message_user(
                     request,
-                    f"Error al rechazar solicitud de {upgrade_request.organization.name}: {str(e)}",
+                    "❌ Error al rechazar solicitud. Por favor, contacta con soporte técnico.",
                     messages.ERROR
                 )
         
@@ -665,9 +675,14 @@ class UpgradeRequestAdmin(admin.ModelAdmin):
                     )
                     
             except Exception as e:
+                # Log detallado del error para desarrolladores
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al procesar cambio de estado: {str(e)}", exc_info=True)
+                
+                # Siempre mostrar mensaje amigable, nunca errores técnicos
                 messages.error(
                     request,
-                    f"❌ Error al procesar cambio de estado: {str(e)}"
+                    "❌ Error al procesar el cambio de estado. Por favor, contacta con soporte técnico."
                 )
 
 # Configuración adicional del admin

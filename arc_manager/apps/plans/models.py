@@ -3,6 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
+import logging
 
 class Plan(models.Model):
     """Modelo mejorado para definir planes de la aplicación"""
@@ -563,17 +564,20 @@ class UpgradeRequest(models.Model):
         from django.core.mail import send_mail
         from django.conf import settings
         
-        # Información bancaria para el pago
-        bank_info = getattr(settings, 'PAYMENT_BANK_INFO', {
-            'bank_name': 'Banco Ejemplo',
-            'account_holder': 'Tu Empresa SA de CV',
-            'account_number': 'XXXX-XXXX-XXXX-1234',
-            'clabe': '012345678901234567',
-            'concept': f'Upgrade Plan - {self.organization.slug}'
-        })
+        logger = logging.getLogger(__name__)
         
-        subject = f'💰 Instrucciones de Pago - Upgrade a {self.requested_plan.display_name}'
-        message = f"""
+        try:
+            # Información bancaria para el pago
+            bank_info = getattr(settings, 'PAYMENT_BANK_INFO', {
+                'bank_name': 'Banco Ejemplo',
+                'account_holder': 'Tu Empresa SA de CV',
+                'account_number': 'XXXX-XXXX-XXXX-1234',
+                'clabe': '012345678901234567',
+                'concept': f'Upgrade Plan - Org{self.organization.id}'
+            })
+            
+            subject = f'💰 Instrucciones de Pago - Upgrade a {self.requested_plan.display_name}'
+            message = f"""
 ¡Hola!
 
 Has solicitado un upgrade de plan. Aquí tienes la información para realizar el pago:
@@ -608,29 +612,42 @@ Una vez que recibamos tu comprobante de pago, activaremos tu nuevo plan inmediat
 📱 +52 55 1234 5678
 
 ¡Gracias por confiar en nosotros!
-        """
-        
-        # Enviar a todos los admins de la organización
-        admin_emails = []
-        for user in self.organization.users.filter(is_org_admin=True, is_active=True):
-            admin_emails.append(user.email)
-        
-        if admin_emails:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                recipient_list=admin_emails,
-                fail_silently=True
-            )
+            """
+            
+            # Enviar a todos los admins de la organización
+            admin_emails = []
+            for user in self.organization.users.filter(is_org_admin=True, is_active=True):
+                admin_emails.append(user.email)
+            
+            if admin_emails:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
+                    recipient_list=admin_emails,
+                    fail_silently=True
+                )
+                logger.info(f"Instrucciones de pago enviadas a {len(admin_emails)} administradores de {self.organization.name}")
+                return True
+            else:
+                logger.warning(f"No se encontraron administradores activos para enviar instrucciones de pago en {self.organization.name}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error enviando instrucciones de pago para {self.organization.name}: {str(e)}", exc_info=True)
+            return False
     
     def _send_approval_email(self):
         """Enviar email de aprobación y activación"""
         from django.core.mail import send_mail
         from django.conf import settings
+        import logging
         
-        subject = f'🎉 ¡Upgrade Aprobado y Activado! - {self.requested_plan.display_name}'
-        message = f"""
+        logger = logging.getLogger(__name__)
+        
+        try:
+            subject = f'🎉 ¡Upgrade Aprobado y Activado! - {self.requested_plan.display_name}'
+            message = f"""
 ¡Felicidades! 🎉
 
 Tu solicitud de upgrade ha sido APROBADA y tu nuevo plan está ACTIVO.
@@ -645,26 +662,39 @@ DETALLES:
 Ya puedes acceder a todas las funcionalidades de tu nuevo plan.
 
 ¡Gracias por confiar en nosotros!
-        """
-        
-        admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
-        
-        if admin_emails:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                recipient_list=admin_emails,
-                fail_silently=True
-            )
+            """
+            
+            admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
+            
+            if admin_emails:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
+                    recipient_list=admin_emails,
+                    fail_silently=True
+                )
+                logger.info(f"Email de aprobación enviado a {len(admin_emails)} administradores de {self.organization.name}")
+                return True
+            else:
+                logger.warning(f"No se encontraron administradores activos para enviar email de aprobación en {self.organization.name}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error enviando email de aprobación para {self.organization.name}: {str(e)}", exc_info=True)
+            return False
     
     def _send_rejection_email(self):
         """Enviar email de rechazo"""
         from django.core.mail import send_mail
         from django.conf import settings
+        import logging
         
-        subject = f'❌ Solicitud de Upgrade Rechazada'
-        message = f"""
+        logger = logging.getLogger(__name__)
+        
+        try:
+            subject = f'❌ Solicitud de Upgrade Rechazada'
+            message = f"""
 Hola,
 
 Lamentamos informarte que tu solicitud de upgrade ha sido rechazada.
@@ -680,15 +710,24 @@ Si tienes dudas sobre esta decisión, puedes contactarnos:
 📱 +52 55 1234 5678
 
 Puedes realizar una nueva solicitud cuando hayas resuelto los puntos mencionados.
-        """
-        
-        admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
-        
-        if admin_emails:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                recipient_list=admin_emails,
-                fail_silently=True
-            )        
+            """
+            
+            admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
+            
+            if admin_emails:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
+                    recipient_list=admin_emails,
+                    fail_silently=True
+                )
+                logger.info(f"Email de rechazo enviado a {len(admin_emails)} administradores de {self.organization.name}")
+                return True
+            else:
+                logger.warning(f"No se encontraron administradores activos para enviar email de rechazo en {self.organization.name}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error enviando email de rechazo para {self.organization.name}: {str(e)}", exc_info=True)
+            return False        

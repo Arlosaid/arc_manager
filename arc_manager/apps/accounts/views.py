@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.views import LoginView, PasswordResetView
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.cache import cache
@@ -17,13 +17,30 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         user = form.get_user()
         
+        # Limpiar cualquier flag de sesión anterior (para evitar mensajes cruzados)
+        session_keys_to_clear = [
+            'admin_welcome_shown',
+            # Limpiar flags de warnings de suscripción
+            'subscription_warning_expired_shown',
+            'subscription_warning_expires_soon_shown', 
+            'subscription_warning_user_limit_exceeded_shown',
+            'subscription_warning_no_subscription_shown',
+            'subscription_warning_validation_error_shown'
+        ]
+        for key in session_keys_to_clear:
+            if key in self.request.session:
+                del self.request.session[key]
+        
         # Si es superuser, redirigir al admin de Django
         if user.is_superuser:
-            messages.info(
-                self.request, 
-                "Los superusuarios deben gestionar el sistema desde el panel administrativo."
-            )
+            # Hacer login primero
+            login(self.request, user)
+            
+            # NO agregar mensaje aquí - se mostrará en el admin
             logger.info(f"Superuser {user.email} intentó acceder a la app - redirigido a admin")
+            
+            # Redirigir directamente al admin sin mensaje
+            # El mensaje se mostrará en el admin mediante el middleware
             return redirect('/admin/')
         
         # Para usuarios normales y org_admin, proceder con el login normal
@@ -63,6 +80,28 @@ class CustomLogoutView(View):
             organization = request.user.get_organization_name()
             
             logger.info(f"Logout - Usuario: {username}, Rol: {role}, Organización: {organization}")
+        
+        # Limpiar flags de sesión específicos antes del logout
+        session_keys_to_clear = [
+            'admin_welcome_shown',
+            # Limpiar flags de warnings de suscripción
+            'subscription_warning_expired_shown',
+            'subscription_warning_expires_soon_shown', 
+            'subscription_warning_user_limit_exceeded_shown',
+            'subscription_warning_no_subscription_shown',
+            'subscription_warning_validation_error_shown'
+        ]
+        for key in session_keys_to_clear:
+            if key in request.session:
+                del request.session[key]
+        
+        # Limpiar mensajes pendientes de la sesión actual
+        storage = messages.get_messages(request)
+        for message in storage:
+            pass  # Esto consume/limpia los mensajes
+        
+        # Forzar guardar la sesión limpia antes del logout
+        request.session.save()
         
         logout(request)
         return redirect('accounts:login')

@@ -17,6 +17,7 @@ from django import forms
 from django.db import models
 from datetime import timedelta
 from django.utils.dateparse import parse_datetime
+import logging
 
 from .models import Plan, Subscription, UpgradeRequest
 from .services import SubscriptionService
@@ -25,15 +26,16 @@ from apps.orgs.models import Organization
 
 # Mixins para verificación de permisos
 class OrgAdminRequiredMixin(UserPassesTestMixin):
-    """Mixin que requiere ser admin de organización"""
+    """Mixin para requerir permisos de org_admin"""
     
     def test_func(self):
         user = self.request.user
         return user.is_authenticated and user.is_org_admin
     
     def handle_no_permission(self):
-        messages.error(self.request, "Necesitas permisos de administrador de organización.")
-        return redirect('main:home')
+        # NO mostrar mensaje aquí - usar PermissionDenied que es más estándar
+        # y evita mensajes duplicados si hay redirecciones
+        raise PermissionDenied("Necesitas permisos de administrador de organización.")
 
 
 # Formularios
@@ -122,11 +124,8 @@ class SubscriptionDashboardView(LoginRequiredMixin, TemplateView):
             defaults={'plan': Plan.get_trial_plan() or Plan.objects.filter(is_active=True).first()}
         )
         
-        if created:
-            messages.info(
-                self.request,
-                "Se ha creado tu periodo de prueba gratuito. ¡Bienvenido!"
-            )
+        # NO mostrar mensaje automático aquí - es confuso y innecesario
+        # Si se necesita comunicar algo sobre el trial, mejor hacerlo en el template
         
         context['subscription'] = subscription
         context['organization'] = organization
@@ -433,7 +432,13 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
                 return redirect('plans:subscription_dashboard')
                 
         except Exception as e:
-            messages.error(request, f"Error al crear la solicitud: {str(e)}")
+            # Log detallado del error para desarrolladores
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error al crear solicitud de upgrade para organización {organization.id}: {str(e)}", exc_info=True)
+            
+            # Siempre mostrar mensaje amigable, nunca errores técnicos
+            messages.error(request, "Ha ocurrido un error al procesar tu solicitud de upgrade. Por favor, contacta con soporte técnico.")
+            
             return redirect('plans:request_upgrade')
 
 

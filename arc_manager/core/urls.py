@@ -29,3 +29,9 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0] if settings.STATICFILES_DIRS else settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Handlers de error personalizados para producción
+handler500 = 'django.views.defaults.server_error'
+handler404 = 'django.views.defaults.page_not_found'
+handler403 = 'django.views.defaults.permission_denied'
+handler400 = 'django.views.defaults.bad_request'
