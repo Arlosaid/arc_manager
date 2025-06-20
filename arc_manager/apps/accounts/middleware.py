@@ -62,6 +62,7 @@ class SuperuserRestrictMiddleware:
         self.exempt_urls = [
             re.compile(r'^admin/.*$'),
             re.compile(r'^accounts/logout/?$'),
+            re.compile(r'^accounts/login/?$'),  # Permitir acceso al login también
             re.compile(r'^static/.*$'),
             re.compile(r'^media/.*$'),
         ]
@@ -75,6 +76,32 @@ class SuperuserRestrictMiddleware:
             if not request.user.is_superuser:
                 messages.error(request, "No tienes permisos para acceder al panel de administración.")
                 return redirect('main:dashboard')
+            
+            # Si es un superusuario accediendo al admin por primera vez en esta sesión
+            # mostrar el mensaje informativo SOLO una vez por sesión
+            if (request.user.is_superuser and 
+                request.path == '/admin/' and 
+                request.method == 'GET' and
+                'admin_welcome_shown' not in request.session):
+                
+                messages.info(
+                    request, 
+                    "Bienvenido al panel administrativo. Desde aquí puedes gestionar todo el sistema."
+                )
+                # Marcar como mostrado para esta sesión específica
+                request.session['admin_welcome_shown'] = True
+                # Forzar guardar la sesión
+                request.session.save()
+        
+        # IMPORTANTE: Evitar que los superusuarios accedan a la aplicación principal
+        # Solo deben usar el admin panel
+        elif request.user.is_authenticated and request.user.is_superuser:
+            # Permitir acceso a logout y URLs estáticas
+            path = request.path.lstrip('/')
+            if not any(pattern.match(path) for pattern in self.exempt_urls):
+                # Si un superusuario intenta acceder a cualquier parte de la app que no sea admin
+                # redirigirlo al admin sin mostrar mensaje adicional
+                return redirect('/admin/')
         
         response = self.get_response(request)
         return response

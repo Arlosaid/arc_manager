@@ -221,6 +221,26 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # La sesión termina cuando se cierra e
 SESSION_COOKIE_AGE = 1209600  # Tiempo de vida máximo de la sesión (2 semanas en segundos)
 SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra ataques CSRF
 
+# Configuración del sistema de mensajes
+# Opción 1: Usar CookieStorage (mensajes se almacenan en cookies, más limitado)
+# MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
+# Opción 2: Usar FallbackStorage (por defecto, recomendado)
+MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
+
+# Opción 3: SessionStorage (actual - mensajes persisten entre páginas)
+# MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Tags de mensajes personalizados para Bootstrap
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

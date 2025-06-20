@@ -47,8 +47,8 @@ class TenantValidationMiddleware(MiddlewareMixin):
                     'redirect': reverse('main:home')
                 }, status=403)
             
-            # Para requests normales, redirigir con mensaje
-            messages.error(request, "No tienes una organización asignada. Contacta con el administrador.")
+            # Para requests normales, redirigir SIN mensaje (evitar spam)
+            # El mensaje se mostrará solo en páginas específicas
             return redirect('main:home')
         
         # Validar estado de la suscripción
@@ -68,8 +68,12 @@ class TenantValidationMiddleware(MiddlewareMixin):
                 }, status=403)
             
             # Solo mostrar mensaje en paths específicos para evitar spam
-            if self.should_show_subscription_warning(request.path):
+            # Y solo una vez por sesión
+            if (self.should_show_subscription_warning(request.path) and 
+                not request.session.get(f'subscription_warning_{subscription_status["reason"]}_shown', False)):
+                
                 messages.warning(request, subscription_status['message'])
+                request.session[f'subscription_warning_{subscription_status["reason"]}_shown'] = True
         
         return None
     

@@ -68,6 +68,34 @@
     <!-- Scripts específicos de Sidebar -->
     <script src="{% static 'js/sidebar.js' %}"></script>
     
+    <!-- Script para evitar duplicación de mensajes -->
+    <script>
+        // Función para remover mensajes duplicados
+        function removeDuplicateMessages() {
+            const messages = document.querySelectorAll('.alert');
+            const seenMessages = new Set();
+            
+            messages.forEach(message => {
+                const messageText = message.textContent.trim();
+                // Remover los caracteres del botón de cierre
+                const cleanText = messageText.replace('×', '').trim();
+                
+                if (seenMessages.has(cleanText)) {
+                    message.remove();
+                } else {
+                    seenMessages.add(cleanText);
+                }
+            });
+        }
+        
+        // Ejecutar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', removeDuplicateMessages);
+        
+        // También ejecutar si se agregan mensajes dinámicamente
+        const observer = new MutationObserver(removeDuplicateMessages);
+        observer.observe(document.body, { childList: true, subtree: true });
+    </script>
+    
     <!-- Scripts adicionales específicos por página -->
     {% block extra_js %}{% endblock %}
 </body>

@@ -43,7 +43,8 @@ from .forms import OrganizationForm
 def my_organization(request):
     """Vista para que el usuario vea su propia organización"""
     if not request.user.organization:
-        messages.info(request, "No estás asignado a ninguna organización.")
+        # NO mostrar mensaje aquí - esto debería manejarse a nivel de middleware
+        # o en la página principal donde es más apropiado
         return redirect('main:dashboard')
     
     organization = request.user.organization
