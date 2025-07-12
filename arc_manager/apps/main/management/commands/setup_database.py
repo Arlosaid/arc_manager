@@ -7,7 +7,7 @@ import os
 
 
 class Command(BaseCommand):
-    help = 'Configura la base de datos automáticamente para RDS'
+    help = 'Configura la base de datos automáticamente'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -19,15 +19,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         force = options.get('force', False)
         
-        self.stdout.write("🔄 Iniciando configuración de base de datos RDS...")
+        self.stdout.write("🔄 Iniciando configuración de base de datos...")
         
-        # Verificar conexión a RDS
+        # Verificar conexión a la base de datos
         try:
             connection.ensure_connection()
-            self.stdout.write(self.style.SUCCESS('✅ Conexión a RDS exitosa'))
+            self.stdout.write(self.style.SUCCESS('✅ Conexión a base de datos exitosa'))
         except OperationalError as e:
             self.stdout.write(
-                self.style.ERROR(f'❌ Error de conexión a RDS: {e}')
+                self.style.ERROR(f'❌ Error de conexión a base de datos: {e}')
             )
             if not force:
                 return
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             call_command('collectstatic', verbosity=1, interactive=False)
             self.stdout.write(self.style.SUCCESS("✅ Archivos estáticos listos"))
             
-            self.stdout.write(self.style.SUCCESS("🎉 ¡Configuración de RDS completada exitosamente!"))
+            self.stdout.write(self.style.SUCCESS("🎉 ¡Configuración de base de datos completada exitosamente!"))
             
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"❌ Error durante la configuración: {e}"))

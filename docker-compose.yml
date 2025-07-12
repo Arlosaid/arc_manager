@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-arc_manager_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    restart: unless-stopped
+
+  web:
+    build: .
+    command: >
+      sh -c "
+        echo '🔍 Esperando base de datos...' &&
+        until pg_isready -h db -p 5432 -U postgres; do
+          echo 'Esperando PostgreSQL...'
+          sleep 2
+        done &&
+        echo '🔄 Configurando aplicación...' &&
+        python manage.py setup_database --force &&
+        echo '🚀 Iniciando servidor de desarrollo...' &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    volumes:
+      - ./arc_manager:/app/arc_manager
+      - static_volume:/app/arc_manager/staticfiles
+      - media_volume:/app/arc_manager/media
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    depends_on:
+      - db
+    environment:
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres123@db:5432/arc_manager_dev}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+    restart: unless-stopped
+
+  # Opcional: Redis para cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume: 
