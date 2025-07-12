@@ -99,10 +99,28 @@ AXES_LOCKOUT_CALLABLE = None  # No usar función personalizada para bloqueos
 AXES_VERBOSE = True  # Mensaje verboso en los logs
 
 
+# Configuración de Redis para cache
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
+
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'arc_manager',
+        'TIMEOUT': 300,  # 5 minutos por defecto
+    },
+    # Cache específico para sesiones
+    'sessions': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'arc_sessions',
+        'TIMEOUT': 86400,  # 24 horas
     }
 }
 
@@ -187,6 +205,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuración de sesiones con Redis
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'sessions'
+SESSION_COOKIE_AGE = 86400  # 24 horas
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Authentication URLs
 LOGIN_URL = '/accounts/login/'  # URL a la que se redirige si se necesita iniciar sesión
