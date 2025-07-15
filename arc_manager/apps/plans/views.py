@@ -23,6 +23,8 @@ from .models import Plan, Subscription, UpgradeRequest
 from .services import SubscriptionService
 from apps.orgs.models import Organization
 
+# El logger se configurará localmente en cada función para evitar problemas de inicialización
+
 
 # Mixins para verificación de permisos
 class OrgAdminRequiredMixin(UserPassesTestMixin):
@@ -175,8 +177,17 @@ class SubscriptionDashboardView(LoginRequiredMixin, TemplateView):
             'payment_status_display': subscription.get_payment_status_display()
         }
         
-        # Planes disponibles para upgrade (solo para admins de org)
-        if context['is_org_admin']:
+        # Verificar solicitudes de upgrade pendientes
+        pending_request = UpgradeRequest.objects.filter(
+            organization=organization,
+            status__in=['pending', 'approved']
+        ).first()
+        
+        context['has_pending_request'] = bool(pending_request)
+        context['pending_request'] = pending_request
+        
+        # Planes disponibles para upgrade (solo para admins de org y sin solicitudes pendientes)
+        if context['is_org_admin'] and not pending_request:
             context['available_plans'] = Plan.objects.filter(
                 is_active=True,
                 price__gt=subscription.plan.price
@@ -336,75 +347,133 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        logger = logging.getLogger(__name__)
         
         user = self.request.user
         organization = user.organization
         
+        logger.info(f"GET RequestUpgradeView - Usuario: {user.email}, Organización: {organization.name if organization else 'None'}")
+        
         if not organization:
+            logger.warning(f"Usuario {user.email} no tiene organización asignada")
             context['no_organization'] = True
             return context
         
         # Obtener suscripción actual
         subscription = get_object_or_404(Subscription, organization=organization)
+        logger.info(f"Suscripción actual: {subscription.plan.display_name} - Estado: {subscription.status}")
         
-        # Verificar si ya hay un request pendiente
+        # Verificar solicitud pendiente
         pending_request = UpgradeRequest.objects.filter(
             organization=organization,
-            status__in=['pending', 'approved', 'payment_pending']
+            status__in=['pending', 'approved']
         ).first()
         
         if pending_request:
-            context['has_pending_request'] = True
-            context['pending_request'] = pending_request
+            logger.info(f"Solicitud pendiente encontrada: ID {pending_request.id} - Estado: {pending_request.status}")
         else:
-            context['has_pending_request'] = False
+            logger.info("No se encontraron solicitudes pendientes")
+        
+        context.update({
+            'subscription': subscription,
+            'current_plan': subscription.plan,
+            'organization': organization,
+            'has_pending_request': bool(pending_request),
+            'pending_request': pending_request,
+        })
+        
+        if not pending_request:
             # Planes disponibles para upgrade
-            context['available_plans'] = Plan.objects.filter(
+            available_plans = Plan.objects.filter(
                 is_active=True,
                 price__gt=subscription.plan.price
             ).order_by('price')
-        
-        context['subscription'] = subscription
-        context['current_plan'] = subscription.plan
-        context['organization'] = organization
+            
+            logger.info(f"Planes disponibles para upgrade: {list(available_plans.values_list('display_name', flat=True))}")
+            context['available_plans'] = available_plans
         
         return context
     
     def post(self, request, *args, **kwargs):
         """Procesar solicitud de upgrade"""
+        logger = logging.getLogger(__name__)
+        logger.info(f"POST RequestUpgradeView iniciado - Usuario: {request.user.email}")
+        logger.info(f"POST data: {dict(request.POST)}")
+        
         user = request.user
         organization = user.organization
         
         if not organization:
+            logger.error(f"Usuario {user.email} no tiene organización asignada en POST")
             messages.error(request, "No tienes una organización asignada.")
             return redirect('plans:subscription_dashboard')
         
-        subscription = get_object_or_404(Subscription, organization=organization)
+        logger.info(f"Organización: {organization.name}")
         
-        # Verificar si ya hay un request pendiente
-        if UpgradeRequest.objects.filter(
+        subscription = get_object_or_404(Subscription, organization=organization)
+        logger.info(f"Suscripción: {subscription.plan.display_name}")
+        
+        # Verificar solicitud pendiente o aprobada (no se pueden hacer múltiples)
+        existing_request = UpgradeRequest.objects.filter(
             organization=organization,
             status__in=['pending', 'approved']
-        ).exists():
-            messages.warning(request, "Ya tienes una solicitud de upgrade pendiente.")
+        ).first()
+        
+        if existing_request:
+            logger.warning(f"Solicitud existente encontrada: ID {existing_request.id} - Estado: {existing_request.status}")
+            if existing_request.status == 'pending':
+                messages.warning(
+                    request, 
+                    "Ya tienes una solicitud de upgrade pendiente. Por favor espera a que sea procesada."
+                )
+            elif existing_request.status == 'approved':
+                messages.info(
+                    request, 
+                    "Tu solicitud de upgrade ya fue aprobada. Tu nuevo plan está activo."
+                )
             return redirect('plans:request_upgrade')
         
-        # Obtener plan solicitado
+        # Validar ventana de tiempo - prevenir spam (no más de 1 solicitud por minuto)
+        recent_request = UpgradeRequest.objects.filter(
+            organization=organization,
+            requested_date__gte=timezone.now() - timedelta(minutes=1)
+        ).first()
+        
+        if recent_request:
+            logger.warning(f"Solicitud reciente encontrada: ID {recent_request.id} - Fecha: {recent_request.requested_date}")
+            messages.warning(
+                request, 
+                "Has enviado una solicitud muy recientemente. Por favor espera un momento antes de intentar nuevamente."
+            )
+            return redirect('plans:request_upgrade')
+        
+        # Validar plan solicitado
         requested_plan_id = request.POST.get('requested_plan')
+        logger.info(f"Plan solicitado ID: {requested_plan_id}")
+        
         if not requested_plan_id:
+            logger.error("No se proporcionó requested_plan en POST")
             messages.error(request, "Debes seleccionar un plan.")
             return redirect('plans:request_upgrade')
         
-        requested_plan = get_object_or_404(Plan, id=requested_plan_id, is_active=True)
+        try:
+            requested_plan = get_object_or_404(Plan, id=requested_plan_id, is_active=True)
+            logger.info(f"Plan solicitado: {requested_plan.display_name} - Precio: {requested_plan.price}")
+        except Exception as e:
+            logger.error(f"Error al obtener plan solicitado: {str(e)}")
+            messages.error(request, "Plan no válido.")
+            return redirect('plans:request_upgrade')
         
-        # Verificar que sea un upgrade válido
         if requested_plan.price <= subscription.plan.price:
+            logger.error(f"Intento de downgrade - Plan actual: {subscription.plan.price}, Solicitado: {requested_plan.price}")
             messages.error(request, "Solo puedes hacer upgrade a un plan superior.")
             return redirect('plans:request_upgrade')
         
         # Crear solicitud de upgrade
         try:
             with transaction.atomic():
+                logger.info("Iniciando creación de solicitud de upgrade")
+                
                 upgrade_request = UpgradeRequest.objects.create(
                     organization=organization,
                     current_plan=subscription.plan,
@@ -419,27 +488,26 @@ class RequestUpgradeView(LoginRequiredMixin, OrgAdminRequiredMixin, TemplateView
                     }
                 )
                 
-                # Enviar automáticamente las instrucciones de pago
-                upgrade_request._send_payment_instructions()
+                logger.info(f"Solicitud de upgrade creada exitosamente: ID {upgrade_request.id}")
+                
+                # Enviar instrucciones de pago
+                try:
+                    logger.info("Enviando instrucciones de pago")
+                    email_sent = upgrade_request._send_payment_instructions()
+                    logger.info(f"Email enviado: {email_sent}")
+                except Exception as e:
+                    logger.error(f"Error al enviar instrucciones de pago: {str(e)}", exc_info=True)
                 
                 messages.success(
                     request, 
                     f"Tu solicitud de upgrade a {requested_plan.display_name} ha sido enviada. "
-                    "Revisa tu email para encontrar las instrucciones de pago. "
-                    "Una vez que envíes tu comprobante, procesaremos tu solicitud."
+                    "Revisa tu email para encontrar las instrucciones de pago."
                 )
                 
+                logger.info("Solicitud de upgrade procesada exitosamente")
                 return redirect('plans:subscription_dashboard')
                 
         except Exception as e:
-            # Log detallado del error para desarrolladores
-            logger = logging.getLogger(__name__)
             logger.error(f"Error al crear solicitud de upgrade para organización {organization.id}: {str(e)}", exc_info=True)
-            
-            # Siempre mostrar mensaje amigable, nunca errores técnicos
-            messages.error(request, "Ha ocurrido un error al procesar tu solicitud de upgrade. Por favor, contacta con soporte técnico.")
-            
+            messages.error(request, "Ha ocurrido un error al procesar tu solicitud. Por favor, contacta con soporte técnico.")
             return redirect('plans:request_upgrade')
-
-
-# Las vistas de gestión de superuser han sido eliminadas - toda la gestión se hace desde el admin de Django

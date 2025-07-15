@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -15,9 +16,13 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^nqywk9lip*o%!y_jo3w)
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Configuración mejorada para AWS Beanstalk
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 # Simplificar para deployment
 if '*' in ALLOWED_HOSTS or os.environ.get('AWS_EXECUTION_ENV'):
+    ALLOWED_HOSTS = ['*']
+
+# Para testing, siempre permitir todos los hosts
+if os.environ.get('TESTING') or 'test' in sys.argv:
     ALLOWED_HOSTS = ['*']
 
 # En producción, asegurar que DEBUG esté en False

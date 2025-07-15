@@ -635,7 +635,7 @@
 
 /* ===== MODAL DE CONFIRMACIÓN ===== */
 #upgradeConfirmModal {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     position: fixed;
@@ -647,6 +647,7 @@
     z-index: 9999;
     opacity: 0;
     pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
 #upgradeConfirmModal.visible {
@@ -659,6 +660,12 @@
     width: 100%;
     margin: 0 auto;
     padding: 1rem;
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+#upgradeConfirmModal.visible .modal-dialog {
+    transform: scale(1);
 }
 
 .upgrade-modal {
@@ -704,12 +711,16 @@
 .btn-close-custom {
     background: none;
     border: none;
+    color: var(--arc-text-secondary);
     font-size: 1.2rem;
-    color: var(--arc-text-muted);
     cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 }
 
 .btn-close-custom:hover {
+    background: var(--arc-bg-secondary);
     color: var(--arc-color-danger);
 }
 
@@ -719,7 +730,7 @@
 
 .selected-plan-card {
     background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius-sm);
+    border-radius: var(--arc-border-radius);
     padding: 1rem;
     margin-bottom: 1rem;
     border: 1px solid var(--arc-border-color);
@@ -738,22 +749,27 @@
 }
 
 .plan-header h5 {
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--arc-text-primary);
     margin: 0;
 }
 
 .plan-price {
     color: var(--arc-color-primary);
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.upgrade-benefits {
+    margin-top: 1rem;
 }
 
 .upgrade-benefits h6 {
     color: var(--arc-text-primary);
+    font-size: 1rem;
     font-weight: 600;
-    margin: 0 0 0.5rem 0;
+    margin-bottom: 0.5rem;
 }
 
 .upgrade-benefits ul {
@@ -766,77 +782,106 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.25rem 0;
+    margin-bottom: 0.5rem;
     color: var(--arc-text-secondary);
     font-size: 0.9rem;
 }
 
 .upgrade-benefits li i {
     color: var(--arc-color-success);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
 }
 
 .upgrade-process-info {
     display: flex;
+    align-items: flex-start;
     gap: 1rem;
+    background: var(--arc-bg-info);
     padding: 1rem;
-    background: var(--arc-bg-tertiary);
-    border-radius: var(--arc-border-radius-sm);
-    border: 1px solid var(--arc-border-color);
+    border-radius: var(--arc-border-radius);
+    border-left: 4px solid var(--arc-color-info);
 }
 
 .upgrade-process-info i {
     color: var(--arc-color-info);
-    font-size: 1.25rem;
-    flex-shrink: 0;
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
 }
 
 .upgrade-process-info p {
-    color: var(--arc-text-secondary);
-    font-size: 0.9rem;
     margin: 0;
+    color: var(--arc-text-primary);
+    font-size: 0.9rem;
 }
 
 .upgrade-process-info small {
-    color: var(--arc-text-muted);
+    color: var(--arc-text-secondary);
     font-size: 0.8rem;
 }
 
 .modal-footer {
     display: flex;
-    justify-content: flex-end;
     gap: 1rem;
+    justify-content: flex-end;
 }
 
-.modal-footer .btn {
-    padding: 0.7rem 1.5rem;
-    border-radius: var(--arc-border-radius);
-    font-weight: 600;
-    font-size: 1rem;
+.btn {
+    padding: 0.5rem 1rem;
     border: none;
+    border-radius: var(--arc-border-radius);
     cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.2s ease;
 }
 
-.btn.btn-cancel {
-    background: var(--arc-bg-tertiary);
-    color: var(--arc-text-secondary);
-}
-
-.btn.btn-cancel:hover {
+.btn-cancel {
     background: var(--arc-bg-secondary);
-    color: var(--arc-color-danger);
+    color: var(--arc-text-secondary);
+    border: 1px solid var(--arc-border-color);
 }
 
-.btn.btn-confirm {
+.btn-cancel:hover {
+    background: var(--arc-bg-tertiary);
+    color: var(--arc-text-primary);
+}
+
+.btn-confirm {
     background: var(--arc-color-primary);
     color: white;
 }
 
-.btn.btn-confirm:hover {
-    background: var(--arc-color-primary-hover);
+.btn-confirm:hover {
+    background: var(--arc-color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-confirm:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-dialog {
+        max-width: 90%;
+        padding: 0.5rem;
+    }
+    
+    .upgrade-modal {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 /* ===== RESPONSIVE ===== */
