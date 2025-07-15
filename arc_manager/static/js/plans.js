@@ -1,673 +1,433 @@
 /**
- * ===== PLANS.JS - FUNCIONALIDAD SIMPLIFICADA PARA DASHBOARD DE SUSCRIPCIONES =====
+ * Plans JavaScript Optimizado - Arc Manager
+ * Versión simplificada con funcionalidad esencial
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeSubscriptionDashboard();
+    initializePlans();
 });
 
 /**
- * Inicializa toda la funcionalidad del dashboard de suscripciones
+ * Inicializa toda la funcionalidad de planes
  */
-function initializeSubscriptionDashboard() {
-    initializeProgressBars();
-    initializeUsageCounters();
-    initializePlanOptions();
-    initializeTrialCountdown();
-    initializeAnimations();
+function initializePlans() {
+    setupProgressBars();
+    setupInteractions();
+    setupNotifications();
+    setupForms();
 }
 
 /**
- * Inicializa las barras de progreso con animaciones
+ * Configura las barras de progreso
  */
-function initializeProgressBars() {
+function setupProgressBars() {
     const progressBars = document.querySelectorAll('.progress-fill');
     
-    progressBars.forEach((progressBar, index) => {
+    progressBars.forEach(progressBar => {
         const percentage = parseInt(progressBar.getAttribute('data-percentage')) || 0;
         
-        // Establecer el ancho inicial en 0
-        progressBar.style.width = '0%';
+        // Configurar ancho final
+        progressBar.style.width = percentage + '%';
         
-        // Aplicar animación con delay escalonado
-        setTimeout(() => {
-            animateProgressBar(progressBar, percentage);
-        }, (index * 200) + 500);
-        
-        // Cambiar color basado en el porcentaje
-        updateProgressBarColor(progressBar, percentage);
-    });
-}
-
-/**
- * Anima una barra de progreso
- */
-function animateProgressBar(progressBar, targetPercentage) {
-    progressBar.style.width = `${targetPercentage}%`;
-    
-    // Animación con contador visual
-    let currentWidth = 0;
-    const increment = targetPercentage / 50;
-    
-    const animate = () => {
-        currentWidth += increment;
-        if (currentWidth >= targetPercentage) {
-            progressBar.style.width = `${targetPercentage}%`;
-            return;
+        // Cambiar color según el porcentaje
+        if (percentage >= 90) {
+            progressBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+        } else if (percentage >= 70) {
+            progressBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
+        } else {
+            progressBar.style.background = 'linear-gradient(90deg, #3b82f6, #60a5fa)';
         }
         
-        progressBar.style.width = `${currentWidth}%`;
-        requestAnimationFrame(animate);
-    };
-    
-    animate();
-}
-
-/**
- * Actualiza el color de la barra de progreso
- */
-function updateProgressBarColor(progressBar, percentage) {
-    if (percentage >= 90) {
-        progressBar.style.background = 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)';
-    } else if (percentage >= 70) {
-        progressBar.style.background = 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)';
-    } else {
-        progressBar.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
-    }
-}
-
-/**
- * Inicializa contadores animados para las estadísticas de uso
- */
-function initializeUsageCounters() {
-    const counters = document.querySelectorAll('.usage-numbers .current');
-    
-    counters.forEach((counter, index) => {
-        const target = parseFloat(counter.textContent) || 0;
-        
-        setTimeout(() => {
-            animateCounter(counter, target);
-        }, index * 200);
-    });
-}
-
-/**
- * Anima un contador numérico
- */
-function animateCounter(element, target) {
-    let current = 0;
-    const increment = target / 30;
-    const duration = 800;
-    const stepDuration = duration / 30;
-    
-    const animate = () => {
-        current += increment;
-        if (current >= target) {
-            element.textContent = target % 1 === 0 ? target : target.toFixed(1);
-            return;
-        }
-        
-        element.textContent = current % 1 === 0 ? Math.floor(current) : current.toFixed(1);
-        setTimeout(animate, stepDuration);
-    };
-    
-    animate();
-}
-
-/**
- * Inicializa las opciones de planes
- */
-function initializePlanOptions() {
-    const planOptions = document.querySelectorAll('.plan-item');
-    
-    planOptions.forEach((option, index) => {
-        // Animación de entrada escalonada
-        option.style.opacity = '0';
-        option.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            option.style.transition = 'all 0.4s ease';
-            option.style.opacity = '1';
-            option.style.transform = 'translateY(0)';
-        }, index * 100);
-        
-        // Manejar selección de plan
-        const selectButton = option.querySelector('.plan-select-button');
-        if (selectButton) {
-            selectButton.addEventListener('click', function(e) {
-                handlePlanSelection(e, option);
-            });
+        // Actualizar texto del porcentaje
+        const percentageElement = progressBar.parentElement.querySelector('.usage-percentage');
+        if (percentageElement) {
+            percentageElement.textContent = percentage + '%';
         }
     });
 }
 
 /**
- * Maneja la selección de un plan
+ * Configura las interacciones básicas
  */
-function handlePlanSelection(event, planOption) {
-    const planName = planOption.querySelector('h4').textContent;
+function setupInteractions() {
+    // Botones de selección de plan
+    const planButtons = document.querySelectorAll('.plan-select-button');
+    planButtons.forEach(button => {
+        button.addEventListener('click', handlePlanSelection);
+    });
     
-    // Efecto visual en el botón
-    const button = event.target;
-    const originalContent = button.innerHTML;
+    // Botones de upgrade
+    const upgradeButtons = document.querySelectorAll('.upgrade-btn-cta');
+    upgradeButtons.forEach(button => {
+        button.addEventListener('click', handleUpgradeClick);
+    });
     
-    button.style.transform = 'scale(0.95)';
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seleccionando...';
+    // Enlaces de soporte
+    const supportLinks = document.querySelectorAll('.support-contact');
+    supportLinks.forEach(link => {
+        link.addEventListener('click', handleSupportClick);
+    });
     
+    // Tarjetas con hover
+    const cards = document.querySelectorAll('.usage-card, .plans-available-card, .payment-history-item');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+        });
+    });
+}
+
+/**
+ * Maneja la selección de plan
+ */
+function handlePlanSelection(e) {
+    const button = e.currentTarget;
+    const planType = button.getAttribute('data-plan') || 'basic';
+    
+    // Mostrar confirmación
+    showConfirmationDialog(
+        'Seleccionar Plan',
+        `¿Estás seguro de que quieres seleccionar el plan ${planType}?`,
+        () => {
+            // Mostrar estado de carga
+            const originalText = button.textContent;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            button.disabled = true;
+            
+            // Simular procesamiento
+            setTimeout(() => {
+                window.location.href = `/plans/request-upgrade/`;
+            }, 1000);
+        }
+    );
+}
+
+/**
+ * Maneja los clics en botones de upgrade
+ */
+function handleUpgradeClick(e) {
+    const button = e.currentTarget;
+    
+    // Efecto visual simple
+    button.style.transform = 'scale(0.98)';
     setTimeout(() => {
         button.style.transform = 'scale(1)';
-        button.innerHTML = originalContent;
-    }, 1000);
+    }, 100);
     
-    console.log(`Plan seleccionado: ${planName}`);
+    showNotification('Redirigiendo a la página de upgrade...', 'info');
 }
 
 /**
- * Inicializa el contador regresivo del trial
+ * Maneja los clics en enlaces de soporte
  */
-function initializeTrialCountdown() {
-    const countdownElement = document.querySelector('.countdown-number');
-    if (!countdownElement) return;
+function handleSupportClick(e) {
+    const link = e.currentTarget;
     
-    const daysRemaining = parseInt(countdownElement.textContent) || 0;
+    showNotification('Abriendo enlace de soporte...', 'info');
     
-    // Animar el número
-    let currentDay = 0;
-    const increment = daysRemaining / 20;
-    const stepDuration = 50;
-    
-    const animate = () => {
-        currentDay += increment;
-        if (currentDay >= daysRemaining) {
-            countdownElement.textContent = daysRemaining;
-            // Agregar pulsación si quedan pocos días
-            if (daysRemaining <= 7) {
-                countdownElement.style.animation = 'pulse 2s infinite';
-            }
-            return;
-        }
-        
-        countdownElement.textContent = Math.floor(currentDay);
-        setTimeout(animate, stepDuration);
-    };
-    
-    animate();
+    // Efecto visual
+    link.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+        link.style.transform = 'scale(1)';
+    }, 200);
 }
 
 /**
- * Inicializa animaciones básicas
+ * Configura las notificaciones
  */
-function initializeAnimations() {
-    // Observador para animaciones al hacer scroll
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animate-in');
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
-    
-    // Observar elementos animables
-    const animatableElements = document.querySelectorAll('.usage-card, .feature-item, .payment-item');
-    animatableElements.forEach(element => {
-        observer.observe(element);
-    });
-    
-    // Animación del hero card
-    const heroCard = document.querySelector('.plan-hero-card');
-    if (heroCard) {
-        heroCard.style.opacity = '0';
-        heroCard.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            heroCard.style.transition = 'all 0.6s ease';
-            heroCard.style.opacity = '1';
-            heroCard.style.transform = 'translateY(0)';
-        }, 200);
-    }
-}
-
-/**
- * Utilidades para el manejo de datos de uso
- */
-const UsageUtils = {
-    /**
-     * Formatea bytes a una unidad legible
-     */
-    formatBytes: function(bytes, decimals = 2) {
-        if (bytes === 0) return '0 Bytes';
-        
-        const k = 1024;
-        const dm = decimals < 0 ? 0 : decimals;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    },
-
-    /**
-     * Calcula el porcentaje de uso
-     */
-    calculatePercentage: function(current, limit) {
-        if (limit === 0) return 0;
-        return Math.min((current / limit) * 100, 100);
-    },
-
-    /**
-     * Determina el estado del uso basado en el porcentaje
-     */
-    getUsageStatus: function(percentage) {
-        if (percentage >= 90) return 'danger';
-        if (percentage >= 70) return 'warning';
-        return 'good';
-    }
-};
-
-/**
- * API simplificada para comunicación con el backend
- */
-const PlansAPI = {
-    /**
-     * Obtiene el token CSRF
-     */
-    getCsrfToken: function() {
-        const token = document.querySelector('[name=csrfmiddlewaretoken]');
-        return token ? token.value : '';
-    },
-
-    /**
-     * Obtiene los datos actualizados de uso
-     */
-    getUsageData: async function() {
-        try {
-            const response = await fetch('/api/plans/usage/', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCsrfToken()
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Error al obtener datos de uso');
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error:', error);
-            return null;
-        }
-    }
-};
-
-/**
- * Funciones de utilidad simplificadas
- */
-const PlanUtils = {
-    /**
-     * Muestra notificación simple
-     */
-    showNotification: function(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `simple-notification notification-${type}`;
-        notification.textContent = message;
-        
-        notification.style.cssText = `
+function setupNotifications() {
+    // Crear contenedor de notificaciones
+    if (!document.querySelector('.notifications-container')) {
+        const container = document.createElement('div');
+        container.className = 'notifications-container';
+        container.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px 20px;
-            border-radius: 12px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            max-width: 350px;
         `;
-        
-        if (type === 'success') notification.style.background = '#10B981';
-        else if (type === 'error') notification.style.background = '#EF4444';
-        else if (type === 'warning') notification.style.background = '#F59E0B';
-        else notification.style.background = '#4F46E5';
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        setTimeout(() => {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-};
-
-// Agregar estilos CSS para las animaciones básicas
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        document.body.appendChild(container);
     }
     
-    .animate-in {
-        animation: fadeInUp 0.6s ease forwards;
-    }
-    
-    .simple-notification {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-`;
-document.head.appendChild(style);
-
-// ========================================
-// TRIAL NOTIFICATION COMPONENT FUNCTIONALITY - MEJORADO
-// ========================================
-
-// Configuration
-const REMIND_LATER_DURATION = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
-const STORAGE_KEY = 'trial_notification_hidden_until';
-
-// Agregar inicialización del banner a la función principal
-const originalInitialize = initializeSubscriptionDashboard;
-initializeSubscriptionDashboard = function() {
-    originalInitialize();
-    initializeTrialNotification();
-};
-
-/**
- * Initialize the trial notification component
- */
-function initializeTrialNotification() {
-    const notification = document.getElementById('trial-notification') || 
-                        document.getElementById('renewal-notification');
-    
-    if (!notification) return;
-    
-    // Check if notification should be hidden
-    if (shouldHideNotification()) {
-        hideNotification(notification, false);
-        return;
-    }
-    
-    // Add event listeners
-    setupEventListeners(notification);
-    
-    // Show notification with animation
-    showNotification(notification);
-    
-    // Animate counter if it's a trial notification
-    if (notification.id === 'trial-notification') {
-        animateCounter();
-    }
+    // Agregar botones de cerrar a banners existentes
+    const banners = document.querySelectorAll('.notification-banner');
+    banners.forEach(banner => {
+        addCloseBanner(banner);
+    });
 }
 
 /**
- * Check if notification should be hidden based on "remind later" setting
+ * Agrega botón de cerrar a un banner
  */
-function shouldHideNotification() {
-    const hiddenUntil = localStorage.getItem(STORAGE_KEY);
-    if (!hiddenUntil) return false;
+function addCloseBanner(banner) {
+    if (banner.querySelector('.close-banner')) return;
     
-    const hiddenUntilTime = parseInt(hiddenUntil, 10);
-    const currentTime = Date.now();
-    
-    if (currentTime < hiddenUntilTime) {
-        return true;
-    } else {
-        // Clear expired storage
-        localStorage.removeItem(STORAGE_KEY);
-        return false;
-    }
-}
-
-/**
- * Setup event listeners for the notification
- */
-function setupEventListeners(notification) {
-    // Remind later button
-    const remindLaterBtn = notification.querySelector('.remind-later-btn');
-    if (remindLaterBtn) {
-        remindLaterBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            remindLater();
-        });
-    }
-    
-    // Upgrade button tracking
-    const upgradeBtn = notification.querySelector('.upgrade-btn');
-    if (upgradeBtn) {
-        upgradeBtn.addEventListener('click', function() {
-            // Optional: Track upgrade button clicks
-            console.log('Upgrade button clicked');
-            // You can add analytics tracking here
-        });
-    }
-}
-
-/**
- * Handle "remind later" functionality
- */
-function remindLater() {
-    const notification = document.getElementById('trial-notification') || 
-                        document.getElementById('renewal-notification');
-    
-    if (!notification) return;
-    
-    // Store the time when notification should be shown again
-    const hideUntil = Date.now() + REMIND_LATER_DURATION;
-    localStorage.setItem(STORAGE_KEY, hideUntil.toString());
-    
-    // Hide notification with animation
-    hideNotification(notification, true);
-    
-    // Show confirmation message
-    showRemindLaterConfirmation();
-}
-
-/**
- * Hide notification with smooth animation
- */
-function hideNotification(notification, animate = true) {
-    if (!notification) return;
-    
-    if (animate) {
-        notification.style.transition = 'all 0.4s ease-out';
-        notification.style.transform = 'translateY(-20px)';
-        notification.style.opacity = '0';
-        
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 400);
-    } else {
-        notification.style.display = 'none';
-    }
-}
-
-/**
- * Show notification with smooth animation
- */
-function showNotification(notification) {
-    if (!notification) return;
-    
-    notification.style.display = 'block';
-    notification.style.opacity = '0';
-    notification.style.transform = 'translateY(-20px)';
-    
-    // Force reflow
-    notification.offsetHeight;
-    
-    notification.style.transition = 'all 0.6s ease-out';
-    notification.style.opacity = '1';
-    notification.style.transform = 'translateY(0)';
-}
-
-/**
- * Show confirmation message for "remind later"
- */
-function showRemindLaterConfirmation() {
-    // Create temporary toast notification
-    const toast = document.createElement('div');
-    toast.className = 'alert alert-info alert-dismissible fade show position-fixed';
-    toast.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 1050;
-        min-width: 300px;
-        animation: fadeInSlideDown 0.3s ease-out;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-banner';
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.7;
+        z-index: 10;
     `;
     
-    toast.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="fas fa-check-circle me-2 text-success"></i>
-            <div>
-                <strong>¡Perfecto!</strong><br>
-                <small>Te recordaremos mañana sobre tu prueba gratuita.</small>
-            </div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    closeBtn.addEventListener('click', () => {
+        banner.style.display = 'none';
+    });
+    
+    banner.style.position = 'relative';
+    banner.appendChild(closeBtn);
+}
+
+/**
+ * Configura los formularios
+ */
+function setupForms() {
+    const forms = document.querySelectorAll('form');
+    
+    forms.forEach(form => {
+        form.addEventListener('submit', handleFormSubmit);
+    });
+}
+
+/**
+ * Maneja el envío de formularios
+ */
+function handleFormSubmit(e) {
+    const form = e.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+    
+    if (submitButton) {
+        const originalText = submitButton.textContent;
+        
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        
+        // Restaurar en caso de error
+        setTimeout(() => {
+            if (form.checkValidity()) {
+                showNotification('Formulario enviado correctamente', 'success');
+            } else {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+                showNotification('Por favor, revisa los datos del formulario', 'error');
+                e.preventDefault();
+            }
+        }, 500);
+    }
+}
+
+/**
+ * Muestra una notificación
+ */
+function showNotification(message, type = 'info', duration = 4000) {
+    const container = document.querySelector('.notifications-container');
+    if (!container) return;
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const colors = {
+        info: '#3b82f6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        error: '#ef4444'
+    };
+    
+    notification.style.cssText = `
+        background: ${colors[type]};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        position: relative;
+        font-size: 0.875rem;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: auto;">×</button>
         </div>
     `;
     
-    document.body.appendChild(toast);
+    container.appendChild(notification);
     
-    // Auto-remove after 4 seconds
+    // Animar entrada
     setTimeout(() => {
-        if (toast.parentNode) {
-            toast.style.animation = 'fadeOutSlideUp 0.3s ease-out';
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto-dismiss
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.parentNode.removeChild(toast);
-                }
+                notification.remove();
             }, 300);
         }
-    }, 4000);
+    }, duration);
 }
 
 /**
- * Animate counter from 0 to actual days remaining
+ * Muestra un diálogo de confirmación
  */
-function animateCounter() {
-    const badgeElement = document.querySelector('.trial-countdown-container .badge');
-    if (!badgeElement) return;
+function showConfirmationDialog(title, message, onConfirm) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirmation-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
     
-    const finalNumber = parseInt(badgeElement.textContent);
-    if (isNaN(finalNumber)) return;
+    const dialog = document.createElement('div');
+    dialog.className = 'confirmation-dialog';
+    dialog.style.cssText = `
+        background: white;
+        padding: 2rem;
+        border-radius: 0.75rem;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    `;
     
-    let currentNumber = 0;
-    const increment = finalNumber / 30; // 30 steps for smooth animation
-    const duration = 1000; // 1 second total
-    const stepTime = duration / 30;
+    dialog.innerHTML = `
+        <h3 style="margin: 0 0 1rem 0; color: #1f2937; font-size: 1.25rem; font-weight: 600;">${title}</h3>
+        <p style="margin: 0 0 2rem 0; color: #6b7280; line-height: 1.6;">${message}</p>
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="cancel-btn" style="
+                padding: 0.5rem 1rem;
+                border: 1px solid #d1d5db;
+                background: white;
+                color: #6b7280;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            ">Cancelar</button>
+            <button class="confirm-btn" style="
+                padding: 0.5rem 1rem;
+                border: none;
+                background: #3b82f6;
+                color: white;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            ">Confirmar</button>
+        </div>
+    `;
     
-    // Set initial value
-    badgeElement.textContent = '0';
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
     
-    const timer = setInterval(() => {
-        currentNumber += increment;
-        
-        if (currentNumber >= finalNumber) {
-            badgeElement.textContent = finalNumber;
-            badgeElement.classList.add('counter-animate');
-            clearInterval(timer);
-            
-            // Remove animation class after it completes
-            setTimeout(() => {
-                badgeElement.classList.remove('counter-animate');
-            }, 100);
-        } else {
-            badgeElement.textContent = Math.floor(currentNumber);
-            
-            // Add small pop animation every 5 steps
-            if (Math.floor(currentNumber) % 5 === 0) {
-                badgeElement.classList.add('counter-animate');
-                setTimeout(() => {
-                    badgeElement.classList.remove('counter-animate');
-                }, 100);
-            }
+    // Animar entrada
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+        dialog.style.transform = 'scale(1)';
+    }, 10);
+    
+    // Event listeners
+    const cancelBtn = dialog.querySelector('.cancel-btn');
+    const confirmBtn = dialog.querySelector('.confirm-btn');
+    
+    cancelBtn.addEventListener('click', () => {
+        closeDialog(overlay);
+    });
+    
+    confirmBtn.addEventListener('click', () => {
+        closeDialog(overlay);
+        onConfirm();
+    });
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeDialog(overlay);
         }
-    }, stepTime);
+    });
+    
+    // Hover effects
+    cancelBtn.addEventListener('mouseenter', () => {
+        cancelBtn.style.background = '#f3f4f6';
+    });
+    
+    cancelBtn.addEventListener('mouseleave', () => {
+        cancelBtn.style.background = 'white';
+    });
+    
+    confirmBtn.addEventListener('mouseenter', () => {
+        confirmBtn.style.background = '#2563eb';
+    });
+    
+    confirmBtn.addEventListener('mouseleave', () => {
+        confirmBtn.style.background = '#3b82f6';
+    });
 }
 
 /**
- * Utility function to check trial urgency and update UI accordingly
+ * Cierra un diálogo
  */
-function updateTrialUrgency(daysRemaining) {
-    const notification = document.getElementById('trial-notification');
-    if (!notification) return;
+function closeDialog(overlay) {
+    overlay.style.opacity = '0';
+    const dialog = overlay.querySelector('.confirmation-dialog');
+    dialog.style.transform = 'scale(0.9)';
     
-    const badge = notification.querySelector('.badge');
-    const icon = notification.querySelector('.trial-icon');
-    
-    // Remove existing urgency classes
-    notification.classList.remove('bg-primary', 'bg-warning', 'bg-danger');
-    badge?.classList.remove('bg-light', 'text-primary', 'text-warning', 'text-danger', 'countdown-pulse');
-    icon?.classList.remove('pulse-animation');
-    
-    // Apply appropriate classes based on days remaining
-    if (daysRemaining >= 8) {
-        notification.classList.add('bg-primary', 'bg-gradient');
-        badge?.classList.add('bg-light', 'text-primary');
-    } else if (daysRemaining >= 3) {
-        notification.classList.add('bg-warning', 'bg-gradient');
-        badge?.classList.add('bg-light', 'text-warning');
-    } else {
-        notification.classList.add('bg-danger', 'bg-gradient');
-        badge?.classList.add('bg-light', 'text-danger', 'countdown-pulse');
-        icon?.classList.add('pulse-animation');
+    setTimeout(() => {
+        overlay.remove();
+    }, 300);
+}
+
+/**
+ * Actualiza el valor de una métrica
+ */
+function updateMetricValue(metricId, value) {
+    const element = document.querySelector(`[data-metric="${metricId}"]`);
+    if (element) {
+        element.textContent = value;
     }
 }
 
 /**
- * Reset "remind later" setting (useful for testing or admin purposes)
+ * Valida un formulario
  */
-function resetRemindLater() {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
+function validateForm(form) {
+    return form.checkValidity();
 }
 
-// Add CSS for toast animations
-const toastStyle = document.createElement('style');
-toastStyle.textContent = `
-    @keyframes fadeInSlideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    @keyframes fadeOutSlideUp {
-        from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-    }
-`;
-document.head.appendChild(toastStyle);
-
-// Create TrialNotification object for external use
-window.TrialNotification = {
-    remindLater,
-    resetRemindLater,
-    updateTrialUrgency,
-    hideNotification,
+// Exportar funciones principales
+window.PlansJS = {
     showNotification,
-    animateCounter
+    showConfirmationDialog,
+    updateMetricValue,
+    setupProgressBars
 };
-
-// Exportar funciones para uso global si es necesario
-window.PlansAPI = PlansAPI;
-window.PlanUtils = PlanUtils;
-window.UsageUtils = UsageUtils;

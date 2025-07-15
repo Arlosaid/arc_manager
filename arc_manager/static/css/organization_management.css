@@ -1,40 +1,29 @@
-/* organization_management.css limpio: todos los estilos visuales ahora se heredan de base.css y user_management.css */
+/* ===== ORGANIZATION MANAGEMENT CSS - OPTIMIZADO ===== */
 
-/* ===== ORGANIZATION_MANAGEMENT.CSS - ESTILOS ESPECÍFICOS PARA ORGANIZACIONES ===== */
-/* Este archivo solo contiene estilos únicos para las páginas de organizaciones */
-/* El layout, container y grid vienen de base.css */
-/* Los estilos de .modern-table vienen de base.css para consistencia */
+/* Variables específicas para organizaciones */
+:root {
+    --org-primary-gradient: linear-gradient(135deg, var(--arc-color-primary) 0%, var(--arc-color-primary-hover) 100%);
+    --org-card-bg: var(--arc-bg-primary);
+    --org-card-border: var(--arc-border-color);
+    --org-card-shadow: var(--arc-shadow-md);
+    --org-hover-shadow: var(--arc-shadow-lg);
+}
 
-/* =============================================================================
-   ORGANIZATION MANAGEMENT - Optimized for Performance
-   ============================================================================= */
-
+/* ===== CONTENEDOR PRINCIPAL ===== */
 .organization-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: var(--arc-spacing-xl) var(--arc-spacing-md);
-    animation: fadeInUp 0.6s ease;
 }
 
-@keyframes fadeInUp {
-    from { 
-        opacity: 0; 
-        transform: translateY(20px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
-    }
-}
-
-/* ===== HEADER DE ORGANIZACIÓN MEJORADO ===== */
+/* ===== HEADER DE ORGANIZACIÓN ===== */
 .org-header {
-    background: linear-gradient(135deg, var(--arc-color-primary) 0%, var(--arc-color-primary-hover) 100%);
+    background: var(--org-primary-gradient);
     color: white;
     padding: var(--arc-spacing-xl);
     border-radius: var(--arc-border-radius);
     margin-bottom: var(--arc-spacing-xl);
-    box-shadow: var(--arc-shadow-lg);
+    box-shadow: var(--org-hover-shadow);
     position: relative;
     overflow: hidden;
 }
@@ -106,12 +95,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* ===== CARDS DE ESTADÍSTICAS ELIMINADAS - AHORA ESTÁN EN BASE.CSS ===== */
-/* Las tarjetas de estadísticas ahora son globales en base.css */
-/* Para organizaciones usar: .stats-grid-advanced, .stat-card-advanced, .stat-icon-advanced, etc. */
-/* Para estadísticas simples usar: .stats-grid, .stat-card, .stat-icon, etc. */
-
-/* ===== ACCIONES RÁPIDAS MODERNIZADAS ===== */
+/* ===== ACCIONES RÁPIDAS ===== */
 .quick-actions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -120,12 +104,12 @@
 }
 
 .action-card {
-    background: var(--arc-bg-primary);
+    background: var(--org-card-bg);
     border-radius: var(--arc-border-radius);
     padding: var(--arc-spacing-xl);
     text-align: center;
-    border: 1px solid var(--arc-border-color);
-    transition: var(--arc-transition);
+    border: 1px solid var(--org-card-border);
+    transition: all 0.3s ease;
     cursor: pointer;
     text-decoration: none;
     color: inherit;
@@ -141,7 +125,7 @@
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(66, 133, 244, 0.1), transparent);
-    transition: left 0.5s;
+    transition: left 0.5s ease;
 }
 
 .action-card:hover::before {
@@ -149,7 +133,7 @@
 }
 
 .action-card:hover {
-    box-shadow: var(--arc-shadow-lg);
+    box-shadow: var(--org-hover-shadow);
     border-color: var(--arc-color-primary);
     color: inherit;
     text-decoration: none;
@@ -158,7 +142,7 @@
 .action-icon {
     width: 64px;
     height: 64px;
-    background: linear-gradient(135deg, var(--arc-color-primary), var(--arc-color-primary-hover));
+    background: var(--org-primary-gradient);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -166,12 +150,12 @@
     justify-content: center;
     margin: 0 auto var(--arc-spacing-lg);
     font-size: 1.5rem;
-    box-shadow: var(--arc-shadow-md);
-    transition: var(--arc-transition);
+    box-shadow: var(--org-card-shadow);
+    transition: box-shadow 0.3s ease;
 }
 
 .action-card:hover .action-icon {
-    box-shadow: var(--arc-shadow-lg);
+    box-shadow: var(--org-hover-shadow);
 }
 
 .action-title {
@@ -187,7 +171,7 @@
     line-height: 1.5;
 }
 
-/* ===== ACCIONES RÁPIDAS MEJORADAS ===== */
+/* ===== SECCIÓN MODERNA DE ACCIONES RÁPIDAS ===== */
 .quick-actions-section {
     margin-top: 2rem;
 }
@@ -284,87 +268,85 @@
     line-height: 1.3;
 }
 
-/* ===== MENSAJE DE SOPORTE MEJORADO ===== */
+/* ===== MENSAJE DE SOPORTE ===== */
 .support-message {
-    background: linear-gradient(135deg, var(--arc-color-info), #0891b2);
-    color: white;
-    padding: var(--arc-spacing-lg) var(--arc-spacing-xl);
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    border: 1px solid #fbbf24;
     border-radius: var(--arc-border-radius);
-    display: flex;
-    align-items: center;
-    gap: var(--arc-spacing-md);
-    margin-top: var(--arc-spacing-2xl);
+    padding: var(--arc-spacing-lg);
+    margin-top: var(--arc-spacing-xl);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.support-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.support-message-content {
+    position: relative;
+    z-index: 1;
+}
+
+.support-message h3 {
+    color: #92400e;
+    margin-bottom: var(--arc-spacing-sm);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.support-message p {
+    color: #92400e;
+    margin-bottom: var(--arc-spacing-lg);
     font-size: 0.95rem;
-    font-weight: 500;
-    box-shadow: var(--arc-shadow-md);
+    line-height: 1.6;
 }
 
-.support-message i {
-    font-size: 1.25rem;
-}
-
-.support-card {
-    background: linear-gradient(135deg, #06b6d4, #0891b2);
-    border-radius: 12px;
-    padding: 1.25rem;
-    margin-top: 2rem;
-    color: white;
-    display: flex;
+.support-contact {
+    display: inline-flex;
     align-items: center;
-    gap: 1rem;
-}
-
-.support-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    flex-shrink: 0;
-}
-
-.support-text h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 0.9rem;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.2);
+    color: #92400e;
+    padding: 0.5rem 1rem;
+    border-radius: var(--arc-border-radius-sm);
+    text-decoration: none;
     font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-.support-text p {
-    margin: 0;
-    font-size: 0.8rem;
-    opacity: 0.9;
+.support-contact:hover {
+    background: rgba(245, 158, 11, 0.3);
+    color: #92400e;
+    text-decoration: none;
 }
 
-.support-email {
-    color: #fbbf24;
-    font-weight: 600;
-}
-
-/* ===== RESPONSIVE OPTIMIZADO ===== */
-@media (max-width: 1024px) {
-    .organization-container {
-        padding: var(--arc-spacing-lg) var(--arc-spacing-md);
-    }
-    
-    /* Los estilos de tarjetas de estadísticas ahora están en base.css */
-}
-
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .organization-container {
-        padding: var(--arc-spacing-md);
+        padding: var(--arc-spacing-lg) var(--arc-spacing-sm);
     }
     
     .org-header {
         padding: var(--arc-spacing-lg);
-        margin-bottom: var(--arc-spacing-lg);
     }
     
     .org-header-content {
         flex-direction: column;
-        text-align: center;
+        align-items: flex-start;
+        gap: var(--arc-spacing-md);
+    }
+    
+    .org-info {
+        flex-direction: column;
+        align-items: flex-start;
         gap: var(--arc-spacing-md);
     }
     
@@ -372,39 +354,36 @@
         font-size: 1.5rem;
     }
     
-    .trial-alert {
-        padding: 1.25rem;
-        margin-bottom: 1.5rem;
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: var(--arc-spacing-lg);
     }
-    
-    .trial-content {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-    }
-    
-    .trial-icon {
-        align-self: center;
-    }
-    
-    .trial-days {
-        font-size: 2.5rem;
-    }
-    
-    /* Los estilos de tarjetas de estadísticas ahora están en base.css */
     
     .actions-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 1rem;
+        padding: var(--arc-spacing-lg);
     }
     
     .action-card-modern {
-        padding: 1rem;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 0.75rem;
+        padding: var(--arc-spacing-lg);
+    }
+    
+    .support-message {
+        padding: var(--arc-spacing-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .org-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .action-icon {
+        width: 56px;
+        height: 56px;
+        font-size: 1.25rem;
     }
     
     .action-icon-modern {
@@ -412,57 +391,4 @@
         height: 36px;
         font-size: 1rem;
     }
-}
-
-@media (max-width: 480px) {
-    .trial-alert {
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .trial-days {
-        font-size: 2rem;
-    }
-    
-    /* Los estilos de tarjetas de estadísticas ahora están en base.css */
-    
-    .support-card {
-        padding: 1rem;
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-    
-    .support-icon {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-}
-
-/* ===== PERFORMANCE OPTIMIZATIONS ===== */
-.info-card,
-.action-card,
-.trial-warning-card {
-    will-change: transform;
-    backface-visibility: hidden;
-    perspective: 1000px;
-}
-
-.action-card::before,
-.info-card::before {
-    will-change: left, opacity;
-}
-
-/* ===== FOCUS STATES PARA ACCESIBILIDAD ===== */
-.action-card:focus,
-.btn-primary-improved:focus,
-.btn-secondary-trial:focus {
-    outline: 2px solid var(--arc-color-primary);
-    outline-offset: 2px;
-}
-
-.action-card:focus {
-    transform: translateY(-4px);
-    box-shadow: var(--arc-shadow-lg);
 } 

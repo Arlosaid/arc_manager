@@ -214,91 +214,40 @@ class UpgradePlanManager {
     }
 
     /**
-     * Animar click de botón
+     * Animar click de botón - SIN ANIMACIONES
      */
     animateButtonClick(button) {
-        button.style.transform = 'scale(0.95)';
-        
+        // Sin animaciones - solo feedback visual simple
+        button.style.opacity = '0.8';
         setTimeout(() => {
-            button.style.transform = 'scale(1)';
-        }, 150);
-
-        // Crear efecto ripple
-        this.createRippleEffect(button);
+            button.style.opacity = '1';
+        }, 100);
     }
 
     /**
-     * Crear efecto ripple
+     * Crear efecto ripple - ELIMINADO
      */
     createRippleEffect(element) {
-        const ripple = document.createElement('div');
-        const rect = element.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        
-        ripple.style.cssText = `
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            width: ${size}px;
-            height: ${size}px;
-            margin-left: -${size/2}px;
-            margin-top: -${size/2}px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple 0.6s linear;
-            pointer-events: none;
-            z-index: 1;
-        `;
-
-        // Asegurar posición relativa
-        const originalPosition = element.style.position;
-        element.style.position = 'relative';
-        element.style.overflow = 'hidden';
-        
-        element.appendChild(ripple);
-
-        setTimeout(() => {
-            ripple.remove();
-            element.style.position = originalPosition;
-        }, 600);
+        // Función eliminada - sin efectos ripple
     }
 
     /**
-     * Configurar comparación de planes
+     * Configurar comparación de planes - SIN ANIMACIONES
      */
     setupPlanComparison() {
         const pricingCards = document.querySelectorAll('.pricing-card');
         
         pricingCards.forEach(card => {
-            // Efecto hover mejorado
-            card.addEventListener('mouseenter', () => {
-                this.animateCardHover(card, true);
-            });
-
-            card.addEventListener('mouseleave', () => {
-                this.animateCardHover(card, false);
-            });
+            // Sin animaciones hover - solo estilos CSS
+            // Los efectos hover se manejan solo con CSS
         });
     }
 
     /**
-     * Animar hover de tarjetas
+     * Animar hover de tarjetas - ELIMINADO
      */
     animateCardHover(card, isEntering) {
-        const features = card.querySelectorAll('.feature-item');
-        
-        if (isEntering) {
-            features.forEach((feature, index) => {
-                setTimeout(() => {
-                    feature.style.transform = 'translateX(5px)';
-                }, index * 30);
-            });
-        } else {
-            features.forEach(feature => {
-                feature.style.transform = 'translateX(0)';
-            });
-        }
+        // Función eliminada - sin animaciones de hover
     }
 
     /**
@@ -354,8 +303,7 @@ class UpgradePlanManager {
             messageEl.insertBefore(icon, messageEl.firstChild);
         }
 
-        // Agregar clase de animación
-        messageEl.classList.add('fade-in');
+        // Sin animaciones
     }
 
     /**
@@ -407,24 +355,17 @@ class UpgradePlanManager {
     }
 
     /**
-     * Efectos de fade
+     * Efectos de fade - SIN ANIMACIONES
      */
     fadeOut(element, callback) {
         if (!element) return;
-        element.style.transition = 'opacity 0.3s ease';
         element.style.opacity = '0';
-        setTimeout(() => {
-            if (callback) callback();
-        }, 300);
+        if (callback) callback();
     }
 
     fadeIn(element) {
         if (!element) return;
-        element.style.opacity = '0';
-        element.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            element.style.opacity = '1';
-        }, 50);
+        element.style.opacity = '1';
     }
 
     /**
@@ -489,20 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Agregar estilos para las animaciones
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes ripple {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-        
-        @keyframes slideOutRight {
-            from { transform: translateX(0); }
-            to { transform: translateX(100%); }
-        }
+        /* Animaciones eliminadas */
         
         .notification-custom {
             border-left: 4px solid var(--upgrade-primary, #4285f4);
@@ -520,14 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             opacity: 1;
         }
         
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* Animaciones fadeIn eliminadas */
         
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {

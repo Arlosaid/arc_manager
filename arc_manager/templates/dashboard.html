@@ -4,15 +4,14 @@
 {% block title %}Dashboard - Arc Manager{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/dashboard.css' %}?v=26" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}?v=27" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<!-- Usar el container estándar de base.css -->
 <div class="page-container">
     <div class="dashboard-premium">
-        <!-- Header simplificado con bienvenida y stats principales -->
+        <!-- Header -->
         <header class="dashboard-header-premium">
             <div class="welcome-section">
                 <div class="welcome-content">
@@ -37,7 +36,7 @@
             </div>
         </header>
 
-        <!-- Métricas principales compactas -->
+        <!-- Métricas -->
         <section class="metrics-section">
             <div class="metrics-grid">
                 <div class="metric-card">
@@ -71,179 +70,171 @@
             </div>
         </section>
 
-        <!-- Layout principal sin sidebar -->
-        <div class="dashboard-single-layout">
-            <!-- Área principal -->
-            <main class="dashboard-main-content">
-                <!-- Proyectos Activos - COMPACTO -->
-                <section class="projects-section-compact">
-                    <div class="section-header-mini">
-                        <h3><i class="fas fa-building"></i> Proyectos Activos</h3>
-                        <div class="section-actions-mini">
-                            <a href="#" class="btn-add-project"><i class="fas fa-plus"></i> Nuevo Proyecto</a>
-                            <a href="#" class="btn-mini-secondary">Ver Todos</a>
+        <!-- Proyectos Activos -->
+        <section class="projects-section-compact">
+            <div class="section-header-mini">
+                <h3><i class="fas fa-building"></i> Proyectos Activos</h3>
+                <div class="section-actions-mini">
+                    <a href="#" class="btn-add-project"><i class="fas fa-plus"></i> Nuevo Proyecto</a>
+                    <a href="#" class="btn-mini-secondary">Ver Todos</a>
+                </div>
+            </div>
+            
+            <div class="projects-grid-mini">
+                <div class="project-card-mini">
+                    <div class="project-image-mini">
+                        <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=200&h=60&fit=crop" alt="Torre Central">
+                        <div class="project-status-mini in-progress">En Desarrollo</div>
+                    </div>
+                    <div class="project-info-mini">
+                        <h4>Torre Central</h4>
+                        <p>Complejo habitacional 15 pisos</p>
+                        <div class="project-progress-mini">
+                            <div class="progress-bar-mini">
+                                <div class="progress-fill-mini" style="width: 75%;"></div>
+                            </div>
+                            <span class="progress-text-mini">75%</span>
+                        </div>
+                        <div class="project-meta-mini">
+                            <span><i class="fas fa-calendar-alt"></i> 3 meses</span>
+                            <span><i class="fas fa-users"></i> 8 miembros</span>
+                        </div>
+                        <div class="project-actions-mini">
+                            <a href="#" class="btn-project-primary">Abrir Proyecto</a>
+                            <a href="#" class="btn-project-secondary">Ver Planos</a>
                         </div>
                     </div>
-                    
-                    <div class="projects-grid-mini">
-                        <div class="project-card-mini">
-                            <div class="project-image-mini">
-                                <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max" alt="Torre Central">
-                                <div class="project-status-mini in-progress">En Desarrollo</div>
-                            </div>
-                            <div class="project-info-mini">
-                                <h4>Torre Central</h4>
-                                <p>Complejo habitacional 15 pisos</p>
-                                <div class="project-progress-mini">
-                                    <div class="progress-bar-mini">
-                                        <div class="progress-fill-mini" style="width: 75%;"></div>
-                                    </div>
-                                    <span class="progress-text-mini">75%</span>
-                                </div>
-                                <div class="project-meta-mini">
-                                    <span><i class="fas fa-calendar-alt"></i> 3 meses</span>
-                                    <span><i class="fas fa-users"></i> 8 miembros</span>
-                                </div>
-                                <div class="project-actions-mini">
-                                    <a href="#" class="btn-project-primary">Abrir Proyecto</a>
-                                    <a href="#" class="btn-project-secondary">Ver Planos</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="project-card-mini">
-                            <div class="project-image-mini">
-                                <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=200&fit=max" alt="Oficinas">
-                                <div class="project-status-mini completed">Finalizado</div>
-                            </div>
-                            <div class="project-info-mini">
-                                <h4>Remodelación Oficinas</h4>
-                                <p>Renovación integral espacios</p>
-                                <div class="project-progress-mini">
-                                    <div class="progress-bar-mini">
-                                        <div class="progress-fill-mini completed" style="width: 100%;"></div>
-                                    </div>
-                                    <span class="progress-text-mini">100%</span>
-                                </div>
-                                <div class="project-meta-mini">
-                                    <span><i class="fas fa-check-circle"></i> Completado</span>
-                                    <span><i class="fas fa-award"></i> Entregado</span>
-                                </div>
-                                <div class="project-actions-mini">
-                                    <a href="#" class="btn-project-primary">Ver Detalles</a>
-                                    <a href="#" class="btn-project-secondary">Ver Renders</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Tareas y Documentos - ULTRA COMPACTO -->
-                <div class="dashboard-summary-grid">
-                    <!-- Tareas Recientes - Lista Compacta -->
-                    <section class="summary-section-mini">
-                        <div class="section-header-mini">
-                            <h3><i class="fas fa-tasks"></i> Tareas Recientes</h3>
-                            <a href="#" class="btn-mini-link">Ver todas</a>
-                        </div>
-                        <div class="summary-list-mini">
-                            <div class="summary-item-mini">
-                                <div class="priority-dot high"></div>
-                                <div class="item-content-mini">
-                                    <h5>Revisión Estructural Nivel 10-15</h5>
-                                    <p>Torre Central • Vence en 3 días</p>
-                                    <div class="progress-inline-mini">
-                                        <div class="progress-bar-inline" style="width: 65%;"></div>
-                                        <span>65%</span>
-                                    </div>
-                                </div>
-                                <div class="assignee-mini">
-                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Carlos">
-                                </div>
-                            </div>
-
-                            <div class="summary-item-mini">
-                                <div class="priority-dot medium"></div>
-                                <div class="item-content-mini">
-                                    <h5>Selección Materiales Interior</h5>
-                                    <p>Oficinas • En progreso</p>
-                                    <div class="progress-inline-mini">
-                                        <div class="progress-bar-inline" style="width: 85%;"></div>
-                                        <span>85%</span>
-                                    </div>
-                                </div>
-                                <div class="assignee-mini">
-                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b332c1c7?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Ana">
-                                </div>
-                            </div>
-
-                            <div class="summary-item-mini">
-                                <div class="priority-dot low"></div>
-                                <div class="item-content-mini">
-                                    <h5>Actualización Normativa BIM</h5>
-                                    <p>General • Sin fecha límite</p>
-                                    <div class="progress-inline-mini">
-                                        <div class="progress-bar-inline" style="width: 25%;"></div>
-                                        <span>25%</span>
-                                    </div>
-                                </div>
-                                <div class="assignee-mini">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=24&fit=max" alt="Miguel">
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Documentos Recientes - Lista Compacta -->
-                    <section class="summary-section-mini">
-                        <div class="section-header-mini">
-                            <h3><i class="fas fa-folder-open"></i> Documentos Recientes</h3>
-                            <a href="#" class="btn-mini-link">Ver biblioteca</a>
-                        </div>
-                        <div class="summary-list-mini">
-                            <div class="summary-item-mini">
-                                <div class="doc-icon-mini pdf">
-                                    <i class="fas fa-file-pdf"></i>
-                                </div>
-                                <div class="item-content-mini">
-                                    <h5>Planos Estructurales</h5>
-                                    <p>Torre Central • 2.4 MB • Hace 2 horas</p>
-                                </div>
-                                <div class="doc-status-text approved">Aprobado</div>
-                            </div>
-
-                            <div class="summary-item-mini">
-                                <div class="doc-icon-mini dwg">
-                                    <i class="fas fa-drafting-compass"></i>
-                                </div>
-                                <div class="item-content-mini">
-                                    <h5>Detalles Arquitectónicos</h5>
-                                    <p>Oficinas • 5.8 MB • Ayer</p>
-                                </div>
-                                <div class="doc-status-text review">En Revisión</div>
-                            </div>
-
-                            <div class="summary-item-mini">
-                                <div class="doc-icon-mini excel">
-                                    <i class="fas fa-file-excel"></i>
-                                </div>
-                                <div class="item-content-mini">
-                                    <h5>Presupuesto Q2 2024</h5>
-                                    <p>General • 1.2 MB • Hace 3 días</p>
-                                </div>
-                                <div class="doc-status-text pending">Pendiente</div>
-                            </div>
-                        </div>
-                    </section>
                 </div>
 
+                <div class="project-card-mini">
+                    <div class="project-image-mini">
+                        <img src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=200&h=60&fit=crop" alt="Oficinas">
+                        <div class="project-status-mini completed">Finalizado</div>
+                    </div>
+                    <div class="project-info-mini">
+                        <h4>Remodelación Oficinas</h4>
+                        <p>Renovación integral espacios</p>
+                        <div class="project-progress-mini">
+                            <div class="progress-bar-mini">
+                                <div class="progress-fill-mini completed" style="width: 100%;"></div>
+                            </div>
+                            <span class="progress-text-mini">100%</span>
+                        </div>
+                        <div class="project-meta-mini">
+                            <span><i class="fas fa-check-circle"></i> Completado</span>
+                            <span><i class="fas fa-award"></i> Entregado</span>
+                        </div>
+                        <div class="project-actions-mini">
+                            <a href="#" class="btn-project-primary">Ver Detalles</a>
+                            <a href="#" class="btn-project-secondary">Ver Renders</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            </main>
+        <!-- Tareas y Documentos -->
+        <div class="dashboard-summary-grid">
+            <!-- Tareas Recientes -->
+            <section class="summary-section-mini">
+                <div class="section-header-mini">
+                    <h3><i class="fas fa-tasks"></i> Tareas Recientes</h3>
+                    <a href="#" class="btn-mini-link">Ver todas</a>
+                </div>
+                <div class="summary-list-mini">
+                    <div class="summary-item-mini">
+                        <div class="priority-dot high"></div>
+                        <div class="item-content-mini">
+                            <h5>Revisión Estructural Nivel 10-15</h5>
+                            <p>Torre Central • Vence en 3 días</p>
+                            <div class="progress-inline-mini">
+                                <div class="progress-bar-inline" style="width: 65%;"></div>
+                                <span>65%</span>
+                            </div>
+                        </div>
+                        <div class="assignee-mini">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=24&h=24&fit=crop" alt="Carlos">
+                        </div>
+                    </div>
+
+                    <div class="summary-item-mini">
+                        <div class="priority-dot medium"></div>
+                        <div class="item-content-mini">
+                            <h5>Selección Materiales Interior</h5>
+                            <p>Oficinas • En progreso</p>
+                            <div class="progress-inline-mini">
+                                <div class="progress-bar-inline" style="width: 85%;"></div>
+                                <span>85%</span>
+                            </div>
+                        </div>
+                        <div class="assignee-mini">
+                            <img src="https://images.unsplash.com/photo-1494790108755-2616b332c1c7?w=24&h=24&fit=crop" alt="Ana">
+                        </div>
+                    </div>
+
+                    <div class="summary-item-mini">
+                        <div class="priority-dot low"></div>
+                        <div class="item-content-mini">
+                            <h5>Actualización Normativa BIM</h5>
+                            <p>General • Sin fecha límite</p>
+                            <div class="progress-inline-mini">
+                                <div class="progress-bar-inline" style="width: 25%;"></div>
+                                <span>25%</span>
+                            </div>
+                        </div>
+                        <div class="assignee-mini">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=24&h=24&fit=crop" alt="Miguel">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Documentos Recientes -->
+            <section class="summary-section-mini">
+                <div class="section-header-mini">
+                    <h3><i class="fas fa-folder-open"></i> Documentos Recientes</h3>
+                    <a href="#" class="btn-mini-link">Ver biblioteca</a>
+                </div>
+                <div class="summary-list-mini">
+                    <div class="summary-item-mini">
+                        <div class="doc-icon-mini pdf">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="item-content-mini">
+                            <h5>Planos Estructurales</h5>
+                            <p>Torre Central • 2.4 MB • Hace 2 horas</p>
+                        </div>
+                        <div class="doc-status-text approved">Aprobado</div>
+                    </div>
+
+                    <div class="summary-item-mini">
+                        <div class="doc-icon-mini dwg">
+                            <i class="fas fa-drafting-compass"></i>
+                        </div>
+                        <div class="item-content-mini">
+                            <h5>Detalles Arquitectónicos</h5>
+                            <p>Oficinas • 5.8 MB • Ayer</p>
+                        </div>
+                        <div class="doc-status-text review">En Revisión</div>
+                    </div>
+
+                    <div class="summary-item-mini">
+                        <div class="doc-icon-mini excel">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div class="item-content-mini">
+                            <h5>Presupuesto Q2 2024</h5>
+                            <p>General • 1.2 MB • Hace 3 días</p>
+                        </div>
+                        <div class="doc-status-text pending">Pendiente</div>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard.js' %}?v=11"></script>
+<script src="{% static 'js/dashboard.js' %}?v=12"></script>
 {% endblock %} 
