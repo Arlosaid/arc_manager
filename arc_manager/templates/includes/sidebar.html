@@ -20,6 +20,7 @@
             <!-- Dashboard Section -->
             <div class="nav-section">
                 <ul class="nav-list">
+                    {% if not subscription.is_expired %}
                     <li class="nav-item">
                         <a href="{% url 'main:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-tooltip="Dashboard">
                             <div class="nav-icon">
@@ -29,6 +30,7 @@
                             <div class="nav-indicator"></div>
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
             </div>
 
@@ -57,7 +59,7 @@
             {% endif %}
 
             <!-- Administration Section -->
-            {% if user.is_org_admin %}
+            {% if user.is_org_admin and not subscription.is_expired %}
                 <div class="nav-section">
                     <div class="section-header sidebar-section-header">
                         <h6 class="section-title">

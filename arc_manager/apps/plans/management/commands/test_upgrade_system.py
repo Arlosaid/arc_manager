@@ -52,21 +52,30 @@ class Command(BaseCommand):
                         continue
                     
                     try:
-                        # Probar el complete_upgrade directamente
+                        # Probar el approve directamente
                         old_plan = subscription.plan.display_name
-                        result = request.complete_upgrade(completed_by_user=admin_user)
+                        old_status = subscription.status
                         
-                        # Verificar resultado
-                        subscription.refresh_from_db()
-                        new_plan = subscription.plan.display_name
-                        
-                        self.stdout.write(self.style.SUCCESS(f'✅ Upgrade completado!'))
-                        self.stdout.write(f'   Plan cambió: {old_plan} → {new_plan}')
-                        self.stdout.write(f'   Estado suscripción: {subscription.status}')
-                        self.stdout.write(f'   Estado solicitud: {request.status}')
+                        # Solo aprobar si está pendiente
+                        if request.status == 'pending':
+                            request.approve(approved_by_user=admin_user, admin_notes="Prueba automatizada")
+                            
+                            # Verificar resultado
+                            subscription.refresh_from_db()
+                            new_plan = subscription.plan.display_name
+                            new_status = subscription.status
+                            
+                            self.stdout.write(self.style.SUCCESS(f'✅ Upgrade aprobado!'))
+                            self.stdout.write(f'   Plan cambió: {old_plan} → {new_plan}')
+                            self.stdout.write(f'   Estado suscripción: {old_status} → {new_status}')
+                            self.stdout.write(f'   Estado solicitud: {request.status}')
+                        else:
+                            self.stdout.write(self.style.WARNING(f'⚠️ Solicitud ya está en estado: {request.status}'))
+                            self.stdout.write(f'   Plan actual: {subscription.plan.display_name}')
+                            self.stdout.write(f'   Estado suscripción: {subscription.status}')
                         
                     except Exception as e:
-                        self.stdout.write(self.style.ERROR(f'❌ Error al completar upgrade: {str(e)}'))
+                        self.stdout.write(self.style.ERROR(f'❌ Error al aprobar upgrade: {str(e)}'))
                         
                         # Información de debug
                         self.stdout.write(f'   Estado actual de la solicitud: {request.status}')
@@ -102,13 +111,18 @@ class Command(BaseCommand):
                         
                         try:
                             old_plan = subscription.plan.display_name
-                            test_request.complete_upgrade(completed_by_user=admin_user)
+                            old_status = subscription.status
+                            
+                            # Aprobar la solicitud
+                            test_request.approve(approved_by_user=admin_user, admin_notes="Prueba automatizada")
                             
                             subscription.refresh_from_db()
                             new_plan = subscription.plan.display_name
+                            new_status = subscription.status
                             
                             self.stdout.write(self.style.SUCCESS('✅ ¡Prueba exitosa!'))
                             self.stdout.write(f'   Plan cambió: {old_plan} → {new_plan}')
+                            self.stdout.write(f'   Estado suscripción: {old_status} → {new_status}')
                             
                         except Exception as e:
                             self.stdout.write(self.style.ERROR(f'❌ Error en prueba: {str(e)}'))

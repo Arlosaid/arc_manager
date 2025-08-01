@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from uuid import uuid4
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -24,6 +25,15 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class User(AbstractUser):
+    username = models.CharField(
+        "Username",
+        max_length=150,
+        unique=True,
+        null=True,
+        blank=True,
+        editable=False, 
+        help_text="No requerido. Se genera a partir del email."
+    )
     email = models.EmailField("Correo electrónico", unique=True)
     # Hacemos obligatorios first_name y last_name
     first_name = models.CharField("Nombre", max_length=150)
@@ -43,6 +53,20 @@ class User(AbstractUser):
     
     objects = CustomUserManager()
     
+    def save(self, *args, **kwargs):
+        if not self.username:
+            # Generar un username único y corto basado en el email
+            base_username = self.email.split('@')[0]
+            unique_id = str(uuid4()).split('-')[0][:4]
+            self.username = f"{base_username}_{unique_id}"
+            
+            # Asegurarse de que el username generado no exista
+            while User.objects.filter(username=self.username).exists():
+                unique_id = str(uuid4()).split('-')[0][:4]
+                self.username = f"{base_username}_{unique_id}"
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         """Mostrar nombre completo o email como fallback"""
         if self.first_name and self.last_name:

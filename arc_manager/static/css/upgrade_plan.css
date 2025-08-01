@@ -1,9 +1,30 @@
-/* ===== UPGRADE PLAN CSS - OPTIMIZADO ===== */
+/* ===== UPGRADE PLAN CSS - OPTIMIZADO Y PROFESIONAL ===== */
 
-/* Variables específicas de upgrade */
+/* Usar variables del archivo principal */
 :root {
-    --upgrade-featured-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --upgrade-success-gradient: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    --upgrade-primary: #2563eb;
+    --upgrade-primary-hover: #1d4ed8;
+    --upgrade-success: #059669;
+    --upgrade-warning: #059669;
+    --upgrade-error: #dc2626;
+    --upgrade-info: #0891b2;
+    
+    --upgrade-text-primary: #111827;
+    --upgrade-text-secondary: #6b7280;
+    --upgrade-text-muted: #9ca3af;
+    
+    --upgrade-bg-primary: #ffffff;
+    --upgrade-bg-secondary: #f8fafc;
+    --upgrade-bg-tertiary: #f1f5f9;
+    
+    --upgrade-border: #e2e8f0;
+    --upgrade-border-dark: #cbd5e1;
+    
+    --upgrade-radius: 0.5rem;
+    --upgrade-radius-lg: 0.75rem;
+    --upgrade-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --upgrade-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --upgrade-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* ===== SECCIÓN DE PRICING ===== */
@@ -13,57 +34,55 @@
 
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
 }
 
 /* ===== TARJETAS DE PRICING ===== */
 .pricing-card {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius);
-    padding: 1rem 0.875rem;
-    border: 2px solid var(--arc-border-color);
-    box-shadow: var(--arc-shadow-md);
+    background: var(--upgrade-bg-primary);
+    border-radius: var(--upgrade-radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--upgrade-border);
+    box-shadow: var(--upgrade-shadow);
     position: relative;
     display: flex;
     flex-direction: column;
+    transition: all 0.2s ease;
 }
 
-.pricing-card::before {
+.pricing-card:hover {
+    border-color: var(--upgrade-border-dark);
+    box-shadow: var(--upgrade-shadow-lg);
+}
+
+.pricing-card.basic-plan {
+    border-color: var(--upgrade-primary);
+    box-shadow: var(--upgrade-shadow-md);
+}
+
+.pricing-card.basic-plan::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--arc-border-color);
+    background: var(--upgrade-primary);
+    border-radius: var(--upgrade-radius-lg) var(--upgrade-radius-lg) 0 0;
 }
 
-.pricing-card:hover {
-    box-shadow: var(--arc-shadow-xl);
-    border-color: var(--arc-color-primary);
-}
-
-.pricing-card.basic-plan {
-    border-color: var(--arc-color-primary);
-    box-shadow: var(--arc-shadow-lg);
-}
-
-.pricing-card.basic-plan::before {
-    background: var(--upgrade-featured-gradient);
-}
-
-.pricing-card.free-plan {
-    border-color: var(--arc-text-muted);
+.pricing-card.current-plan {
+    border-color: var(--upgrade-border-dark);
+    background: var(--upgrade-bg-secondary);
 }
 
 /* ===== HEADER DE CARD ===== */
 .card-header {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     position: relative;
-    padding-top: 1rem;
 }
 
 .plan-badge {
@@ -71,35 +90,32 @@
     top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.4rem 1rem;
-    border-radius: var(--arc-border-radius-sm);
+    padding: 0.5rem 1rem;
+    border-radius: var(--upgrade-radius);
     font-size: 0.75rem;
     font-weight: 600;
-    box-shadow: var(--arc-shadow-md);
+    color: white;
     z-index: 10;
     white-space: nowrap;
-    min-width: 80px;
 }
 
-.plan-badge.free {
-    background: var(--arc-text-muted);
-    color: white;
+.plan-badge.current {
+    background: var(--upgrade-text-secondary);
 }
 
 .plan-badge.recommended {
-    background: var(--upgrade-featured-gradient);
-    color: white;
+    background: var(--upgrade-primary);
 }
 
 .card-header h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--arc-text-primary);
-    margin: 0.5rem 0 0.375rem 0;
+    color: var(--upgrade-text-primary);
+    margin: 1rem 0 0.5rem 0;
 }
 
 .card-header p {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 0.9rem;
     line-height: 1.4;
     margin: 0;
@@ -108,7 +124,7 @@
 /* ===== PRICING DE CARD ===== */
 .card-pricing {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .price-container {
@@ -116,45 +132,46 @@
     align-items: baseline;
     justify-content: center;
     gap: 0.25rem;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
 }
 
 .currency {
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
 }
 
 .price {
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     line-height: 1;
 }
 
 .period {
     font-size: 0.9rem;
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-weight: 500;
 }
 
 .price-note {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 0.8rem;
+    font-weight: 500;
 }
 
 /* ===== FEATURES DE CARD ===== */
 .card-features {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     flex-grow: 1;
 }
 
 .feature-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 0;
-    border-bottom: 1px solid var(--arc-border-color);
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--upgrade-border);
 }
 
 .feature-item:last-child {
@@ -162,15 +179,17 @@
 }
 
 .feature-item i {
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     font-size: 1rem;
-    width: 18px;
+    width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .feature-item span {
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 /* ===== ACCIÓN DE CARD ===== */
@@ -185,28 +204,32 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    border-radius: var(--arc-border-radius);
+    border-radius: var(--upgrade-radius);
     font-weight: 600;
     font-size: 0.95rem;
     border: none;
     cursor: pointer;
     text-decoration: none;
     width: 100%;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
 }
 
 .cta-button.primary-button {
-    background: var(--arc-color-primary);
+    background: var(--upgrade-primary);
     color: white;
 }
 
 .cta-button.primary-button:hover {
-    background: var(--arc-color-primary-hover);
+    background: var(--upgrade-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--upgrade-shadow-md);
 }
 
 .cta-button.secondary-button {
-    background: var(--arc-bg-tertiary);
-    color: var(--arc-text-secondary);
+    background: var(--upgrade-bg-tertiary);
+    color: var(--upgrade-text-secondary);
+    border: 1px solid var(--upgrade-border);
 }
 
 .cta-button.secondary-button:disabled {
@@ -215,9 +238,10 @@
 }
 
 .action-note {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 0.8rem;
     margin: 0;
+    font-weight: 500;
 }
 
 /* ===== SECCIÓN DE COMPARACIÓN ===== */
@@ -227,17 +251,17 @@
 
 .comparison-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
 }
 
 .comparison-card {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius);
-    box-shadow: var(--arc-shadow-md);
-    padding: 1.5rem 1.25rem;
+    background: var(--upgrade-bg-primary);
+    border-radius: var(--upgrade-radius-lg);
+    box-shadow: var(--upgrade-shadow);
+    padding: 1.5rem;
     text-align: center;
-    border: 1px solid var(--arc-border-color);
+    border: 1px solid var(--upgrade-border);
 }
 
 .comparison-header {
@@ -247,20 +271,21 @@
 .comparison-header h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0 0 0.5rem 0;
 }
 
 .comparison-plan-price {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     margin-bottom: 0.25rem;
 }
 
 .comparison-plan-period {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .comparison-features {
@@ -273,8 +298,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--arc-border-color);
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--upgrade-border);
 }
 
 .comparison-feature:last-child {
@@ -282,35 +307,35 @@
 }
 
 .feature-name {
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     font-weight: 500;
 }
 
 .feature-value {
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     font-weight: 600;
 }
 
 .current-plan {
-    border: 2px solid var(--arc-text-muted);
+    border-color: var(--upgrade-text-secondary);
 }
 
 .upgrade-plan {
-    border: 2px solid var(--arc-color-primary);
-    box-shadow: var(--arc-shadow-lg);
+    border-color: var(--upgrade-primary);
+    box-shadow: var(--upgrade-shadow-md);
 }
 
 /* ===== INFORMACIÓN DE UPGRADE ===== */
 .upgrade-info-section {
-    margin: 2rem 0 1.5rem 0;
+    margin: 2rem 0;
 }
 
 .info-card {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius);
-    box-shadow: var(--arc-shadow-md);
-    padding: 1.5rem 1.25rem;
-    border: 1px solid var(--arc-border-color);
+    background: var(--upgrade-bg-primary);
+    border-radius: var(--upgrade-radius-lg);
+    box-shadow: var(--upgrade-shadow);
+    padding: 1.5rem;
+    border: 1px solid var(--upgrade-border);
 }
 
 .info-header {
@@ -321,20 +346,20 @@
 }
 
 .info-header i {
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     font-size: 1.5rem;
 }
 
 .info-header h4 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0;
 }
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
 }
 
@@ -347,57 +372,59 @@
 .info-item i {
     width: 40px;
     height: 40px;
-    border-radius: var(--arc-border-radius-sm);
-    background: var(--arc-color-primary);
+    border-radius: var(--upgrade-radius);
+    background: var(--upgrade-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     flex-shrink: 0;
 }
 
 .info-item h5 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0 0 0.5rem 0;
 }
 
 .info-item p {
-    color: var(--arc-text-secondary);
-    font-size: 0.95rem;
+    color: var(--upgrade-text-secondary);
+    font-size: 0.9rem;
     line-height: 1.5;
     margin: 0;
 }
 
 /* ===== SOLICITUD PENDIENTE ===== */
 .pending-request-card {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius);
-    box-shadow: var(--arc-shadow-lg);
+    background: var(--upgrade-bg-primary);
+    border-radius: var(--upgrade-radius-lg);
+    box-shadow: var(--upgrade-shadow-lg);
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    border: 1px solid var(--arc-border-color);
+    border: 1px solid var(--upgrade-border);
+    border-left: 4px solid var(--upgrade-warning);
 }
 
 .pending-header {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
 .pending-icon {
     width: 60px;
     height: 60px;
-    border-radius: var(--arc-border-radius);
+    border-radius: var(--upgrade-radius);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     color: white;
-    background: var(--arc-color-primary);
+    background: var(--upgrade-warning);
+    flex-shrink: 0;
 }
 
 .pending-title-section {
@@ -407,25 +434,25 @@
 .pending-title-section h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0 0 0.5rem 0;
 }
 
 .pending-title-section p {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 1rem;
     margin: 0;
 }
 
 .pending-status-badge {
     padding: 0.5rem 1rem;
-    border-radius: var(--arc-border-radius-sm);
+    border-radius: var(--upgrade-radius);
     font-size: 0.875rem;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--arc-color-primary);
+    background: var(--upgrade-warning);
     color: white;
 }
 
@@ -439,135 +466,86 @@
 .pending-plan-info {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1rem;
 }
 
 .plan-requested {
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.75rem;
-    background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius-sm);
-    border: 1px solid var(--arc-border-color);
+    padding: 1rem;
+    background: var(--upgrade-bg-secondary);
+    border-radius: var(--upgrade-radius);
+    border: 1px solid var(--upgrade-border);
 }
 
 .plan-requested i {
     width: 40px;
     height: 40px;
-    border-radius: var(--arc-border-radius-sm);
-    background: var(--arc-color-primary);
+    border-radius: var(--upgrade-radius);
+    background: var(--upgrade-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    flex-shrink: 0;
 }
 
 .plan-requested h5 {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0 0 0.25rem 0;
 }
 
 .plan-requested p {
     margin: 0;
     font-size: 0.9rem;
+    color: var(--upgrade-text-secondary);
 }
 
 .plan-requested p:first-of-type {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin-bottom: 0.25rem;
 }
 
 .plan-requested p:last-of-type {
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     font-weight: 600;
-}
-
-.request-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.timeline-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-}
-
-.timeline-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.875rem;
-    color: white;
-    background: var(--arc-text-muted);
-    flex-shrink: 0;
-}
-
-.timeline-icon.active {
-    background: var(--arc-color-primary);
-}
-
-.timeline-icon.completed {
-    background: var(--arc-color-success);
-}
-
-.timeline-item h6 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-    margin: 0 0 0.25rem 0;
-}
-
-.timeline-item p {
-    font-size: 0.8rem;
-    color: var(--arc-text-secondary);
-    margin: 0;
-}
-
-.timeline-item small {
-    font-size: 0.75rem;
-    color: var(--arc-text-muted);
 }
 
 .pending-info-box {
-    background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius-sm);
+    background: var(--upgrade-bg-secondary);
+    border-radius: var(--upgrade-radius);
     padding: 1.25rem;
-    border: 1px solid var(--arc-border-color);
+    border: 1px solid var(--upgrade-border);
 }
 
 .info-box-icon {
     width: 40px;
     height: 40px;
-    border-radius: var(--arc-border-radius-sm);
-    background: var(--arc-color-info);
+    border-radius: var(--upgrade-radius);
+    background: var(--upgrade-info);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     margin-bottom: 1rem;
 }
 
 .pending-info-box h6 {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--arc-text-primary);
+    color: var(--upgrade-text-primary);
     margin: 0 0 0.5rem 0;
 }
 
 .pending-info-box p {
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
     font-size: 0.9rem;
     line-height: 1.5;
     margin: 0 0 0.5rem 0;
@@ -582,7 +560,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 1rem;
-    border-top: 1px solid var(--arc-border-color);
+    border-top: 1px solid var(--upgrade-border);
 }
 
 .btn-dashboard {
@@ -590,26 +568,29 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: var(--arc-color-primary);
+    background: var(--upgrade-primary);
     color: white;
     border: none;
-    border-radius: var(--arc-border-radius-sm);
+    border-radius: var(--upgrade-radius);
     font-weight: 600;
     text-decoration: none;
+    transition: all 0.2s ease;
 }
 
 .btn-dashboard:hover {
-    background: var(--arc-color-primary-hover);
+    background: var(--upgrade-primary-hover);
     color: white;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: var(--upgrade-shadow-md);
 }
 
 .btn-dashboard.success {
-    background: var(--arc-color-success);
+    background: var(--upgrade-success);
 }
 
 .btn-dashboard.success:hover {
-    background: #059669;
+    background: #047857;
 }
 
 .pending-support {
@@ -617,276 +598,86 @@
     align-items: center;
     gap: 1rem;
     font-size: 0.875rem;
-    color: var(--arc-text-secondary);
+    color: var(--upgrade-text-secondary);
 }
 
 .support-link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--arc-color-primary);
+    color: var(--upgrade-primary);
     text-decoration: none;
     font-weight: 500;
+    transition: color 0.2s ease;
 }
 
 .support-link:hover {
+    color: var(--upgrade-primary-hover);
     text-decoration: underline;
 }
 
-/* ===== MODAL DE CONFIRMACIÓN ===== */
-#upgradeConfirmModal {
-    display: none;
+/* ===== MENSAJE SIN PLANES ===== */
+.no-plans-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--upgrade-bg-secondary);
+    border-radius: var(--upgrade-radius-lg);
+    border: 1px solid var(--upgrade-border);
+}
+
+.no-plans-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--upgrade-success);
+    display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(30, 41, 59, 0.5);
-    z-index: 9999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#upgradeConfirmModal.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.modal-dialog {
-    max-width: 420px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 1rem;
-    transform: scale(0.8);
-    transition: transform 0.3s ease;
-}
-
-#upgradeConfirmModal.visible .modal-dialog {
-    transform: scale(1);
-}
-
-.upgrade-modal {
-    background: var(--arc-bg-primary);
-    border-radius: var(--arc-border-radius);
-    box-shadow: var(--arc-shadow-xl);
-    padding: 1.5rem;
-    width: 100%;
-    position: relative;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-}
-
-.modal-header-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.modal-header-content i {
-    color: var(--arc-color-primary);
-    font-size: 1.5rem;
-}
-
-.modal-header h4 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--arc-color-primary);
-    margin: 0 0 0.25rem 0;
-}
-
-.modal-header p {
-    color: var(--arc-text-secondary);
-    font-size: 1rem;
-    margin: 0;
-}
-
-.btn-close-custom {
-    background: none;
-    border: none;
-    color: var(--arc-text-secondary);
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-}
-
-.btn-close-custom:hover {
-    background: var(--arc-bg-secondary);
-    color: var(--arc-color-danger);
-}
-
-.modal-body {
-    margin-bottom: 1.5rem;
-}
-
-.selected-plan-card {
-    background: var(--arc-bg-secondary);
-    border-radius: var(--arc-border-radius);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid var(--arc-border-color);
-}
-
-.plan-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.plan-header i {
-    color: var(--arc-color-primary);
-    font-size: 1.5rem;
-}
-
-.plan-header h5 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--arc-text-primary);
-    margin: 0;
-}
-
-.plan-price {
-    color: var(--arc-color-primary);
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-.upgrade-benefits {
-    margin-top: 1rem;
-}
-
-.upgrade-benefits h6 {
-    color: var(--arc-text-primary);
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.upgrade-benefits ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.upgrade-benefits li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    color: var(--arc-text-secondary);
-    font-size: 0.9rem;
-}
-
-.upgrade-benefits li i {
-    color: var(--arc-color-success);
-    font-size: 0.8rem;
-}
-
-.upgrade-process-info {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    background: var(--arc-bg-info);
-    padding: 1rem;
-    border-radius: var(--arc-border-radius);
-    border-left: 4px solid var(--arc-color-info);
-}
-
-.upgrade-process-info i {
-    color: var(--arc-color-info);
-    font-size: 1.2rem;
-    margin-top: 0.2rem;
-}
-
-.upgrade-process-info p {
-    margin: 0;
-    color: var(--arc-text-primary);
-    font-size: 0.9rem;
-}
-
-.upgrade-process-info small {
-    color: var(--arc-text-secondary);
-    font-size: 0.8rem;
-}
-
-.modal-footer {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-}
-
-.btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: var(--arc-border-radius);
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-}
-
-.btn-cancel {
-    background: var(--arc-bg-secondary);
-    color: var(--arc-text-secondary);
-    border: 1px solid var(--arc-border-color);
-}
-
-.btn-cancel:hover {
-    background: var(--arc-bg-tertiary);
-    color: var(--arc-text-primary);
-}
-
-.btn-confirm {
-    background: var(--arc-color-primary);
     color: white;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
 }
 
-.btn-confirm:hover {
-    background: var(--arc-color-primary-dark);
+.no-plans-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--upgrade-text-primary);
+    margin: 0 0 1rem 0;
+}
+
+.no-plans-content p {
+    color: var(--upgrade-text-secondary);
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 1.5rem 0;
+}
+
+.btn-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--upgrade-primary);
+    color: white;
+    border: none;
+    border-radius: var(--upgrade-radius);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-contact:hover {
+    background: var(--upgrade-primary-hover);
+    color: white;
+    text-decoration: none;
     transform: translateY(-1px);
-}
-
-.btn-confirm:active {
-    transform: translateY(0);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .modal-dialog {
-        max-width: 90%;
-        padding: 0.5rem;
-    }
-    
-    .upgrade-modal {
-        padding: 1rem;
-    }
-    
-    .modal-footer {
-        flex-direction: column;
-    }
-    
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
+    box-shadow: var(--upgrade-shadow-md);
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-    .pricing-grid, .comparison-grid {
+    .pricing-grid,
+    .comparison-grid {
         grid-template-columns: 1fr;
     }
     
@@ -896,12 +687,13 @@
     
     .pending-content {
         grid-template-columns: 1fr;
-        gap: 1rem;
     }
 }
 
 @media (max-width: 768px) {
-    .pricing-card, .comparison-card, .info-card {
+    .pricing-card,
+    .comparison-card,
+    .info-card {
         padding: 1rem;
     }
     
@@ -924,26 +716,47 @@
         justify-content: center;
     }
     
-    .upgrade-modal {
-        padding: 1rem;
-    }
-    
-    .modal-dialog {
-        padding: 0.5rem;
-    }
-    
-    .card-header h3 {
-        font-size: 1.375rem;
-    }
-    
     .price {
         font-size: 2rem;
     }
     
     .plan-badge {
-        top: -12px;
         font-size: 0.7rem;
-        padding: 0.35rem 0.85rem;
-        min-width: 70px;
+        padding: 0.4rem 0.8rem;
     }
+}
+
+/* ===== MEJORAS DE ACCESIBILIDAD ===== */
+.cta-button:focus,
+.btn-dashboard:focus,
+.btn-contact:focus,
+.support-link:focus {
+    outline: 2px solid var(--upgrade-primary);
+    outline-offset: 2px;
+}
+
+/* ===== OPTIMIZACIÓN PARA USUARIOS QUE PREFIEREN MENOS ANIMACIONES ===== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA ESTADO APPROVED ===== */
+.pending-request-card[data-status="approved"] {
+    border-left-color: var(--upgrade-success);
+}
+
+.pending-request-card[data-status="approved"] .pending-icon {
+    background: var(--upgrade-success);
+}
+
+.pending-request-card[data-status="approved"] .pending-status-badge.approved {
+    background: var(--upgrade-success);
+}
+
+.pending-status-badge.approved {
+    background: var(--upgrade-success);
+    color: white;
 }

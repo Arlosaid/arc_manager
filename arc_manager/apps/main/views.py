@@ -13,6 +13,8 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 import logging
+from django.shortcuts import redirect
+from django.urls import reverse
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -27,6 +29,11 @@ def dashboard(request):
     """Vista del dashboard principal con métricas reales"""
     current_user = request.user
     
+    # Redirigir si la suscripción está expirada
+    subscription = getattr(current_user.organization, 'subscription', None)
+    if subscription and subscription.is_expired:
+        return redirect(reverse('plans:subscription_dashboard'))
+
     # Obtener fechas para filtros
     today = timezone.now().date()
     this_month = today.replace(day=1)
@@ -36,7 +43,7 @@ def dashboard(request):
     total_users = User.objects.count()
     total_organizations = Organization.objects.count()
     total_plans = Plan.objects.filter(is_active=True).count()
-    total_subscriptions = Subscription.objects.filter(status='active').count()
+    total_subscriptions = Subscription.objects.filter(subscription_status__endswith='_active').count()
     
     # Métricas de crecimiento
     new_users_this_month = User.objects.filter(date_joined__gte=this_month).count()
@@ -65,7 +72,7 @@ def dashboard(request):
     
     # Métricas de planes
     plan_stats = Plan.objects.filter(is_active=True).annotate(
-        subscription_count=Count('subscription', filter=Q(subscription__status='active'))
+                    subscription_count=Count('subscription', filter=Q(subscription__subscription_status__endswith='_active'))
     ).order_by('-subscription_count')
     
     # Actividad reciente

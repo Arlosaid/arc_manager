@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static plan_extras %}
 
 {% block title %}Actualizar Plan - Arc Manager{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/upgrade_plan.css' %}?v=5.0">
+<link rel="stylesheet" href="{% static 'css/upgrade_plan.css' %}?v=5.1">
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/upgrade_plan.js' %}?v=2.0"></script>
+<script src="{% static 'js/upgrade_plan.js' %}?v=2.1"></script>
 {% endblock %}
 
 {% block content %}
@@ -41,141 +41,41 @@
         <div class="pending-request-card" data-status="{{ pending_request.status }}">
             <div class="pending-header">
                 <div class="pending-icon">
-                    {% if pending_request.status == 'pending' %}
-                        <i class="fas fa-hourglass-half"></i>
-                    {% elif pending_request.status == 'approved' %}
-                        <i class="fas fa-check-circle"></i>
-                    {% elif pending_request.status == 'rejected' %}
-                        <i class="fas fa-times-circle"></i>
-                    {% else %}
-                        <i class="fas fa-info-circle"></i>
-                    {% endif %}
+                    <i class="fas fa-hourglass-half"></i>
                 </div>
                 <div class="pending-title-section">
-                    {% if pending_request.status == 'pending' %}
-                        <h3>Solicitud de Upgrade Pendiente</h3>
-                        <p>Tu solicitud está siendo procesada por nuestro equipo</p>
-                    {% elif pending_request.status == 'approved' %}
-                        <h3>¡Upgrade Completado!</h3>
-                        <p>Tu plan ha sido actualizado exitosamente</p>
-                    {% elif pending_request.status == 'rejected' %}
-                        <h3>Solicitud Rechazada</h3>
-                        <p>Tu solicitud fue rechazada. Puedes intentar nuevamente</p>
-                    {% endif %}
+                    <h3>Solicitud de Upgrade Pendiente</h3>
+                    <p>Tu solicitud para el plan <strong>{{ pending_request.requested_plan.display_name }}</strong> está siendo procesada.</p>
                 </div>
                 <div class="pending-status-badge {{ pending_request.status }}">
-                    {% if pending_request.status == 'pending' %}
-                        <i class="fas fa-clock"></i><span>En Proceso</span>
-                    {% elif pending_request.status == 'approved' %}
-                        <i class="fas fa-star"></i><span>Completada</span>
-                    {% elif pending_request.status == 'rejected' %}
-                        <i class="fas fa-times"></i><span>Rechazada</span>
-                    {% endif %}
+                    <i class="fas fa-clock"></i><span>En Proceso</span>
                 </div>
             </div>
             
             <div class="pending-content">
-                <div class="pending-plan-info">
-                    <div class="plan-requested">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <h5>Plan Solicitado</h5>
-                            <p>{{ pending_request.requested_plan.display_name }}</p>
-                            <p>${{ pending_request.requested_plan.price }}/mes</p>
-                        </div>
-                    </div>
-                    
-                    <div class="request-timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-icon completed">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div>
-                                <h6>Solicitud Enviada</h6>
-                                <p>{{ pending_request.requested_date|date:"d/m/Y H:i" }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item {% if pending_request.status == 'approved' %}completed{% elif pending_request.status == 'pending' %}active{% endif %}">
-                            <div class="timeline-icon {% if pending_request.status == 'approved' %}completed{% elif pending_request.status == 'pending' %}active{% endif %}">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            <div>
-                                <h6>Procesamiento</h6>
-                                {% if pending_request.status == 'approved' %}
-                                    <p>Aprobada y activada</p>
-                                {% elif pending_request.status == 'pending' %}
-                                    <p>En proceso de revisión</p>
-                                {% elif pending_request.status == 'rejected' %}
-                                    <p>Rechazada</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item {% if pending_request.status == 'approved' %}completed{% endif %}">
-                            <div class="timeline-icon {% if pending_request.status == 'approved' %}completed{% endif %}">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div>
-                                <h6>Plan Activo</h6>
-                                {% if pending_request.status == 'approved' %}
-                                    <p>¡Tu nuevo plan está activo!</p>
-                                {% else %}
-                                    <p>Se activará cuando sea aprobado</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="pending-info-box">
                     <div class="info-box-icon">
-                        {% if pending_request.status == 'pending' %}
-                            <i class="fas fa-info-circle"></i>
-                        {% elif pending_request.status == 'approved' %}
-                            <i class="fas fa-trophy"></i>
-                        {% elif pending_request.status == 'rejected' %}
-                            <i class="fas fa-exclamation-triangle"></i>
-                        {% endif %}
+                        <i class="fas fa-info-circle"></i>
                     </div>
                     <div>
-                        {% if pending_request.status == 'pending' %}
-                            <h6>¿Qué sigue?</h6>
-                            <p>
-                                Ya recibiste las <strong>instrucciones de pago por email</strong>. 
-                                Una vez que envíes tu comprobante de pago, nuestro equipo lo revisará y 
-                                <strong>aprobará tu solicitud</strong> activando inmediatamente tu nuevo plan.
-                            </p>
-                            <p><strong>Tiempo estimado:</strong> 24-48 horas después de enviar tu comprobante.</p>
-                        {% elif pending_request.status == 'approved' %}
-                            <h6>¡Felicidades! Tu plan está activo 🎉</h6>
-                            <p>
-                                Tu solicitud fue <strong>aprobada</strong> y tu nuevo plan 
-                                <strong>{{ pending_request.requested_plan.display_name }}</strong> 
-                                ya está activo. Puedes disfrutar de todas las funcionalidades inmediatamente.
-                            </p>
-                        {% elif pending_request.status == 'rejected' %}
-                            <h6>Solicitud Rechazada</h6>
-                            <p>
-                                Tu solicitud fue rechazada. 
-                                {% if pending_request.rejection_reason %}
-                                    <br><strong>Motivo:</strong> {{ pending_request.rejection_reason }}
-                                {% endif %}
-                                <br>Puedes contactarnos para más información o realizar una nueva solicitud.
-                            </p>
-                        {% endif %}
+                        <h6>¿Qué sigue?</h6>
+                        <p>
+                            Nuestro equipo ha recibido tu solicitud y se pondrá en contacto contigo para completar el proceso de pago.
+                            Una vez confirmado el pago, activaremos tu nuevo plan.
+                        </p>
+                        <p><strong>Fecha de solicitud:</strong> {{ pending_request.created_at|date:"d/m/Y H:i" }}</p>
                     </div>
                 </div>
             </div>
             
             <div class="pending-footer">
-                <a href="{% url 'plans:subscription_dashboard' %}" class="btn-dashboard {% if pending_request.status == 'approved' %}success{% endif %}">
-                    <i class="fas fa-{% if pending_request.status == 'approved' %}tachometer-alt{% else %}arrow-left{% endif %}"></i>
-                    <span>{% if pending_request.status == 'approved' %}Ver Mi Plan Actualizado{% else %}Volver al Dashboard{% endif %}</span>
+                <a href="{% url 'plans:subscription_dashboard' %}" class="btn-dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver al Dashboard</span>
                 </a>
                 <div class="pending-support">
                     <span>¿Tienes preguntas?</span>
-                    <a href="mailto:soporte@tudominio.com" class="support-link">
+                    <a href="mailto:soporte@tuempresa.com" class="support-link">
                         <i class="fas fa-envelope"></i>
                         Contactar Soporte
                     </a>
@@ -184,323 +84,93 @@
         </div>
     {% else %}
         <!-- PLANES DISPONIBLES -->
-        <div class="pricing-section">
-            <div class="pricing-grid">
-                <!-- PLAN ACTUAL -->
-                <div class="pricing-card current-plan">
-                    <div class="card-header">
-                        <div class="plan-badge current">Actual</div>
-                        <h3>{{ subscription.plan.display_name }}</h3>
-                        <p>Tu plan actual con todas las funciones que tienes disponibles.</p>
-                    </div>
-                    
-                    <div class="card-pricing">
-                        <div class="price-container">
-                            <span class="currency">$</span>
-                            <span class="price">{{ subscription.plan.price|floatformat:0 }}</span>
-                            <span class="period">/mes</span>
+        <form method="post" class="upgrade-form" action="{% url 'plans:request_upgrade' %}">
+            {% csrf_token %}
+            <div class="pricing-section">
+                <div class="pricing-grid">
+                    <!-- PLAN ACTUAL -->
+                    <div class="pricing-card current-plan">
+                        <div class="card-header">
+                            <div class="plan-badge current">Actual</div>
+                            <h3>{{ subscription.plan.display_name }}</h3>
+                            <p>Este es tu plan actual.</p>
                         </div>
-                        <div class="price-note">Plan actual</div>
-                    </div>
+                        
+                        <div class="card-pricing">
+                            <div class="price-container">
+                                <span class="price">{{ subscription.plan.price|format_currency }}</span>
+                                <span class="period">/mes</span>
+                            </div>
+                        </div>
 
-                    <div class="card-features">
-                        <div class="feature-item">
-                            <i class="fas fa-users"></i>
-                            <span>Hasta {{ subscription.plan.max_users }} usuarios</span>
+                        <div class="card-features">
+                            {% for feature in subscription.plan.get_feature_list %}
+                            <div class="feature-item">
+                                <i class="fas fa-check"></i>
+                                <span>{{ feature }}</span>
+                            </div>
+                            {% endfor %}
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-folder"></i>
-                            <span>Hasta {{ subscription.plan.max_projects }} proyectos</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-database"></i>
-                            <span>{{ subscription.plan.storage_limit_gb }} GB de almacenamiento</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-headset"></i>
-                            <span>Soporte básico</span>
+
+                        <div class="card-action">
+                            <button class="cta-button secondary-button" disabled>
+                                <span>Plan Actual</span>
+                                <i class="fas fa-check"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="card-action">
-                        <button class="cta-button secondary-button" disabled>
-                            <span>Plan Actual</span>
-                            <i class="fas fa-check"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- PLAN SUPERIOR -->
-                {% for plan in available_plans %}
-                    {% if forloop.first %}
-                        <div class="pricing-card basic-plan" data-plan="{{ plan.name }}">
+                    <!-- PLAN SUPERIOR -->
+                    {% for plan in available_plans %}
+                        <div class="pricing-card recommended-plan">
                             <div class="card-header">
                                 <div class="plan-badge recommended">Recomendado</div>
                                 <h3>{{ plan.display_name }}</h3>
-                                <p>{{ plan.description|default:"Plan ideal para hacer crecer tu organización." }}</p>
+                                <p>{{ plan.description|default:"Ideal para hacer crecer tu equipo." }}</p>
                             </div>
                             
                             <div class="card-pricing">
                                 <div class="price-container">
-                                    <span class="currency">$</span>
-                                    <span class="price">{{ plan.price|floatformat:0 }}</span>
-                                    <span class="period">/{{ plan.get_billing_cycle_display|lower }}</span>
+                                    <span class="price">{{ plan.price|format_currency }}</span>
+                                    <span class="period">/mes</span>
                                 </div>
-                                <div class="price-note">Facturación {{ plan.get_billing_cycle_display|lower }}</div>
                             </div>
 
                             <div class="card-features">
+                                {% for feature in plan.get_feature_list %}
                                 <div class="feature-item">
-                                    <i class="fas fa-users"></i>
-                                    <span>Hasta {{ plan.max_users }} usuarios</span>
+                                    <i class="fas fa-check"></i>
+                                    <span>{{ feature }}</span>
                                 </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-folder"></i>
-                                    <span>Hasta {{ plan.max_projects }} proyectos</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-database"></i>
-                                    <span>{{ plan.storage_limit_gb }} GB de almacenamiento</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-headset"></i>
-                                    <span>Soporte prioritario</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <span>Reportes avanzados</span>
-                                </div>
-                                <div class="feature-item">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <span>Respaldos automáticos</span>
-                                </div>
+                                {% endfor %}
                             </div>
 
                             <div class="card-action">
-                                <!-- Formulario principal de upgrade -->
-                                <form method="post" class="upgrade-form" action="{% url 'plans:request_upgrade' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="requested_plan" value="{{ plan.id }}">
-                                    <input type="hidden" name="debug_mode" value="true">
-                                    <button type="submit" class="cta-button primary-button" data-plan-name="{{ plan.display_name }}">
-                                        <span>Solicitar Upgrade</span>
-                                        <i class="fas fa-arrow-up"></i>
-                                    </button>
-                                </form>
-                                
-                                <!-- Formulario alternativo sin JavaScript (backup) -->
-                                <form method="post" class="upgrade-form-simple" style="display: none; margin-top: 10px;" action="{% url 'plans:request_upgrade' %}" onsubmit="return window.handleSimpleUpgrade(this);">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="requested_plan" value="{{ plan.id }}">
-                                    <input type="hidden" name="simple_mode" value="true">
-                                    <button type="submit" class="cta-button secondary-button">
-                                        <span>Solicitar Upgrade (Simple)</span>
-                                        <i class="fas fa-arrow-up"></i>
-                                    </button>
-                                </form>
-                                
-                                <!-- Botón para mostrar formulario simple -->
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="this.style.display='none'; document.querySelector('.upgrade-form').style.display='none'; document.querySelector('.upgrade-form-simple').style.display='block';" style="margin-top: 10px;">
-                                    <i class="fas fa-wrench"></i> Usar versión simple
-                                </button>
-                                
-                                <p class="action-note">Pago manual - Te contactaremos</p>
+                                <input type="radio" name="requested_plan" value="{{ plan.id }}" id="plan-{{ plan.id }}" class="plan-radio-input" required>
+                                <label for="plan-{{ plan.id }}" class="cta-button primary-button">
+                                    <span>Seleccionar Plan</span>
+                                    <i class="fas fa-arrow-up"></i>
+                                </label>
                             </div>
                         </div>
-                    {% endif %}
-                {% empty %}
-                    <!-- MENSAJE CUANDO NO HAY PLANES DISPONIBLES -->
-                    <div class="no-plans-message">
-                        <div class="no-plans-icon">
-                            <i class="fas fa-trophy"></i>
-                        </div>
-                        <div class="no-plans-content">
+                    {% empty %}
+                        <div class="no-plans-message">
                             <h3>¡Ya tienes el mejor plan disponible!</h3>
-                            <p>Actualmente no hay planes superiores disponibles. Si necesitas más funcionalidades, contáctanos.</p>
-                            <a href="mailto:soporte@tudominio.com" class="btn-contact">
-                                <i class="fas fa-envelope"></i>
-                                Contactar Soporte
-                            </a>
+                            <p>Si necesitas más funcionalidades, contáctanos.</p>
                         </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- COMPARACIÓN SIMPLIFICADA -->
-        <div class="comparison-section">
-            <div class="section-header">
-                <h2>¿Qué obtienes con el upgrade?</h2>
-                <p>Compara las ventajas de upgradar tu plan actual</p>
-            </div>
-            
-            <div class="comparison-grid">
-                <div class="comparison-card current-plan">
-                    <div class="comparison-header">
-                        <h3>{{ subscription.plan.display_name }}</h3>
-                        <div class="comparison-plan-price">${{ subscription.plan.price|floatformat:0 }}</div>
-                        <div class="comparison-plan-period">Tu plan actual</div>
-                    </div>
-                    <div class="comparison-features">
-                        <div class="comparison-feature">
-                            <span class="feature-name">Usuarios</span>
-                            <span class="feature-value">{{ subscription.plan.max_users }}</span>
-                        </div>
-                        <div class="comparison-feature">
-                            <span class="feature-name">Proyectos</span>
-                            <span class="feature-value">{{ subscription.plan.max_projects }}</span>
-                        </div>
-                        <div class="comparison-feature">
-                            <span class="feature-name">Almacenamiento</span>
-                            <span class="feature-value">{{ subscription.plan.storage_limit_gb }} GB</span>
-                        </div>
-                        <div class="comparison-feature">
-                            <span class="feature-name">Reportes</span>
-                            <span class="feature-value">❌</span>
-                        </div>
-                    </div>
-                </div>
-
-                {% for plan in available_plans %}
-                    {% if forloop.first %}
-                        <div class="comparison-card upgrade-plan">
-                            <div class="comparison-header">
-                                <h3>{{ plan.display_name }}</h3>
-                                <div class="comparison-plan-price">${{ plan.price|floatformat:0 }}</div>
-                                <div class="comparison-plan-period">por {{ plan.get_billing_cycle_display|lower }}</div>
-                            </div>
-                            <div class="comparison-features">
-                                <div class="comparison-feature">
-                                    <span class="feature-name">Usuarios</span>
-                                    <span class="feature-value">{{ plan.max_users }}</span>
-                                </div>
-                                <div class="comparison-feature">
-                                    <span class="feature-name">Proyectos</span>
-                                    <span class="feature-value">{{ plan.max_projects }}</span>
-                                </div>
-                                <div class="comparison-feature">
-                                    <span class="feature-name">Almacenamiento</span>
-                                    <span class="feature-value">{{ plan.storage_limit_gb }} GB</span>
-                                </div>
-                                <div class="comparison-feature">
-                                    <span class="feature-name">Reportes</span>
-                                    <span class="feature-value">✅ Avanzados</span>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- INFORMACIÓN IMPORTANTE -->
-        <div class="upgrade-info-section">
-            <div class="info-card">
-                <div class="info-header">
-                    <i class="fas fa-info-circle"></i>
-                    <h4>Proceso de Upgrade</h4>
-                </div>
-                <div class="info-content">
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <i class="fas fa-paper-plane"></i>
-                            <div>
-                                <h5>1. Solicitud</h5>
-                                <p>Envías tu solicitud de upgrade y recibimos tu información.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <i class="fas fa-envelope"></i>
-                            <div>
-                                <h5>2. Instrucciones</h5>
-                                <p>Te enviamos las instrucciones de pago por email inmediatamente.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <i class="fas fa-credit-card"></i>
-                            <div>
-                                <h5>3. Pago</h5>
-                                <p>Realizas el pago y nos envías el comprobante.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="info-item">
-                            <i class="fas fa-rocket"></i>
-                            <div>
-                                <h5>4. Activación</h5>
-                                <p>Verificamos tu pago y activamos tu nuevo plan inmediatamente.</p>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
+
+            {% if available_plans %}
+            <div class="submission-section">
+                 <button type="submit" class="cta-button-submit">
+                    <i class="fas fa-rocket"></i> Solicitar Upgrade Ahora
+                </button>
+                <p class="submission-note">Se te guiará para el pago manual después de la solicitud.</p>
+            </div>
+            {% endif %}
+        </form>
     {% endif %}
-</div>
-
-<!-- Modal de confirmación -->
-<div id="upgradeConfirmModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="upgrade-modal">
-            <div class="modal-header">
-                <div class="modal-header-content">
-                    <i class="fas fa-rocket"></i>
-                    <div>
-                        <h4 id="upgradeModalLabel">¡Confirma tu Upgrade!</h4>
-                        <p>Estás a un paso de mejorar tu experiencia</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-close-custom" aria-label="Close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="selected-plan-card">
-                    <div class="plan-header">
-                        <i class="fas fa-star"></i>
-                        <div>
-                            <h5>Plan <span id="selectedPlanName">Básico</span></h5>
-                            <div class="plan-price">
-                                <span id="additionalCost">$29</span>
-                                <span>/mes</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="upgrade-benefits">
-                        <h6>✨ Lo que obtienes:</h6>
-                        <ul>
-                            <li><i class="fas fa-check"></i> Más usuarios y proyectos</li>
-                            <li><i class="fas fa-check"></i> Almacenamiento ampliado</li>
-                            <li><i class="fas fa-check"></i> Soporte prioritario 24/7</li>
-                            <li><i class="fas fa-check"></i> Reportes avanzados</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="upgrade-process-info">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        <p><strong>Proceso manual:</strong> Nuestro equipo procesará tu solicitud y te contactará con los detalles de pago.</p>
-                        <p><small>⏱️ Tiempo estimado: 24-48 horas</small></p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn btn-cancel">
-                    <i class="fas fa-times"></i>
-                    <span>Cancelar</span>
-                </button>
-                <button type="button" class="btn btn-confirm" id="confirmUpgrade">
-                    <i class="fas fa-rocket"></i>
-                    <span>¡Confirmar Upgrade!</span>
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 {% endblock %}
