@@ -4,7 +4,7 @@ from apps.plans.models import Plan
 import json
 
 class Command(BaseCommand):
-    help = 'Configura los planes básicos para el MVP con gestión manual'
+    help = 'Configura los planes básicos para el MVP simplificado'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -20,82 +20,26 @@ class Command(BaseCommand):
             {
                 'name': 'trial',
                 'display_name': 'Prueba Gratuita',
-                'description': 'Período de prueba de 30 días para probar todas las funciones básicas',
+                'description': 'Período de prueba para evaluar el sistema.',
                 'price': 0.00,
-                'currency': 'MXN',
-                'billing_cycle': 'trial',
-                'max_users': 2,
-                'max_projects': 3,
-                'storage_limit_gb': 1,
+                'max_users': 5,
                 'trial_days': 30,
-                'features': {
-                    'features': [
-                        'Acceso completo por 30 días',
-                        'Hasta 2 usuarios',
-                        'Hasta 3 proyectos',
-                        '1 GB de almacenamiento',
-                        'Soporte por email'
-                    ]
-                },
+                'grace_period_days': 5,
                 'is_active': True,
-                'is_featured': False,
-                'sort_order': 1
             },
             {
                 'name': 'basic',
                 'display_name': 'Plan Básico',
-                'description': 'Plan básico ideal para pequeños equipos que inician',
+                'description': 'Plan básico para equipos.',
                 'price': 299.00,
-                'currency': 'MXN',
-                'billing_cycle': 'monthly',
-                'max_users': 5,
-                'max_projects': 10,
-                'storage_limit_gb': 5,
+                'max_users': 10,
                 'trial_days': 0,
-                'features': {
-                    'features': [
-                        'Hasta 5 usuarios',
-                        'Hasta 10 proyectos',
-                        '5 GB de almacenamiento',
-                        'Soporte por email',
-                        'Respaldos diarios',
-                        'Sin anuncios'
-                    ]
-                },
+                'grace_period_days': 5,
                 'is_active': True,
-                'is_featured': True,
-                'sort_order': 2
-            },
-            {
-                'name': 'premium',
-                'display_name': 'Plan Premium',
-                'description': 'Plan premium para equipos en crecimiento con necesidades avanzadas',
-                'price': 599.00,
-                'currency': 'MXN',
-                'billing_cycle': 'monthly',
-                'max_users': 15,
-                'max_projects': 50,
-                'storage_limit_gb': 20,
-                'trial_days': 0,
-                'features': {
-                    'features': [
-                        'Hasta 15 usuarios',
-                        'Hasta 50 proyectos',
-                        '20 GB de almacenamiento',
-                        'Soporte prioritario',
-                        'Respaldos diarios',
-                        'Reportes avanzados',
-                        'Integraciones API',
-                        'Sin anuncios'
-                    ]
-                },
-                'is_active': True,
-                'is_featured': False,
-                'sort_order': 3
             }
         ]
 
-        self.stdout.write("🚀 Configurando planes para MVP...")
+        self.stdout.write("🚀 Configurando planes para MVP (versión simplificada)...")
         
         with transaction.atomic():
             created_count = 0
@@ -116,7 +60,6 @@ class Command(BaseCommand):
                             self.style.SUCCESS(f"✅ Creado: {plan.display_name}")
                         )
                     elif force:
-                        # Actualizar plan existente
                         for key, value in plan_data.items():
                             setattr(plan, key, value)
                         plan.save()
@@ -134,7 +77,6 @@ class Command(BaseCommand):
                         self.style.ERROR(f"❌ Error creando {plan_name}: {str(e)}")
                     )
 
-        # Mostrar resumen
         self.stdout.write("\n" + "="*50)
         self.stdout.write(self.style.SUCCESS("📊 RESUMEN DE CONFIGURACIÓN"))
         self.stdout.write("="*50)
@@ -144,42 +86,17 @@ class Command(BaseCommand):
         if updated_count > 0:
             self.stdout.write(f"🔄 Planes actualizados: {updated_count}")
             
-        # Mostrar planes activos
-        active_plans = Plan.objects.filter(is_active=True).order_by('sort_order')
+        active_plans = Plan.objects.filter(is_active=True).order_by('price')
         self.stdout.write(f"\n📋 Planes activos ({active_plans.count()}):")
         
         for plan in active_plans:
-            price_display = f"${plan.price:,.0f} MXN/mes" if plan.price > 0 else "Gratis"
-            featured = " ⭐" if plan.is_featured else ""
-            self.stdout.write(f"  • {plan.display_name} - {price_display}{featured}")
-            self.stdout.write(f"    👥 {plan.max_users} usuarios | 📁 {plan.max_projects} proyectos | 💾 {plan.storage_limit_gb} GB")
+            price_display = f"${plan.price:,.0f} MXN" if plan.price > 0 else "Gratis"
+            self.stdout.write(f"  • {plan.display_name} - {price_display}")
+            self.stdout.write(f"    👥 {plan.max_users} usuarios | ⏳ {plan.trial_days} días de prueba")
 
-        # Instrucciones post-configuración
         self.stdout.write("\n" + "="*50)
-        self.stdout.write(self.style.SUCCESS("📝 PRÓXIMOS PASOS PARA TU MVP"))
+        self.stdout.write(self.style.SUCCESS("📝 PRÓXIMOS PASOS"))
         self.stdout.write("="*50)
-        
-        instructions = [
-            "1. Ve al admin Django (/admin) para ajustar precios si es necesario",
-            "2. Configura tus métodos de pago manual en las vistas",
-            "3. Actualiza la información de contacto en los templates",
-            "4. Prueba el flujo completo: registro → trial → upgrade manual",
-            "5. Configura emails para notificaciones de pagos",
-            "",
-            "💡 URLs importantes:",
-            "   • Panel de gestión: /plans/admin/subscriptions/",
-            "   • Admin Django: /admin/plans/",
-            "   • Vista pública: /plans/pricing/",
-            "",
-            "🔧 Para crear planes adicionales, edita este comando o usa el admin Django"
-        ]
-        
-        for instruction in instructions:
-            if instruction.startswith("💡") or instruction.startswith("🔧"):
-                self.stdout.write(self.style.WARNING(instruction))
-            elif instruction.startswith("   •"):
-                self.stdout.write(f"     {instruction[4:]}")
-            else:
-                self.stdout.write(instruction)
-                
-        self.stdout.write(f"\n🎉 ¡Configuración completada! Tu MVP está listo para gestión manual de pagos.") 
+        self.stdout.write("1. Crea organizaciones y usuarios desde el admin de Django.")
+        self.stdout.write("2. Verifica que los límites de usuarios se apliquen correctamente.")
+        self.stdout.write(f"\n🎉 ¡Configuración de planes simplificada completada!") 

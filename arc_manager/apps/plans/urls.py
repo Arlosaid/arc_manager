@@ -1,38 +1,30 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import path
 from . import views
+from django.contrib.auth.decorators import login_required
 
 app_name = 'plans'
 
-urlpatterns = [
-    # URLs públicas
-    path('pricing/', views.PublicPricingView.as_view(), name='pricing'),
-    
-    # URLs para usuarios autenticados
-    path('dashboard/', views.SubscriptionDashboardView.as_view(), name='subscription_dashboard'),
-    
-    # URLs para sistema de upgrade (solo para usuarios)
-    path('request-upgrade/', views.RequestUpgradeView.as_view(), name='request_upgrade'),
-    
-    # API endpoints
-    path('api/check-limits/', views.check_subscription_limits, name='check_limits'),
-    
-    # Redirección por defecto basada en permisos del usuario
-    path('', views.plan_pricing_redirect, name='list'),
-]
-
-# Función de redirección inteligente
-def plan_pricing_redirect(request):
-    """Redirige según el tipo de usuario"""
+def plan_redirect_view(request):
+    """
+    Redirige a los usuarios a la página correcta según su rol.
+    - Superusuarios: Al admin de Django.
+    - Administradores de Org: Al dashboard de suscripción.
+    - Otros usuarios autenticados: Al dashboard de suscripción.
+    - No autenticados: A la página de login.
+    """
     user = request.user
-    
     if not user.is_authenticated:
-        return redirect('plans:pricing')
+        return redirect('accounts:login')
     
-    # Los superusers son redirigidos al admin de Django - toda la gestión se hace ahí
     if user.is_superuser:
         return redirect('/admin/plans/upgraderequest/')
-    elif user.is_org_admin:
-        return redirect('plans:subscription_dashboard')
-    else:
-        return redirect('plans:pricing')
+    
+    # Para MVP, todos los usuarios autenticados van al dashboard de su organización.
+    return redirect('plans:subscription_dashboard')
+
+urlpatterns = [
+    path('', login_required(plan_redirect_view), name='index'),
+    path('dashboard/', views.SubscriptionDashboardView.as_view(), name='subscription_dashboard'),
+    path('request-upgrade/', views.RequestUpgradeView.as_view(), name='request_upgrade'),
+]

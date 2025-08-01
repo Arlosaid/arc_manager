@@ -180,16 +180,16 @@ class Organization(models.Model):
                 'usage_percentage': plan.get_usage_percentage(user_count, 'users')
             },
             'projects': {
-                'current': project_count,
-                'limit': plan.max_projects,
-                'available': max(0, plan.max_projects - project_count),
-                'usage_percentage': plan.get_usage_percentage(project_count, 'projects')
+                'current': 0,
+                'limit': 0,
+                'available': 0,
+                'usage_percentage': 0
             },
             'storage_gb': {
-                'current': storage_used,
-                'limit': plan.storage_limit_gb,
-                'available': max(0, plan.storage_limit_gb - storage_used),
-                'usage_percentage': plan.get_usage_percentage(storage_used, 'storage_gb')
+                'current': 0,
+                'limit': 0,
+                'available': 0,
+                'usage_percentage': 0
             },
             'subscription_active': True
         }

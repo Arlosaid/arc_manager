@@ -6,19 +6,12 @@ from django.utils import timezone
 import logging
 
 class Plan(models.Model):
-    """Modelo mejorado para definir planes de la aplicación"""
-    
-    # Tipos de plan predefinidos para el MVP
+    """
+    Modelo simplificado para definir los planes de la aplicación para el MVP.
+    """
     PLAN_TYPES = [
         ('trial', 'Prueba Gratuita'),
         ('basic', 'Plan Básico'),
-        ('premium', 'Plan Premium'),  # Para escalabilidad futura
-    ]
-    
-    BILLING_CYCLES = [
-        ('monthly', 'Mensual'),
-        ('annual', 'Anual'),
-        ('trial', 'Prueba Gratuita'),
     ]
     
     # Información básica
@@ -28,28 +21,17 @@ class Plan(models.Model):
     
     # Configuración de precios
     price = models.DecimalField("Precio", max_digits=10, decimal_places=2, default=0)
-    currency = models.CharField("Moneda", max_length=3, default='MXN')
-    billing_cycle = models.CharField("Ciclo de facturación", max_length=20, choices=BILLING_CYCLES, default='monthly')
     
-    # Límites del plan
+    # Límites del plan para el MVP
     max_users = models.PositiveIntegerField("Máximo de usuarios", default=1)
-    max_projects = models.PositiveIntegerField("Máximo de proyectos", default=1)
-    storage_limit_gb = models.PositiveIntegerField("Límite de almacenamiento (GB)", default=1)
     
     # Características adicionales
-    trial_days = models.PositiveIntegerField("Días de prueba", default=0, 
-                                           help_text="Solo aplica para planes de prueba")
-    features = models.JSONField("Características", default=dict, blank=True,
-                               help_text="JSON con características específicas del plan")
+    trial_days = models.PositiveIntegerField("Días de prueba", default=0, help_text="Para planes 'trial', establece la duración de la prueba.")
+    billing_cycle_days = models.PositiveIntegerField("Días del ciclo de facturación", default=30, help_text="Duración estándar del ciclo de pago en días.")
+    grace_period_days = models.PositiveIntegerField("Días de gracia", default=0, help_text="Días de gracia después de la expiración antes de restringir el acceso.")
     
     # Estado y configuración
     is_active = models.BooleanField("Activo", default=True)
-    is_featured = models.BooleanField("Plan destacado", default=False)
-    sort_order = models.PositiveIntegerField("Orden de visualización", default=0)
-    
-    # Para integración futura con Stripe
-    stripe_price_id = models.CharField("Stripe Price ID", max_length=100, blank=True, null=True)
-    stripe_product_id = models.CharField("Stripe Product ID", max_length=100, blank=True, null=True)
     
     # Timestamps
     created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
@@ -58,102 +40,22 @@ class Plan(models.Model):
     class Meta:
         verbose_name = "Plan"
         verbose_name_plural = "Planes"
-        ordering = ['sort_order', 'price']
+        ordering = ['price']
     
     def __str__(self):
         return self.display_name
     
-    def clean(self):
-        """Validaciones personalizadas"""
-        super().clean()
-        
-        # Validar que los planes de prueba tengan días de prueba
-        if self.name == 'trial' and self.trial_days == 0:
-            raise ValidationError({
-                'trial_days': 'Los planes de prueba deben tener días de prueba configurados.'
-            })
-        
-        # Validar que solo un plan sea destacado por tipo de facturación
-        if self.is_featured:
-            featured_plans = Plan.objects.filter(
-                is_featured=True, 
-                billing_cycle=self.billing_cycle,
-                is_active=True
-            ).exclude(pk=self.pk)
-            
-            if featured_plans.exists():
-                raise ValidationError({
-                    'is_featured': f'Ya existe un plan destacado para el ciclo {self.get_billing_cycle_display()}.'
-                })
-    
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-    
+    def get_feature_list(self):
+        """Retorna las características del plan como una lista simple."""
+        return [f"Hasta {self.max_users} usuario{'s' if self.max_users != 1 else ''}"]
+
     @property
     def is_trial(self):
-        """Retorna True si es un plan de prueba"""
         return self.name == 'trial'
-    
-    @property
-    def price_display(self):
-        """Retorna el precio formateado"""
-        if self.price == 0:
-            return "Gratis"
-        return f"${self.price:,.0f} {self.currency}"
-    
-    @property
-    def billing_display(self):
-        """Retorna el ciclo de facturación formateado"""
-        if self.is_trial:
-            return f"{self.trial_days} días gratis"
-        
-        cycle_map = {
-            'monthly': 'al mes',
-            'annual': 'al año',
-        }
-        return cycle_map.get(self.billing_cycle, self.billing_cycle)
-    
-    def get_feature_list(self):
-        """Retorna las características del plan como lista"""
-        base_features = [
-            f"Hasta {self.max_users} usuario{'s' if self.max_users != 1 else ''}",
-            f"Hasta {self.max_projects} proyecto{'s' if self.max_projects != 1 else ''}",
-            f"{self.storage_limit_gb} GB de almacenamiento"
-        ]
-        
-        # Agregar características adicionales desde el campo JSON
-        if self.features:
-            additional_features = self.features.get('features', [])
-            base_features.extend(additional_features)
-        
-        return base_features
-    
-    def can_create_users(self, current_count):
-        """Verifica si se pueden crear más usuarios"""
-        return current_count < self.max_users
-    
-    def can_create_projects(self, current_count):
-        """Verifica si se pueden crear más proyectos"""
-        return current_count < self.max_projects
-    
-    def get_usage_percentage(self, current_count, limit_type='users'):
-        """Calcula el porcentaje de uso para un límite específico"""
-        limits = {
-            'users': self.max_users,
-            'projects': self.max_projects,
-            'storage': self.storage_limit_gb
-        }
-        
-        max_limit = limits.get(limit_type, 1)
-        if max_limit == 0:
-            return 100
-        
-        return min((current_count / max_limit) * 100, 100)
-    
+
+    # Métodos de clase para obtener planes comunes
     @classmethod
     def get_trial_plan(cls):
-        """Retorna el plan de prueba activo"""
         try:
             return cls.objects.get(name='trial', is_active=True)
         except cls.DoesNotExist:
@@ -161,573 +63,271 @@ class Plan(models.Model):
     
     @classmethod
     def get_basic_plan(cls):
-        """Retorna el plan básico activo"""
         try:
             return cls.objects.get(name='basic', is_active=True)
         except cls.DoesNotExist:
             return None
-    
-    @classmethod
-    def get_featured_plan(cls, billing_cycle='monthly'):
-        """Retorna el plan destacado para un ciclo específico"""
-        try:
-            return cls.objects.get(
-                is_featured=True, 
-                billing_cycle=billing_cycle,
-                is_active=True
-            )
-        except cls.DoesNotExist:
-            return None
 
-    @property
-    def total_monthly_revenue(self):
-        """Calcula los ingresos mensuales totales de este plan"""
-        from apps.orgs.models import Organization  # Import local para evitar circular
-        org_count = Organization.objects.filter(subscription__plan=self).count()
-        return int(self.price * org_count)
-    
-    @property
-    def usage_percentage(self):
-        """Calcula el porcentaje de organizaciones que usan este plan"""
-        from apps.orgs.models import Organization  # Import local para evitar circular
-        total_orgs = Organization.objects.count()
-        if total_orgs == 0:
-            return 0
-        org_count = Organization.objects.filter(subscription__plan=self).count()
-        return int((org_count / total_orgs) * 100)
+    def get_usage_percentage(self, current_value, limit_type):
+        """Calcula el porcentaje de uso para un límite específico de forma simple."""
+        limit = 0
+        if limit_type == 'users':
+            limit = self.max_users
+        
+        if not limit or limit == 0:
+            return 100 if current_value > 0 else 0
+        
+        percentage = (current_value / limit) * 100
+        return min(100, round(percentage))
+
 
 class Subscription(models.Model):
-    """Modelo para gestionar suscripciones de organizaciones"""
-    
-    STATUS_CHOICES = [
-        ('active', 'Activa'),
-        ('trial', 'En Prueba'),
-        ('expired', 'Expirada'),
-        ('cancelled', 'Cancelada'),
-        ('suspended', 'Suspendida'),
+    """
+    Modelo simplificado para gestionar las suscripciones de las organizaciones.
+    """
+    SUBSCRIPTION_STATUS_CHOICES = [
+        ('trial_active', 'Trial Activo'),
+        ('trial_expired', 'Trial Expirado'),
+        ('basic_active', 'Plan Básico Activo'),
+        ('basic_grace', 'Plan Básico en Gracia'),
+        ('basic_expired', 'Plan Básico Expirado'),
     ]
     
-    PAYMENT_STATUS_CHOICES = [
-        ('pending', 'Pendiente'),
-        ('paid', 'Pagado'),
-        ('failed', 'Falló'),
-        ('cancelled', 'Cancelado'),
-    ]
+    organization = models.OneToOneField('orgs.Organization', on_delete=models.CASCADE, related_name='subscription')
+    plan = models.ForeignKey(Plan, on_delete=models.PROTECT, verbose_name="Plan Actual")
     
-    # Relaciones
-    organization = models.OneToOneField(
-        'orgs.Organization',
-        on_delete=models.CASCADE,
-        related_name='subscription',
-        verbose_name="Organización"
-    )
-    plan = models.ForeignKey(
-        Plan,
-        on_delete=models.PROTECT,
-        verbose_name="Plan"
-    )
-    
-    # Fechas importantes
     start_date = models.DateTimeField("Fecha de inicio", default=timezone.now)
-    end_date = models.DateTimeField("Fecha de vencimiento")
-    trial_end_date = models.DateTimeField("Fin de periodo de prueba", null=True, blank=True)
+    end_date = models.DateTimeField("Fecha de vencimiento", null=True, blank=True)
+    grace_end_date = models.DateTimeField("Fin del período de gracia", null=True, blank=True)
     
-    # Estado de la suscripción
-    status = models.CharField("Estado", max_length=20, choices=STATUS_CHOICES, default='trial')
-    payment_status = models.CharField("Estado de pago", max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    subscription_status = models.CharField("Estado de Suscripción", max_length=20, choices=SUBSCRIPTION_STATUS_CHOICES, default='trial_active')
     
-    # Para facturación manual en MVP
-    last_payment_date = models.DateTimeField("Último pago", null=True, blank=True)
-    next_billing_date = models.DateTimeField("Próxima facturación", null=True, blank=True)
-    
-    # Para integración futura con Stripe
-    stripe_subscription_id = models.CharField("Stripe Subscription ID", max_length=100, blank=True, null=True)
-    stripe_customer_id = models.CharField("Stripe Customer ID", max_length=100, blank=True, null=True)
-    
-    # Configuración
-    auto_renew = models.BooleanField("Renovación automática", default=True)
-    cancel_at_period_end = models.BooleanField("Cancelar al final del periodo", default=False)
-    
-    # Metadatos
-    metadata = models.JSONField("Metadatos", default=dict, blank=True)
-    
-    # Timestamps
-    created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
-    updated_at = models.DateTimeField("Última actualización", auto_now=True)
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name = "Suscripción"
         verbose_name_plural = "Suscripciones"
         ordering = ['-created_at']
-    
+
     def __str__(self):
         return f"{self.organization.name} - {self.plan.display_name}"
-    
+
     def save(self, *args, **kwargs):
-        # Configurar fechas automáticamente para nuevas suscripciones
-        if not self.pk:
-            self.setup_subscription_dates()
+        is_new = not self.pk
         super().save(*args, **kwargs)
-    
-    def setup_subscription_dates(self):
-        """Configura las fechas de la suscripción basado en el plan"""
+        if is_new:
+            self.setup_initial_subscription(self.plan)
+            self.save(update_fields=['start_date', 'end_date', 'subscription_status'])
+
+    def setup_initial_subscription(self, plan):
+        """Configura las fechas y el estado inicial de la suscripción."""
         now = timezone.now()
+        self.start_date = now
+        days = plan.trial_days if plan.is_trial else plan.billing_cycle_days
+        self.end_date = now + timedelta(days=days)
+        self.subscription_status = f'{plan.name}_active'
+
+    def calculate_current_status(self):
+        """Calcula el estado de la suscripción basado en las fechas, sin modificar el estado."""
+        now = timezone.now()
+        plan_prefix = self.plan.name
         
-        if self.plan.is_trial:
-            # Para planes de prueba
-            self.status = 'trial'
-            self.trial_end_date = now + timedelta(days=self.plan.trial_days)
-            self.end_date = self.trial_end_date
-        elif self.plan.name in ['gratuito', 'trial'] or self.plan.price == 0:
-            # Para planes gratuitos (sin vencimiento) o trial cuando se usa como gratuito
-            if self.plan.name == 'trial' and self.pk is None:
-                # Nuevo trial - usar configuración normal de trial
-                self.status = 'trial'
-                self.trial_end_date = now + timedelta(days=self.plan.trial_days)
-                self.end_date = self.trial_end_date
-            else:
-                # Plan gratuito o trial usado como plan gratuito (cambio de plan)
-                self.status = 'active'
-                self.payment_status = 'paid'
-                self.end_date = now + timedelta(days=3650)  # 10 años (prácticamente sin vencimiento)
-                self.next_billing_date = None  # No hay facturación para planes gratuitos
-        else:
-            # Para planes de pago
-            if self.plan.billing_cycle == 'monthly':
-                self.end_date = now + timedelta(days=30)
-                self.next_billing_date = self.end_date
-            elif self.plan.billing_cycle == 'annual':
-                self.end_date = now + timedelta(days=365)
-                self.next_billing_date = self.end_date
-    
+        # Si la fecha de vencimiento no ha pasado, está activo
+        if self.end_date and now <= self.end_date:
+            return f'{plan_prefix}_active'
+        
+        # Si tiene período de gracia, verificar si estamos dentro de él
+        if self.plan.grace_period_days > 0:
+            # La fecha de fin de gracia se calcula dinámicamente
+            grace_end_date = self.end_date + timedelta(days=self.plan.grace_period_days)
+            if now <= grace_end_date:
+                return f'{plan_prefix}_grace'
+
+        # Si ninguna de las condiciones anteriores se cumple, ha expirado
+        return f'{plan_prefix}_expired'
+
+    def update_status(self):
+        """Actualiza el estado si ha cambiado. Usado en vistas y cron jobs."""
+        new_status = self.calculate_current_status()
+        if new_status != self.subscription_status:
+            self.subscription_status = new_status
+            
+            # Si la suscripción entra en período de gracia, calcula y guarda la fecha de fin de gracia
+            if new_status.endswith('_grace') and not self.grace_end_date:
+                self.grace_end_date = self.end_date + timedelta(days=self.plan.grace_period_days)
+
+            self.save(update_fields=['subscription_status', 'grace_end_date', 'updated_at'])
+            return True
+        return False
+
     @property
     def is_active(self):
-        """Verifica si la suscripción está activa"""
-        now = timezone.now()
-        return self.status in ['active', 'trial'] and self.end_date > now
-    
+        return self.subscription_status.endswith('_active')
+
     @property
-    def is_trial(self):
-        """Verifica si está en periodo de prueba"""
-        return self.status == 'trial'
+    def is_in_grace_period(self):
+        return self.subscription_status.endswith('_grace')
     
     @property
     def is_expired(self):
-        """Verifica si la suscripción ha expirado"""
-        return self.end_date <= timezone.now()
-    
+        return self.subscription_status.endswith('_expired')
+
     @property
     def days_remaining(self):
-        """Calcula los días restantes de la suscripción"""
-        if self.is_expired:
-            return 0
-        
-        delta = self.end_date - timezone.now()
-        return max(0, delta.days)
-    
-    @property
-    def trial_days_remaining(self):
-        """Calcula los días restantes del periodo de prueba"""
-        if not self.is_trial or not self.trial_end_date:
-            return 0
-        
-        if self.trial_end_date <= timezone.now():
-            return 0
-        
-        delta = self.trial_end_date - timezone.now()
-        return max(0, delta.days)
-    
-    def extend_subscription(self, days=None):
-        """Extiende la suscripción por un número de días"""
-        if days is None:
-            # Extensión estándar basada en el ciclo de facturación
-            if self.plan.billing_cycle == 'monthly':
-                days = 30
-            elif self.plan.billing_cycle == 'annual':
-                days = 365
-            else:
-                days = 30  # Por defecto
-        
-        self.end_date += timedelta(days=days)
-        if self.next_billing_date:
-            self.next_billing_date += timedelta(days=days)
-        self.save()
-    
-    def cancel_subscription(self, immediate=False):
-        """Cancela la suscripción"""
-        if immediate:
-            self.status = 'cancelled'
-            self.end_date = timezone.now()
-        else:
-            self.cancel_at_period_end = True
-        
-        self.auto_renew = False
-        self.save()
-    
-    def reactivate_subscription(self):
-        """Reactiva una suscripción cancelada o expirada"""
-        if self.status in ['cancelled', 'expired']:
-            self.status = 'active'
-            self.cancel_at_period_end = False
-            self.auto_renew = True
-            
-            # Extender la suscripción si ha expirado
-            if self.is_expired:
-                self.extend_subscription()
-            
-            self.save()
-    
-    def upgrade_plan(self, new_plan):
-        """Cambia a un plan superior"""
-        old_plan = self.plan
-        self.plan = new_plan
-        
-        # Calcular prorrateo si es necesario (para implementación futura)
-        # Por ahora, simplemente cambiar el plan
-        
-        self.save()
-        
-        return {
-            'old_plan': old_plan,
-            'new_plan': new_plan,
-            'effective_date': timezone.now()
-        }
-    
-    def check_and_update_status(self):
-        """Verifica y actualiza el estado de la suscripción"""
+        """Calcula los días restantes de forma precisa según el estado de la suscripción."""
         now = timezone.now()
+
+        if self.is_active and self.end_date:
+            remaining = self.end_date - now
+        elif self.is_in_grace_period and self.grace_end_date:
+            remaining = self.grace_end_date - now
+        else:
+            return 0  # Expirado o sin fecha de referencia
+
+        return max(0, remaining.days)
+
+    def process_payment(self, amount, processed_by):
+        """Procesa un pago, extiende la suscripción y crea un registro de pago."""
+        now = timezone.now()
+        old_end_date = self.end_date
         
-        if self.is_trial and self.trial_end_date and now >= self.trial_end_date:
-            # El periodo de prueba ha terminado
-            if self.cancel_at_period_end:
-                self.status = 'cancelled'
-            else:
-                # Cambiar a plan básico o expirar
-                basic_plan = Plan.get_basic_plan()
-                if basic_plan and self.payment_status == 'paid':
-                    self.status = 'active'
-                    self.plan = basic_plan
-                else:
-                    self.status = 'expired'
+        # Extender desde la fecha de vencimiento si aún no ha pasado, o desde hoy si ya expiró.
+        base_date = max(now, self.end_date or now)
+        self.end_date = base_date + timedelta(days=self.plan.billing_cycle_days)
         
-        elif now >= self.end_date:
-            # La suscripción ha expirado
-            if self.cancel_at_period_end or not self.auto_renew:
-                self.status = 'cancelled'
-            else:
-                self.status = 'expired'
+        self.subscription_status = f'{self.plan.name}_active'
+        self.grace_end_date = None # Reiniciar el periodo de gracia
         
+        payment = Payment.objects.create(
+            subscription=self,
+            amount=amount,
+            payment_method='manual',
+            payment_type='subscription',
+            status='completed',
+            processed_by=processed_by,
+            description=f'Pago procesado para extender el plan {self.plan.display_name}',
+            days_added=self.plan.billing_cycle_days,
+            old_end_date=old_end_date,
+            new_end_date=self.end_date
+        )
         self.save()
-        return self.status        
+        return {'success': True, 'payment_id': payment.id}
+
+    def switch_plan(self, new_plan, processed_by):
+        """Cambia el plan de la suscripción, reinicia las fechas y crea un registro."""
+        now = timezone.now()
+        old_plan_display = self.plan.display_name
+        
+        self.plan = new_plan
+        self.start_date = now
+        self.end_date = now + timedelta(days=new_plan.billing_cycle_days)
+        self.subscription_status = f'{new_plan.name}_active'
+        self.grace_end_date = None
+
+        payment = Payment.objects.create(
+            subscription=self,
+            amount=new_plan.price,
+            payment_method='upgrade',
+            payment_type='upgrade',
+            status='completed',
+            processed_by=processed_by,
+            description=f'Upgrade de plan: {old_plan_display} -> {new_plan.display_name}',
+            days_added=new_plan.billing_cycle_days
+        )
+        self.save()
+        return {'success': True, 'payment_id': payment.id}
+
+    def get_payment_history(self, limit=10):
+        return self.payments.filter(status='completed').order_by('-created_at')[:limit]
+
+
+class Payment(models.Model):
+    """Modelo para registrar todos los pagos y transacciones, simplificado para MVP."""
+    PAYMENT_STATUS = [('completed', 'Completado')]
+    PAYMENT_METHODS = [('manual', 'Pago Manual'), ('upgrade', 'Upgrade')]
+    PAYMENT_TYPES = [('subscription', 'Suscripción'), ('upgrade', 'Upgrade'), ('trial_to_paid', 'Activación Trial')]
+    
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField("Monto", max_digits=10, decimal_places=2)
+    payment_method = models.CharField("Método de Pago", max_length=20, choices=PAYMENT_METHODS, default='manual')
+    payment_type = models.CharField("Tipo de Pago", max_length=20, choices=PAYMENT_TYPES, default='subscription')
+    status = models.CharField("Estado", max_length=20, choices=PAYMENT_STATUS, default='completed')
+    processed_by = models.CharField("Procesado por", max_length=100, blank=True, null=True)
+    description = models.TextField("Descripción", blank=True)
+    days_added = models.PositiveIntegerField("Días agregados", default=0)
+    
+    old_end_date = models.DateTimeField("Fecha anterior de vencimiento", null=True, blank=True)
+    new_end_date = models.DateTimeField("Nueva fecha de vencimiento", null=True, blank=True)
+    
+    created_at = models.DateTimeField("Fecha de creación", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pago"
+        verbose_name_plural = "Pagos"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.subscription.organization.name} - ${self.amount} ({self.get_status_display()})"
+
 
 class UpgradeRequest(models.Model):
-    """Modelo simplificado para gestionar solicitudes de upgrade"""
-    
+    """Gestiona las solicitudes de los usuarios para cambiar a un plan superior."""
     STATUS_CHOICES = [
-        ('pending', 'Pendiente de Aprobación'),
-        ('approved', 'Aprobada'),
-        ('rejected', 'Rechazada'),
-        ('cancelled', 'Cancelada'),
+        ('pending', 'Pendiente'),
+        ('approved', 'Aprobado'),
+        ('rejected', 'Rechazado'),
     ]
     
-    # Información básica
-    organization = models.ForeignKey(
-        'orgs.Organization',
-        on_delete=models.CASCADE,
-        related_name='upgrade_requests',
-        verbose_name="Organización"
-    )
-    current_plan = models.ForeignKey(
-        Plan,
-        on_delete=models.CASCADE,
-        related_name='current_upgrades',
-        verbose_name="Plan Actual"
-    )
-    requested_plan = models.ForeignKey(
-        Plan,
-        on_delete=models.CASCADE,
-        related_name='requested_upgrades',
-        verbose_name="Plan Solicitado"
-    )
+    organization = models.ForeignKey('orgs.Organization', on_delete=models.CASCADE, related_name='upgrade_requests')
+    current_plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name='+')
+    requested_plan = models.ForeignKey(Plan, on_delete=models.CASCADE, related_name='+')
     
-    # Estado y fechas
+    amount = models.DecimalField("Monto del upgrade", max_digits=10, decimal_places=2)
     status = models.CharField("Estado", max_length=20, choices=STATUS_CHOICES, default='pending')
-    requested_date = models.DateTimeField("Fecha de Solicitud", auto_now_add=True)
-    approved_date = models.DateTimeField("Fecha de Aprobación", null=True, blank=True)
     
-    # Usuarios involucrados
-    requested_by = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.CASCADE,
-        related_name='upgrade_requests_made',
-        verbose_name="Solicitado por"
-    )
-    approved_by = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='upgrade_requests_approved',
-        verbose_name="Aprobado por"
-    )
+    approved_by = models.CharField("Aprobado por", max_length=100, blank=True)
     
-    # Información de pago
-    amount_due = models.DecimalField("Monto a Pagar", max_digits=10, decimal_places=2)
-    payment_method = models.CharField("Método de Pago Preferido", max_length=50, blank=True, default='transferencia')
-    
-    # Notas y comentarios
-    request_notes = models.TextField("Notas de la Solicitud", blank=True)
-    admin_notes = models.TextField("Notas del Administrador", blank=True)
-    rejection_reason = models.TextField("Motivo de Rechazo", blank=True)
-    
-    # Información de contacto para pago
-    contact_info = models.JSONField("Información de Contacto", default=dict, blank=True)
-    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         verbose_name = "Solicitud de Upgrade"
         verbose_name_plural = "Solicitudes de Upgrade"
-        ordering = ['-requested_date']
-    
+        ordering = ['-created_at']
+
     def __str__(self):
-        return f"{self.organization.name} - {self.current_plan.display_name} → {self.requested_plan.display_name}"
-    
-    @property
-    def price_difference(self):
-        """Diferencia de precio entre planes"""
-        return self.requested_plan.price - self.current_plan.price
-    
-    def approve(self, approved_by_user, admin_notes=""):
-        """Aprobar la solicitud de upgrade y aplicar el cambio directamente"""
-        self.status = 'approved'
-        self.approved_by = approved_by_user
-        self.approved_date = timezone.now()
-        self.admin_notes = admin_notes
-        
-        # Aplicar el upgrade directamente
-        self._apply_upgrade()
-        
-        # Enviar confirmación
-        self._send_approval_email()
-        
-        self.save()
-    
-    def reject(self, rejected_by_user, reason=""):
-        """Rechazar la solicitud de upgrade"""
-        self.status = 'rejected'
-        self.approved_by = rejected_by_user
-        self.approved_date = timezone.now()
-        self.rejection_reason = reason
-        self.save()
-        
-        # Enviar email de rechazo
-        self._send_rejection_email()
-    
-    def cancel(self, cancelled_by_user, reason=""):
-        """Cancelar la solicitud"""
-        self.status = 'cancelled'
-        self.approved_by = cancelled_by_user
-        self.admin_notes = f"Cancelada: {reason}"
-        self.save()
-    
-    def _apply_upgrade(self):
-        """Aplicar el upgrade directamente a la suscripción"""
-        subscription = self.organization.subscription
-        old_plan = subscription.plan
-        
-        # Cambiar el plan
-        subscription.plan = self.requested_plan
-        subscription.payment_status = 'paid'
-        subscription.last_payment_date = timezone.now()
-        
-        # Extender la suscripción
-        subscription.extend_subscription()
-        
-        # Agregar al historial de pagos
-        if not subscription.metadata:
-            subscription.metadata = {}
-        
-        payment_history = subscription.metadata.get('payment_history', [])
-        payment_history.append({
-            'date': timezone.now().isoformat(),
-            'amount': float(self.amount_due),
-            'method': self.payment_method,
-            'status': 'approved_by_admin',
-            'upgrade_request_id': self.id,
-            'old_plan': old_plan.display_name,
-            'new_plan': self.requested_plan.display_name,
-            'processed_by': self.approved_by.username if self.approved_by else 'admin'
-        })
-        subscription.metadata['payment_history'] = payment_history
-        subscription.save()
-    
-    def _send_payment_instructions(self):
-        """Enviar instrucciones de pago al usuario (solo cuando se crea la solicitud)"""
-        from django.core.mail import send_mail
-        from django.conf import settings
+        return f"{self.organization.name}: {self.current_plan.display_name} -> {self.requested_plan.display_name}"
+
+    def approve(self, approved_by_user):
+        """Aprueba la solicitud, actualiza el estado y ejecuta el cambio de plan en la suscripción."""
+        from django.db import transaction
         
         logger = logging.getLogger(__name__)
         
+        if self.status != 'pending':
+            return {'success': False, 'error': 'La solicitud no está pendiente.'}
+
         try:
-            # Información bancaria para el pago
-            bank_info = getattr(settings, 'PAYMENT_BANK_INFO', {
-                'bank_name': 'Banco Ejemplo',
-                'account_holder': 'Tu Empresa SA de CV',
-                'account_number': 'XXXX-XXXX-XXXX-1234',
-                'clabe': '012345678901234567',
-                'concept': f'Upgrade Plan - Org{self.organization.id}'
-            })
-            
-            subject = f'💰 Instrucciones de Pago - Upgrade a {self.requested_plan.display_name}'
-            message = f"""
-¡Hola!
-
-Has solicitado un upgrade de plan. Aquí tienes la información para realizar el pago:
-
-DETALLES DEL UPGRADE:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Organización: {self.organization.name}
-• Plan actual: {self.current_plan.display_name} (${self.current_plan.price}/mes)
-• Plan nuevo: {self.requested_plan.display_name} (${self.requested_plan.price}/mes)
-• Monto a pagar: ${self.amount_due}/mes
-
-INFORMACIÓN PARA EL PAGO:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Banco: {bank_info.get('bank_name')}
-• Beneficiario: {bank_info.get('account_holder')}
-• Cuenta: {bank_info.get('account_number')}
-• CLABE: {bank_info.get('clabe')}
-• Concepto: {bank_info.get('concept')}
-• Monto: ${self.amount_due} MXN
-
-PRÓXIMOS PASOS:
-━━━━━━━━━━━━━━━━━━━━━━━━
-1. Realiza la transferencia bancaria
-2. Envía tu comprobante de pago por email o WhatsApp
-3. Nosotros revisaremos y aprobaremos tu solicitud
-4. Tu plan se activará automáticamente
-
-Una vez que recibamos tu comprobante de pago, activaremos tu nuevo plan inmediatamente.
-
-¿Tienes dudas? Contáctanos:
-📧 soporte@tudominio.com
-📱 +52 55 1234 5678
-
-¡Gracias por confiar en nosotros!
-            """
-            
-            # Enviar a todos los admins de la organización
-            admin_emails = []
-            for user in self.organization.users.filter(is_org_admin=True, is_active=True):
-                admin_emails.append(user.email)
-            
-            if admin_emails:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                    recipient_list=admin_emails,
-                    fail_silently=True
-                )
-                logger.info(f"Instrucciones de pago enviadas a {len(admin_emails)} administradores de {self.organization.name}")
-                return True
-            else:
-                logger.warning(f"No se encontraron administradores activos para enviar instrucciones de pago en {self.organization.name}")
-                return False
+            with transaction.atomic():
+                self.status = 'approved'
+                self.approved_by = approved_by_user.username
+                self.save()
                 
-        except Exception as e:
-            logger.error(f"Error enviando instrucciones de pago para {self.organization.name}: {str(e)}", exc_info=True)
-            return False
-    
-    def _send_approval_email(self):
-        """Enviar email de aprobación y activación"""
-        from django.core.mail import send_mail
-        from django.conf import settings
-        import logging
-        
-        logger = logging.getLogger(__name__)
-        
-        try:
-            subject = f'🎉 ¡Upgrade Aprobado y Activado! - {self.requested_plan.display_name}'
-            message = f"""
-¡Felicidades! 🎉
-
-Tu solicitud de upgrade ha sido APROBADA y tu nuevo plan está ACTIVO.
-
-DETALLES:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Organización: {self.organization.name}
-• Plan anterior: {self.current_plan.display_name}
-• Plan actual: {self.requested_plan.display_name}
-• Fecha de activación: {self.approved_date.strftime('%d/%m/%Y %H:%M')}
-
-Ya puedes acceder a todas las funcionalidades de tu nuevo plan.
-
-¡Gracias por confiar en nosotros!
-            """
-            
-            admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
-            
-            if admin_emails:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                    recipient_list=admin_emails,
-                    fail_silently=True
+                subscription = self.organization.subscription
+                result = subscription.switch_plan(
+                    new_plan=self.requested_plan,
+                    processed_by=self.approved_by
                 )
-                logger.info(f"Email de aprobación enviado a {len(admin_emails)} administradores de {self.organization.name}")
-                return True
-            else:
-                logger.warning(f"No se encontraron administradores activos para enviar email de aprobación en {self.organization.name}")
-                return False
                 
+                if result['success']:
+                    logger.info(f"Upgrade a {self.requested_plan.display_name} completado para {self.organization.name}.")
+                    return {'success': True}
+                else:
+                    # Si switch_plan falla, la transacción se revierte, así que no es necesario
+                    # revertir manualmente el estado de la solicitud.
+                    raise Exception("Fallo al cambiar el plan en la suscripción.")
+
         except Exception as e:
-            logger.error(f"Error enviando email de aprobación para {self.organization.name}: {str(e)}", exc_info=True)
-            return False
-    
-    def _send_rejection_email(self):
-        """Enviar email de rechazo"""
-        from django.core.mail import send_mail
-        from django.conf import settings
-        import logging
-        
-        logger = logging.getLogger(__name__)
-        
-        try:
-            subject = f'❌ Solicitud de Upgrade Rechazada'
-            message = f"""
-Hola,
-
-Lamentamos informarte que tu solicitud de upgrade ha sido rechazada.
-
-DETALLES:
-━━━━━━━━━━━━━━━━━━━━━━━━
-• Organización: {self.organization.name}
-• Plan solicitado: {self.requested_plan.display_name}
-• Motivo: {self.rejection_reason or 'No se proporcionó motivo específico'}
-
-Si tienes dudas sobre esta decisión, puedes contactarnos:
-📧 soporte@tudominio.com
-📱 +52 55 1234 5678
-
-Puedes realizar una nueva solicitud cuando hayas resuelto los puntos mencionados.
-            """
-            
-            admin_emails = [user.email for user in self.organization.users.filter(is_org_admin=True, is_active=True)]
-            
-            if admin_emails:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@localhost'),
-                    recipient_list=admin_emails,
-                    fail_silently=True
-                )
-                logger.info(f"Email de rechazo enviado a {len(admin_emails)} administradores de {self.organization.name}")
-                return True
-            else:
-                logger.warning(f"No se encontraron administradores activos para enviar email de rechazo en {self.organization.name}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error enviando email de rechazo para {self.organization.name}: {str(e)}", exc_info=True)
-            return False        
+            logger.error(f"Error al aprobar la solicitud de upgrade {self.id}: {str(e)}", exc_info=True)
+            return {'success': False, 'error': f'Error interno: {str(e)}'}        
