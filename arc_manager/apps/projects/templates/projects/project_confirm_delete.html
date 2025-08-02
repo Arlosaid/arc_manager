@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirm Deletion" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% trans "Are you sure?" %}</h2>
+    <p>{% blocktrans with project_name=object.name %}You are about to delete the project "<strong>{{ project_name }}</strong>". This action cannot be undone.{% endblocktrans %}</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% trans "Yes, delete it" %}</button>
+        <a href="{% url 'projects:project-detail' object.pk %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+    </form>
+</div>
+{% endblock %}

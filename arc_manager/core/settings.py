@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.orgs',
     'apps.users',
     'apps.plans',
+    'apps.projects',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

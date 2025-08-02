@@ -47,8 +47,21 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_filter = ('subscription_status', 'plan__name')
     search_fields = ('organization__name', 'plan__display_name')
     list_select_related = ('organization', 'plan')
-    readonly_fields = ('start_date', 'grace_end_date', 'created_at', 'updated_at', 'days_remaining_display', 'organization', 'plan', 'subscription_status')
-    fieldsets = (
+    
+    # Define los campos que siempre deben ser de solo lectura.
+    readonly_fields = ('start_date', 'grace_end_date', 'created_at', 'updated_at', 'days_remaining_display')
+    
+    # Define los fieldsets para las vistas de agregar y cambiar.
+    add_fieldsets = (
+        ("Información General", {
+            'fields': ('organization', 'plan', 'subscription_status')
+        }),
+        ("Fechas Clave (se autocalculan)", {
+            'fields': ('end_date',)
+        }),
+    )
+    
+    change_fieldsets = (
         ("Información General", {
             'fields': ('organization', 'plan', 'subscription_status')
         }),
@@ -59,9 +72,35 @@ class SubscriptionAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at')
         }),
     )
+    
     inlines = [PaymentInline]
     actions = ['process_selected_payments']
 
+    def get_fieldsets(self, request, obj=None):
+        if not obj:
+            return self.add_fieldsets
+        return self.change_fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+        # Si el objeto ya existe (vista de cambio), define campos de solo lectura específicos.
+        if obj:
+            # Permite la edición de 'plan' y 'end_date', pero mantiene el resto como solo lectura.
+            return ('organization', 'subscription_status', 'start_date', 'grace_end_date', 'created_at', 'updated_at', 'days_remaining_display')
+        
+        # Para un objeto nuevo, usa la configuración estándar de solo lectura.
+        return self.readonly_fields
+    
+    def add_view(self, request, form_url='', extra_context=None):
+        # Precarga el ID de la organización desde el parámetro GET.
+        # Esto asegura que el campo 'organization' se establezca correctamente.
+        organization_id = request.GET.get('organization')
+        if organization_id:
+            # Inyecta el ID de la organización en los datos iniciales del formulario.
+            request.GET = request.GET.copy()
+            request.GET['organization'] = organization_id
+            
+        return super().add_view(request, form_url, extra_context)
+    
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         obj.update_status()
