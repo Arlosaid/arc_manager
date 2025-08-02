@@ -67,11 +67,18 @@ class OrganizationAdmin(admin.ModelAdmin):
     get_subscription_status.short_description = 'Estado de Suscripción'
     
     def get_subscription_link(self, obj):
-        """Enlace directo para gestionar la suscripción"""
-        if hasattr(obj, 'subscription'):
+        """
+        Proporciona un enlace para gestionar la suscripción existente o
+        para crear una nueva si no existe.
+        """
+        if hasattr(obj, 'subscription') and obj.subscription:
+            # Si la suscripción existe, enlace para editarla
             subscription_url = reverse('admin:plans_subscription_change', args=[obj.subscription.pk])
             return format_html('<a href="{}" class="button">📝 Gestionar suscripción</a>', subscription_url)
-        return format_html('<span style="color: gray;">No disponible</span>')
+        else:
+            # Si no hay suscripción, enlace para crear una nueva, pre-rellenando la organización
+            add_subscription_url = reverse('admin:plans_subscription_add') + f'?organization={obj.pk}'
+            return format_html('<a href="{}" class="button">➕ Crear suscripción</a>', add_subscription_url)
     get_subscription_link.short_description = 'Gestión'
     
     # Solo acciones esenciales para activar/desactivar

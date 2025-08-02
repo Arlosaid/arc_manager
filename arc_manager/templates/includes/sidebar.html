@@ -34,6 +34,30 @@
                 </ul>
             </div>
 
+            <!-- Projects Section -->
+            {% if user.is_authenticated %}
+            <div class="nav-section">
+                <div class="section-header sidebar-section-header">
+                    <h6 class="section-title">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Proyectos</span>
+                    </h6>
+                </div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'projects:' in request.resolver_match.namespace|default:'' or 'project' in request.resolver_match.url_name|default:'' or '/projects/' in request.path %}active{% endif %}" 
+                           href="{% url 'projects:project-list' %}" data-tooltip="Ver Proyectos">
+                            <div class="nav-icon">
+                                <i class="fas fa-stream"></i>
+                            </div>
+                            <span class="nav-text">Mis Proyectos</span>
+                            <div class="nav-indicator"></div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+
             <!-- Suscripción Section - Simplificado para SaaS -->
             {% if user.is_authenticated %}
             <div class="nav-section">

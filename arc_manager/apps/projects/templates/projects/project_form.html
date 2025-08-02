@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% if object %}{% trans "Edit Project" %}{% else %}{% trans "Create Project" %}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if object %}{% trans "Edit Project" %}: {{ object.name }}{% else %}{% trans "Create a New Project" %}{% endif %}</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success">
+            {% if object %}{% trans "Save Changes" %}{% else %}{% trans "Create Project" %}{% endif %}
+        </button>
+        <a href="{% url 'projects:project-list' %}" class="btn btn-secondary">{% trans "Cancel" %}</a>
+    </form>
+</div>
+{% endblock %}

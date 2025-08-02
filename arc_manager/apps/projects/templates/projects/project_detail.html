@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Project Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2">{{ project.name }}</h1>
+            <p class="text-muted">{{ project.client }}</p>
+        </div>
+        <div>
+            <a href="{% url 'projects:project-update' project.pk %}" class="btn btn-secondary">{% trans "Edit Project" %}</a>
+            <a href="{% url 'projects:project-delete' project.pk %}" class="btn btn-danger">{% trans "Delete" %}</a>
+        </div>
+    </div>
+
+    <!-- Phase Stepper -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4>{% trans "Project Phase" %}</h4>
+            {% if project.phase != project.Phases.values|last %}
+            <form action="{% url 'projects:project-advance-phase' project.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">{% trans "Advance to Next Phase" %} →</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="steps">
+            {% for phase_id, phase_name in project.Phases.choices %}
+            <div class="step-item {% if project.phase == phase_id %}active{% endif %}">
+                <div class="step-marker">{{ forloop.counter }}</div>
+                <div class="step-details">
+                    <div class="step-title">{{ phase_name }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tasks and Files Section -->
+    <div class="row">
+        <!-- Tasks Column -->
+        <div class="col-md-6">
+            <h4>{% trans "Tasks" %}</h4>
+            <div class="card">
+                <ul class="list-group list-group-flush">
+                    {% for task in project.tasks.all %}
+                        <li class="list-group-item">{{ task.title }}</li>
+                    {% empty %}
+                        <li class="list-group-item">{% trans "No tasks yet." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Files Column -->
+        <div class="col-md-6">
+            <h4>{% trans "Files" %}</h4>
+            <div class="card">
+                 <ul class="list-group list-group-flush">
+                    {% for file in project.files.all %}
+                        <li class="list-group-item">
+                            <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"project_"|cut:project.id|cut:"/"|cut:file.upload_phase }}</a>
+                            <span class="badge bg-secondary">{{ file.upload_phase }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">{% trans "No files yet." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
